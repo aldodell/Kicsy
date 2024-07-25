@@ -12,7 +12,7 @@ class Kicsy {
      */
     static nextId() {
         // Increment the ID by 1 and return the new value.
-        return ++Kicsy.id;
+        return "kicsy-" + ++Kicsy.id;
     }
 
 
@@ -42,7 +42,8 @@ class Kicsy {
 
 
 class KicsyObject {
-    #myId;
+
+    _id;
 
     /**
      * KicsyObject constructor
@@ -51,59 +52,38 @@ class KicsyObject {
      * It generates a unique ID using Kicsy.nextId and assigns it to the #myId property.
      */
     constructor() {
-        this.#myId = Kicsy.nextId();
+        this.id = Kicsy.nextId();
     }
 
-    /**
-     * Clones the current object and returns the new object.
-     * If the className parameter is not provided, it defaults to KicsyObject.
-     * 
-     * @param {class} [className=KicsyObject] - The class of the object to clone.
-     * @param {...any} args - The arguments to pass to the constructor of the cloned object.
-     * @return {object} The cloned object.
-     */
-    clone(className = KicsyObject, ...args) {
-        // Create a new instance of the specified class with the provided arguments
-        let obj = new className(...args);
-
-        // Iterate over each property of the current object
-        for (const prop in this) {
-            if (prop != "id") {
-
-                const propValue = this[prop];
-
-                // If the property has a clone method, call it to clone the value
-                if (propValue.clone != undefined) {
-                    obj[prop] = propValue.clone();
-                }
-                // Otherwise, simply copy the value
-                else {
-                    obj[prop] = propValue;
-                }
-            }
-        }
-
-
-
-        // Return the cloned object
-        return obj;
-    }
-
-
-    /**
-     * Get the ID of the object.
-     *
-     * @return {number} The ID of the object.
-     */
     get id() {
-        // Return the ID of the object.
-        return "kicsy-" + this.#myId;
+        return this._id;
     }
+    /**
+        * @param {string} str
+        */
+    set id(str) {
+        this._id = str;
+        if (this.dom != undefined) {
+            this.dom.setAttribute("id", str);
+        }
+    }
+
+
+
+    clone(className = KicsyObject) {
+        let newObject = new className();
+        let idNew = newObject.id;
+        Object.assign(newObject, this);
+        newObject.id = idNew;
+        return newObject;
+    }
+
+
 }
 
 
 class KicsyComponent extends KicsyObject {
-    /** @type {HTMLElement} The DOM element of the component */
+    /** @type { HTMLElement } The DOM element of the component */
     dom;
     /**
      * Constructor for KicsyComponent class.
@@ -145,12 +125,13 @@ class KicsyComponent extends KicsyObject {
         }
 
         // Set the kicsy property of the DOM element to the current instance
-        this.dom.kicsy = this;
+        this.dom.kicsyReference = this;
     }
 
     static build(html, type) {
         return new KicsyComponent(html, type)
     }
+
 
     /**
      * Set the value of the DOM element to the provided value.
@@ -285,6 +266,15 @@ class KicsyComponent extends KicsyObject {
         return this;
     }
 
+
+    clone(className = KicsyComponent) {
+        let obj = super.clone(className);
+        obj.dom = obj.dom.cloneNode(true);
+        obj.dom.kicsyReference = obj;
+        return obj;
+
+    }
+
 }
 
 
@@ -369,6 +359,10 @@ class KicsyVisualComponent extends KicsyComponent {
         return this;
     }
 
+    clone(className = KicsyVisualComponent) {
+        return super.clone(className);
+    }
+
 }
 
 class KicsyVisualContainerComponent extends KicsyVisualComponent {
@@ -418,6 +412,16 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
     }
 
 
+
+    clone(className = KicsyVisualContainerComponent) {
+        let obj = super.clone(className);
+        obj.dom = this.dom.cloneNode(false);
+        for (let child of this.dom.children) {
+            let c = child.kicsyReference.clone();
+            obj.dom.appendChild(c.dom);
+        }
+        return obj;
+    }
 }
 
 function KLayer(...args) {
