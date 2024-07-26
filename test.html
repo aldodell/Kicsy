@@ -14,26 +14,11 @@
     <script>
 
 
-        let b1 = KButton("Hola mundo");
+        let b1 = KLayer(KLayer(KButton("Hola").addEvent("click", function () { alert("hola") })));
         b1.publish();
 
         let b2 = b1.clone();
         b2.publish();
-
-
-        let row = KLayer(
-            KButton("Hello World").addEvent("click", () => console.log("Hello World")),
-            KText("Hello World"),
-            KNumber(),
-            KRange()
-        ).addCssTextToChildren("display: inline-block").publish();
-
-        let row2 = row.clone();
-        console.log(row2);
-
-        row2.publish();
-
-
 
     </script>
 </body>

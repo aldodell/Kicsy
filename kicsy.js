@@ -4,16 +4,6 @@
 class Kicsy {
 
     static version = "0.0.1";
-    static id = 0;
-    /**
-     * Generate the next unique ID.
-     *
-     * @return {number} The next unique ID.
-     */
-    static nextId() {
-        // Increment the ID by 1 and return the new value.
-        return "kicsy-" + ++Kicsy.id;
-    }
 
 
     /**
@@ -43,39 +33,22 @@ class Kicsy {
 
 class KicsyObject {
 
-    _id;
 
     /**
-     * KicsyObject constructor
-     * 
-     * This is the constructor of the KicsyObject class.
-     * It generates a unique ID using Kicsy.nextId and assigns it to the #myId property.
+     * Creates a shallow clone of the current object.
+     *
+     * @param {KicsyObject} [className=KicsyObject] - The class of the object to clone. Defaults to the class of the current object.
+     * @return {KicsyObject} - The cloned object.
      */
-    constructor() {
-        this.id = Kicsy.nextId();
-    }
-
-    get id() {
-        return this._id;
-    }
-    /**
-        * @param {string} str
-        */
-    set id(str) {
-        this._id = str;
-        if (this.dom != undefined) {
-            this.dom.setAttribute("id", str);
-        }
-    }
-
-
-
     clone(className = KicsyObject) {
-        let newObject = new className();
-        let idNew = newObject.id;
-        Object.assign(newObject, this);
-        newObject.id = idNew;
-        return newObject;
+        // Create a new object with the same prototype as the provided class
+        let obj = Object.create(className.prototype);
+
+        // Copy the properties of the current object to the new object
+        Object.assign(obj, this);
+
+        // Return the cloned object
+        return obj;
     }
 
 
@@ -85,6 +58,7 @@ class KicsyObject {
 class KicsyComponent extends KicsyObject {
     /** @type { HTMLElement } The DOM element of the component */
     dom;
+
     /**
      * Constructor for KicsyComponent class.
      *
@@ -108,7 +82,8 @@ class KicsyComponent extends KicsyObject {
             this.dom.setAttribute("type", type);
         }
 
-        this.dom.setAttribute("id", this.id);
+        //Save reference for clone
+        this.dom.events = [];
 
         // If any of the additional arguments is a function, call it with the current instance as an argument
         for (const arg of args) {
@@ -124,8 +99,7 @@ class KicsyComponent extends KicsyObject {
             this.setValue(args[0]);
         }
 
-        // Set the kicsy property of the DOM element to the current instance
-        this.dom.kicsyReference = this;
+
     }
 
     static build(html, type) {
@@ -166,8 +140,12 @@ class KicsyComponent extends KicsyObject {
      * @return {KicsyComponent} - The current instance of the KicsyComponent class.
      */
     addEvent(event, callback) {
+
         // Add an event listener to the DOM element
         this.dom.addEventListener(event, callback);
+
+        //Save reference for clone
+        this.dom.events.push({ "event": event, "callback": callback });
 
         // Return the current instance of the KicsyComponent class
         return this;
@@ -266,13 +244,13 @@ class KicsyComponent extends KicsyObject {
         return this;
     }
 
-
-    clone(className = KicsyComponent) {
+    clone(className = KicsyVisualComponent) {
         let obj = super.clone(className);
-        obj.dom = obj.dom.cloneNode(true);
-        obj.dom.kicsyReference = obj;
+        obj.dom = this.dom.cloneNode(true);
+        for (let e of this.dom.events) {
+            obj.dom.addEventListener(e.event, e.callback);
+        }
         return obj;
-
     }
 
 }
@@ -412,14 +390,31 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
     }
 
 
-
     clone(className = KicsyVisualContainerComponent) {
-        let obj = super.clone(className);
-        obj.dom = this.dom.cloneNode(false);
-        for (let child of this.dom.children) {
-            let c = child.kicsyReference.clone();
-            obj.dom.appendChild(c.dom);
+
+        var z = 0;
+        function deepClone(source, target) {
+            for (let child of source.childNodes) {
+                let cloneChild = child.cloneNode(false);
+
+                cloneChild.events = child.events;
+                for (let e of child.events) {
+                    cloneChild.addEventListener(e.event, e.callback);
+                }
+
+
+                target.appendChild(cloneChild);
+                deepClone(child, cloneChild);
+            }
+
         }
+
+        let domClone = this.dom.cloneNode(false);
+        deepClone(this.dom, domClone);
+
+        let obj = super.clone(className);
+        obj.dom = domClone;
+
         return obj;
     }
 }
