@@ -1,11 +1,39 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: kicsy.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: kicsy.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * @file Kicsy JS library
  * This is the main library of the Kicsy JS library. It contains the Kicsy class and the KicsyObject class.
  * This framework was developed intended to be used in Kicsy projects and increase 
  * the productivity of the developers.
  * Was developed with functional and lamda paradigm.
  * 
- * @author Aldo Dell Uomini <aldodell@gmail.com>
+ * @author Aldo Dell Uomini &lt;aldodell@gmail.com>
  * @version 0.0.1
  */
 
@@ -872,97 +900,26 @@ function KDateTimeLocal(...args) {
     return new KicsyVisualComponent("input", "datetime-local", ...args);
 }
 
-
-
-class KRowClass extends KicsyVisualContainerComponent {
-    /**
-     * Creates a new instance of KRowClass with the provided components.
-     *
-     * @param {...KicsyVisualComponent} components - The components to be appended to the row.
-     */
-    constructor(...components) {
-        super(...components);
-
-        /**
-         * Change the display style of each child component to "inline-block"
-         * to make them appear in a single row.
-         */
-        for (let child of this.dom.childNodes) {
-            child.style.display = "inline-block";
-        }
-    }
-}
-
-/**
- * Creates a new instance of KRow with the provided components.
- *
- * @param {...KicsyVisualComponent} components - The components to be appended to the row.
- * @returns {KicsyVisualContainerComponent} - The newly created KicsyVisualContainerComponent instance.
- */
-function KRow(...components) {
-    // Create a new instance of KRowClass with the provided components
-    let obj = new KRowClass(...components);
-
-    // Return the newly created KicsyVisualContainerComponent instance
-    return obj;
-}
+</code></pre>
+        </article>
+    </section>
 
 
 
-class KColumnClass extends KicsyVisualContainerComponent {
-    /**
-     * Creates a new instance of KColumnClass with the provided components.
-     *
-     * @param {...KicsyVisualComponent} components - The components to be appended to the column.
-     */
-    constructor(...components) {
-        super(...components);
 
-        /**
-         * Change the display style of each child component to "block"
-         * to make them appear in a single column.
-         */
-        for (let child of this.dom.childNodes) {
-            // Set the display style of each child to "block"
-            child.style.display = "block";
-        }
-    }
-}
+</div>
 
-/**
- * Creates a new instance of KColumn with the provided components.
- *
- * @param {...KicsyVisualComponent} components - The components to be appended to the column.
- * @returns {KicsyVisualContainerComponent} - The newly created KicsyVisualContainerComponent instance.
- */
-function KColumn(...components) {
-    // Create a new instance of KColumnClass with the provided components
-    let obj = new KColumnClass(...components);
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Kicsy.html">Kicsy</a></li><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KCheckbox">KCheckbox</a></li><li><a href="global.html#KColorPicker">KColorPicker</a></li><li><a href="global.html#KDate">KDate</a></li><li><a href="global.html#KDateTimeLocal">KDateTimeLocal</a></li><li><a href="global.html#KEmail">KEmail</a></li><li><a href="global.html#KFile">KFile</a></li><li><a href="global.html#KHidden">KHidden</a></li><li><a href="global.html#KImage">KImage</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KLayer">KLayer</a></li><li><a href="global.html#KMonth">KMonth</a></li><li><a href="global.html#KNumber">KNumber</a></li><li><a href="global.html#KPassword">KPassword</a></li><li><a href="global.html#KRadio">KRadio</a></li><li><a href="global.html#KRange">KRange</a></li><li><a href="global.html#KReset">KReset</a></li><li><a href="global.html#KSearch">KSearch</a></li><li><a href="global.html#KSubmit">KSubmit</a></li><li><a href="global.html#KTel">KTel</a></li><li><a href="global.html#KText">KText</a></li><li><a href="global.html#KTextarea">KTextarea</a></li><li><a href="global.html#KTime">KTime</a></li><li><a href="global.html#KUrl">KUrl</a></li></ul>
+</nav>
 
-    // Return the newly created KicsyVisualContainerComponent instance
-    return obj;
-}
+<br class="clear">
 
-/**
- * Class representing a column of visual components.
- * Inherits from KicsyVisualContainerComponent.
- */
-class KColumnClass extends KicsyVisualContainerComponent {
-    /**
-     * Creates a new instance of KColumnClass with the provided components.
-     *
-     * @param {...KicsyVisualComponent} components - The components to be appended to the column.
-     */
-    constructor(...components) {
-        super(...components);
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Fri Jul 26 2024 07:13:23 GMT-0400 (hora de Venezuela)
+</footer>
 
-        /**
-         * Change the display style of each child component to "block"
-         * to make them appear in a single column.
-         */
-        for (let child of this.dom.childNodes) {
-            // Set the display style of each child to "block"
-            child.style.display = "block";
-        }
-    }
-}
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

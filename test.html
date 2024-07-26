@@ -15,16 +15,32 @@
 
         let data = { "vehiculo": { "tipo": "carro", "marca": "ford" } };
 
-        KLayer
-            (
+
+
+        KColumn(
+            KButton("Hola"),
+            KButton("Mundo")
+        )
+        .publish();
+
+
+        KLayer(
+            KLayer(
                 KLayer(
-                    KText().setName("tipo"),
-                    KText().setName("marca")
+                    KLayer(
+                        KLayer(
+                            KLayer()
+                                .setName("vehiculo")
+                                .add
+                                (
+                                    KText().setName("tipo"),
+                                    KText().setName("marca")
+                                )
+                        )
+                    )
                 )
-                    .setName("vehiculo")
-
-
             )
+        )
             .setData(data)
             .publish()
 
