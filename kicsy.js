@@ -100,6 +100,9 @@ class KicsyComponent extends KicsyObject {
         }
 
 
+        //Set autoreference
+        this.dom.kicsy = this;
+
     }
 
     static build(html, type) {
@@ -250,6 +253,7 @@ class KicsyComponent extends KicsyObject {
         for (let e of this.dom.events) {
             obj.dom.addEventListener(e.event, e.callback);
         }
+        obj.dom.kicsy = obj;
         return obj;
     }
 
@@ -392,17 +396,19 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
 
     clone(className = KicsyVisualContainerComponent) {
 
-        var z = 0;
+
         function deepClone(source, target) {
             for (let child of source.childNodes) {
                 let cloneChild = child.cloneNode(false);
+                cloneChild.kicsy = child.kicsy;
 
-                cloneChild.events = child.events;
-                for (let e of child.events) {
-                    cloneChild.addEventListener(e.event, e.callback);
+                if (child.events != undefined) {
+                    cloneChild.events = child.events;
+
+                    for (let e of child.events) {
+                        cloneChild.addEventListener(e.event, e.callback);
+                    }
                 }
-
-
                 target.appendChild(cloneChild);
                 deepClone(child, cloneChild);
             }
@@ -414,13 +420,56 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
 
         let obj = super.clone(className);
         obj.dom = domClone;
+        obj.dom.kicsy = obj;
 
         return obj;
     }
 }
 
+function KLabel(...args) {
+    let obj = new KicsyVisualComponent("label", undefined, ...args);
+    obj.setValue = function (text) {
+        obj.dom.innerText = text;
+    }
+
+    if (typeof args[0] == "string" || typeof args[0] == "number") {
+        obj.setValue(args[0]);
+    }
+
+    return obj;
+}
+
 function KLayer(...args) {
-    return new KicsyVisualContainerComponent(...args);
+
+    let obj = new KicsyVisualContainerComponent(...args);
+
+    obj.setValue = function (text) {
+        console.log("KLayer.setValue is not implemented yet");
+        return this;
+    }
+
+    obj.getValue = function () {
+        console.log("KLayer.getValue is not implemented yet");
+        return this;
+    }
+
+    obj.setData = function (data) {
+        for (let child of obj.dom.childNodes) {
+            let name = child.getAttribute("name");
+            if (data[name] != undefined) {
+                if (child.kicsy.setData != undefined) {
+                    child.kicsy.setData(data[name]);
+                } else {
+                    child.kicsy.setValue(data[name]);
+                }
+
+            }
+        }
+
+        return obj;
+    }
+
+    return obj;
 }
 
 

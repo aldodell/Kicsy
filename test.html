@@ -13,12 +13,22 @@
     <h1>Test</h1>
     <script>
 
+        let data = { "vehiculo": { "tipo": "carro", "marca": "ford" } };
 
-        let b1 = KLayer(KLayer(KButton("Hola").addEvent("click", function () { alert("hola") })));
-        b1.publish();
+        KLayer
+            (
+                KLayer(
+                    KText().setName("tipo"),
+                    KText().setName("marca")
+                )
+                    .setName("vehiculo")
 
-        let b2 = b1.clone();
-        b2.publish();
+
+            )
+            .setData(data)
+            .publish()
+
+
 
     </script>
 </body>
