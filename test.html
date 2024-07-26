@@ -13,36 +13,35 @@
     <h1>Test</h1>
     <script>
 
-        let data = { "vehiculo": { "tipo": "carro", "marca": "ford" } };
+        let arrayData =
+            [{ "vehiculo": { "tipo": "carro", "marca": "ford" } },
+            { "vehiculo": { "tipo": "moto", "marca": "yamaha" } },
+            { "vehiculo": { "tipo": "avion", "marca": "boing" } },
+            { "vehiculo": { "tipo": "barco", "marca": "Sea" } },
+            { "vehiculo": { "tipo": "avion", "marca": "cessna" } },
+            { "vehiculo": { "tipo": "moto", "marca": "honda" } },
+            { "vehiculo": { "tipo": "moto", "marca": "BERA" } },
+            { "vehiculo": { "tipo": "carro", "marca": "mazda" } },
+            { "vehiculo": { "tipo": "carro", "marca": "chevrolet" } },
 
 
 
-        KColumn(
-            KButton("Hola"),
-            KButton("Mundo")
-        )
-        .publish();
+            ];
 
+
+        let layer1;
 
         KLayer(
             KLayer(
-                KLayer(
-                    KLayer(
-                        KLayer(
-                            KLayer()
-                                .setName("vehiculo")
-                                .add
-                                (
-                                    KText().setName("tipo"),
-                                    KText().setName("marca")
-                                )
-                        )
-                    )
-                )
-            )
+                KButton().setName("tipo"),
+                KButton().setName("marca"),
+            ).getMe((layer) => layer1 = layer).setName("vehiculo")
+            ,
+            KButton("Hola mundo")
         )
-            .setData(data)
             .publish()
+
+        layer1.setArrayData(arrayData);
 
 
 

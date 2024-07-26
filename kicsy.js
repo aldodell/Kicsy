@@ -469,6 +469,11 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
         return obj;
     }
 
+
+
+
+
+
     /**
      * Sets the data for all child components of the container.
      * If a child component has a setData method, it is called with the corresponding value.
@@ -479,31 +484,154 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
      * @return {KicsyVisualContainerComponent} - The current instance of the container.
      */
     setData(data) {
-        // Iterate over each child component of the container's DOM element
-        for (let child of this.dom.childNodes) {
-            // Get the name attribute of the child component's DOM element
-            let name = child.getAttribute("name");
 
-            // If the data object contains a value for the current child component's name
-            if (data[name] != undefined) {
-                // If the child component has a setData method, call it with the corresponding value
-                if (child.kicsy.setData != undefined) {
-                    child.kicsy.setData(data[name]);
-                }
-                // Otherwise, call the setValue method with the corresponding value
-                else {
-                    child.kicsy.setValue(data[name]);
-                }
-            } else {
-                // If the child component has a setData method, call it with the corresponding value
+        // Get the name attribute of the child component's DOM element
+        let name = this.dom.getAttribute("name");
+
+        if (name == undefined) {
+            for (let child of this.dom.childNodes) {
                 if (child.kicsy.setData != undefined) {
                     child.kicsy.setData(data);
+                } else {
+                    let childName = child.getAttribute("name");
+                    if (data[childName] != undefined) {
+                        child.kicsy.setValue(data[childName]);
+                    }
+                }
+            }
+        } else {
+
+
+            // Iterate over each child component of the container's DOM element
+            for (let child of this.dom.childNodes) {
+
+                // Get the name attribute of the child component's DOM element
+                let childName = child.getAttribute("name");
+
+
+                // If the data object contains a value for the current child component's name
+                if (data[name] != undefined) {
+                    // If the child component has a setData method, call it with the corresponding value
+                    if (child.kicsy.setData != undefined) {
+                        child.kicsy.setData(data[name]);
+                    }
+                    // Otherwise, call the setValue method with the corresponding value
+                    else {
+                        if (childName != undefined && name != undefined) {
+                            child.kicsy.setValue(data[name][childName]);
+                        }
+                    }
+                } else {
+                    // If the child component has a setData method, call it with the corresponding value
+                    if (child.kicsy.setData != undefined) {
+                        child.kicsy.setData(data);
+                    }
+                }
+            }
+        }
+        // Return the current instance of the container
+        return this;
+    }
+
+
+    /**
+     * Retrieves data from all child components of the container.
+     * If a child component has a getData method, it is called recursively with the corresponding value.
+     * If a child component has a getValue method, its value is stored in the data object.
+     * Each child must have a name attribute set. Use {@link KicsyComponent#setName} to add child components.
+     *
+     * @param {Object} [data] - The data object to store the values in. If not provided, a new object is created.
+     * @param {function} [callback] - The callback function to call with the data object. If not provided, the data object is returned.
+     * @returns {KicsyVisualContainerComponent|Object} - If no callback function is provided, the data object is returned.
+     * Otherwise, the current instance of the container is returned.
+     */
+    getData(data, callback) {
+
+        // If no data object is provided, create a new one
+        if (data == undefined) {
+            data = {};
+        }
+
+        // Get the name attribute of the container's DOM element
+        let name = this.dom.getAttribute("name");
+
+        // Iterate over each child component of the container's DOM element
+        for (let child of this.dom.childNodes) {
+
+            // Get the name attribute of the child component's DOM element
+            let childName = child.getAttribute("name");
+
+            // If the child component has a getData method, call it recursively
+            if (child.kicsy.getData != undefined) {
+                if (name == undefined) {
+                    child.kicsy.getData(data, callback);
+                } else {
+                    child.kicsy.getData(data[name], callback);
+                }
+            } else {
+                // If the child component has a getValue method, store its value in the data object
+                if (name != undefined && childName != undefined) {
+                    let childValue = {};
+                    childValue[childName] = child.kicsy.getValue();
+                    if (data[name] == undefined) {
+                        data[name] = childValue;
+                    } else {
+                        Object.assign(data[name], childValue);
+                    }
+
+                } else {
+                    if (childName != undefined) {
+                        let childValue = child.kicsy.getValue();
+                        data[childName] = childValue;
+                    }
                 }
             }
         }
 
-        // Return the current instance of the container
+        // If a callback function is provided, call it with the data object and return the current instance of the container
+        if (callback != undefined) {
+            callback(data);
+            return this;
+        } else {
+            // Otherwise, return the data object
+            return data;
+        }
+
+    }
+
+
+    /**
+     * Sets the data of the container and its child components with the data from the array at the specified index.
+     * If there are more records in the array, clones the container and calls itself recursively with the next record.
+     *
+     * @param {Array} arrayData - The array of data to set in the container.
+     * @param {number} [index=0] - The index of the record to set in the container. Defaults to 0.
+     * @param {KicsyVisualComponent} [template=this] - The template to use for cloning the container. Defaults to the current instance of the container.
+     * @returns {KicsyVisualContainerComponent} - The current instance of the container.
+     */
+    setArrayData(arrayData, index = 0, template = this) {
+
+        // Get the data from the current record
+        let data = arrayData[index];
+
+        // Set the data for the current instance of the container
+        this.setData(data);
+
+        // Increment the index and check if there are more records in the array
+        index++;
+        if (index == arrayData.length) { return this; }
+
+        // Clone the container
+        let nextRecord = template.clone();
+
+        // Insert the cloned container before the current container
+        this.dom.parentNode.insertBefore(nextRecord.dom, this.dom.parentNode.lastChild);
+
+        // Call setArrayData recursively with the next record
+        nextRecord.setArrayData(arrayData, index, template);
+
         return this;
+
     }
 
 }
@@ -580,8 +708,15 @@ function KLayer(...args) {
  * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
  */
 function KButton(...args) {
+
+    let obj = new KicsyVisualComponent("input", "button", ...args);
+
+    if (typeof args[0] == "string" || typeof args[0] == "number") {
+        obj.dom.value = args[0];
+    }
+
     // Create a new KicsyVisualComponent instance with the "input" HTML tag, "button" type, and the provided arguments
-    return new KicsyVisualComponent("input", "button", ...args);
+    return obj;
 }
 
 /**
@@ -908,7 +1043,6 @@ function KRow(...components) {
 }
 
 
-
 class KColumnClass extends KicsyVisualContainerComponent {
     /**
      * Creates a new instance of KColumnClass with the provided components.
@@ -941,28 +1075,4 @@ function KColumn(...components) {
 
     // Return the newly created KicsyVisualContainerComponent instance
     return obj;
-}
-
-/**
- * Class representing a column of visual components.
- * Inherits from KicsyVisualContainerComponent.
- */
-class KColumnClass extends KicsyVisualContainerComponent {
-    /**
-     * Creates a new instance of KColumnClass with the provided components.
-     *
-     * @param {...KicsyVisualComponent} components - The components to be appended to the column.
-     */
-    constructor(...components) {
-        super(...components);
-
-        /**
-         * Change the display style of each child component to "block"
-         * to make them appear in a single column.
-         */
-        for (let child of this.dom.childNodes) {
-            // Set the display style of each child to "block"
-            child.style.display = "block";
-        }
-    }
 }
