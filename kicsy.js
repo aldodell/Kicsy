@@ -278,10 +278,13 @@ class KicsyComponent extends KicsyObject {
     clone(className = KicsyVisualComponent) {
         let obj = super.clone(className);
         obj.dom = this.dom.cloneNode(true);
+        obj.dom.kicsy = obj;
+        obj.dom.events = [];
         for (let e of this.dom.events) {
             obj.dom.addEventListener(e.event, e.callback);
+            obj.dom.events.push({ "event": e.event, "callback": e.callback });
         }
-        obj.dom.kicsy = obj;
+
         return obj;
     }
 
@@ -394,6 +397,21 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
     }
 
     /**
+     * Removes all child components from the container.
+     *
+     * @return {KicsyVisualContainerComponent} - The current instance of the KicsyVisualContainerComponent class.
+     */
+    clear() {
+        // Iterate over each child component of the container's DOM element
+        while (this.dom.firstChild) {
+            // Remove the last child component from the container's DOM element
+            this.dom.removeChild(this.dom.lastChild);
+        }
+        // Return the current instance of the KicsyVisualContainerComponent class
+        return this;
+    }
+
+    /**
      * Adds the provided CSS text to the CSS style of all children of the container.
      * Style is added to each child individually, wich are contained in the container's DOM element.
      * Must be used after children have been appended to the container.
@@ -469,70 +487,58 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
         return obj;
     }
 
-
-
-
-
-
     /**
      * Sets the data for all child components of the container.
      * If a child component has a setData method, it is called with the corresponding value.
      * If a child component has a setValue method, it is called with the corresponding value.
-     * Each child must have a name attribute set. Use {@link KicsyComponent#setName} to add child components.
+     * Each child must have a name attribute set. Use KicsyComponent#setName to add child components.
      *
-     * @param {Object} data - The data object containing the values to set.
-     * @return {KicsyVisualContainerComponent} - The current instance of the container.
+     * @param {Object} data - An object containing the data to set for each child component.
      */
     setData(data) {
-
-        // Get the name attribute of the child component's DOM element
+        // Get the name attribute of the current container component's DOM element
         let name = this.dom.getAttribute("name");
 
-        if (name == undefined) {
-            for (let child of this.dom.childNodes) {
-                if (child.kicsy.setData != undefined) {
+        // Iterate over each child component of the container's DOM element
+        for (let child of this.dom.childNodes) {
+            // Get the name attribute of the child component's DOM element
+            let childName = child.getAttribute("name");
+
+            // If the child component has a setData method, call it with the corresponding value
+            if (child.kicsy.setData != undefined) {
+                // If the current child component does not have a name attribute, call setData with the entire data object
+                if (name == undefined) {
+                    // Call the setData method of the child component with the entire data object
                     child.kicsy.setData(data);
-                } else {
-                    let childName = child.getAttribute("name");
-                    if (data[childName] != undefined) {
-                        child.kicsy.setValue(data[childName]);
-                    }
+                }
+                // Otherwise, call setData with the corresponding value from the data object
+                else {
+                    // Call the setData method of the child component with the value from the data object corresponding to the name attribute of the child component
+                    child.kicsy.setData(data[name]);
                 }
             }
-        } else {
-
-
-            // Iterate over each child component of the container's DOM element
-            for (let child of this.dom.childNodes) {
-
-                // Get the name attribute of the child component's DOM element
-                let childName = child.getAttribute("name");
-
-
-                // If the data object contains a value for the current child component's name
-                if (data[name] != undefined) {
-                    // If the child component has a setData method, call it with the corresponding value
-                    if (child.kicsy.setData != undefined) {
-                        child.kicsy.setData(data[name]);
-                    }
-                    // Otherwise, call the setValue method with the corresponding value
-                    else {
-                        if (childName != undefined && name != undefined) {
-                            child.kicsy.setValue(data[name][childName]);
-                        }
+            // If the child component does not have a setData method, check if it has a setValue method
+            else {
+                // If the current child component does not have a name attribute, check if the data object has a value for the child component's name
+                if (name == undefined) {
+                    // If the data object has a value for the child component's name, call the setValue method of the child component with the corresponding value
+                    if (childName != undefined && data[childName] != undefined) {
+                        child.kicsy.setValue(data[childName]);
                     }
                 } else {
-                    // If the child component has a setData method, call it with the corresponding value
-                    if (child.kicsy.setData != undefined) {
-                        child.kicsy.setData(data);
+                    // If the data object has a value for the child component's name within the sub-object corresponding to the name attribute of the current container component, call the setValue method of the child component with the corresponding value
+                    if (childName != undefined && data[name] != undefined && data[name][childName] != undefined) {
+                        child.kicsy.setValue(data[name][childName]);
+                    }
+                    // If the data object has a value for the current container component's name, call the setValue method of the child component with the corresponding value
+                    else if (data[name] != undefined) {
+                        child.kicsy.setValue(data[name]);
                     }
                 }
             }
         }
-        // Return the current instance of the container
         return this;
     }
-
 
     /**
      * Retrieves data from all child components of the container.
@@ -540,46 +546,45 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
      * If a child component has a getValue method, its value is stored in the data object.
      * Each child must have a name attribute set. Use {@link KicsyComponent#setName} to add child components.
      *
-     * @param {Object} [data] - The data object to store the values in. If not provided, a new object is created.
      * @param {function} [callback] - The callback function to call with the data object. If not provided, the data object is returned.
+     * @param {Object} [data] - The data object to store the values in. If not provided, a new object is created.
      * @returns {KicsyVisualContainerComponent|Object} - If no callback function is provided, the data object is returned.
      * Otherwise, the current instance of the container is returned.
      */
-    getData(data, callback) {
+    getData(callback = undefined, data = {}) {
 
-        // If no data object is provided, create a new one
-        if (data == undefined) {
-            data = {};
-        }
-
-        // Get the name attribute of the container's DOM element
+        // Get the name attribute of the current container component's DOM element
         let name = this.dom.getAttribute("name");
 
         // Iterate over each child component of the container's DOM element
         for (let child of this.dom.childNodes) {
-
             // Get the name attribute of the child component's DOM element
             let childName = child.getAttribute("name");
 
             // If the child component has a getData method, call it recursively
             if (child.kicsy.getData != undefined) {
                 if (name == undefined) {
-                    child.kicsy.getData(data, callback);
+                    // If the current container component does not have a name attribute, call getData with the entire data object
+                    child.kicsy.getData(callback, data);
                 } else {
-                    child.kicsy.getData(data[name], callback);
+                    // Otherwise, call getData with the corresponding value from the data object
+                    child.kicsy.getData(callback, data[name]);
                 }
             } else {
-                // If the child component has a getValue method, store its value in the data object
+                // If the child component does not have a getData method, store its value in the data object
                 if (name != undefined && childName != undefined) {
+                    // Create a new object with the child component's name as the key and its value as the value
                     let childValue = {};
                     childValue[childName] = child.kicsy.getValue();
+                    // If the data object does not have a value for the current container component's name, assign the child object to it
                     if (data[name] == undefined) {
                         data[name] = childValue;
                     } else {
+                        // Otherwise, assign the child object to the corresponding value in the data object
                         Object.assign(data[name], childValue);
                     }
-
                 } else {
+                    // If the child component does not have a name attribute, store its value in the data object with its name as the key
                     if (childName != undefined) {
                         let childValue = child.kicsy.getValue();
                         data[childName] = childValue;
@@ -593,48 +598,60 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
             callback(data);
             return this;
         } else {
-            // Otherwise, return the data object
             return data;
         }
+    }
+}
 
+
+class KDataViewerClass extends KicsyVisualContainerComponent {
+
+    // The root component of the data viewer
+    rootComponent;
+
+    constructor(...args) {
+        super(...args);
     }
 
+    add(...args) {
+        // throw new Error("The add method is not supported for KDataViewerClass.");
+    }
 
-    /**
-     * Sets the data of the container and its child components with the data from the array at the specified index.
-     * If there are more records in the array, clones the container and calls itself recursively with the next record.
-     *
-     * @param {Array} arrayData - The array of data to set in the container.
-     * @param {number} [index=0] - The index of the record to set in the container. Defaults to 0.
-     * @param {KicsyVisualComponent} [template=this] - The template to use for cloning the container. Defaults to the current instance of the container.
-     * @returns {KicsyVisualContainerComponent} - The current instance of the container.
-     */
-    setArrayData(arrayData, index = 0, template = this) {
+    setArrayData(arrayData) {
+        let tree = this.rootComponent.clone();
+        this.rootComponent.clear();
 
-        // Get the data from the current record
-        let data = arrayData[index];
-
-        // Set the data for the current instance of the container
-        this.setData(data);
-
-        // Increment the index and check if there are more records in the array
-        index++;
-        if (index == arrayData.length) { return this; }
-
-        // Clone the container
-        let nextRecord = template.clone();
-
-        // Insert the cloned container before the current container
-        this.dom.parentNode.insertBefore(nextRecord.dom, this.dom.parentNode.lastChild);
-
-        // Call setArrayData recursively with the next record
-        nextRecord.setArrayData(arrayData, index, template);
-
+        for (let i = 0; i < arrayData.length; i++) {
+            this.dom.appendChild(tree.dom);
+            tree.setData(arrayData[i]);
+            tree = tree.clone();
+        }
         return this;
 
     }
-
 }
+
+/**
+ * Creates a new instance of KDataViewerClass with the provided arguments.
+ *
+ * This function is a convenience wrapper around the KDataViewerClass
+ * constructor. It allows the KDataViewerClass class to be instantiated
+ * without having to use the "new" keyword.
+ *
+ * @param {...any} args - Additional arguments to pass to the constructor.
+ * @returns {KDataViewerClass} - The newly created KDataViewerClass instance.
+ */
+function KDataViewer(rootComponent, ...args) {
+
+    // Create a new instance of KDataViewerClass with the provided arguments
+    let dataViewer = new KDataViewerClass(...args);
+    dataViewer.rootComponent = rootComponent;
+
+    // Return the newly created KDataViewerClass instance
+    return dataViewer;
+}
+
+
 
 /**
  * Creates a new instance of KLabel with the provided arguments.
@@ -1076,3 +1093,26 @@ function KColumn(...components) {
     // Return the newly created KicsyVisualContainerComponent instance
     return obj;
 }
+
+/************************************************************************************ */
+/*                           DATA AREA FUNCTIONS                                      */
+/************************************************************************************ */
+class KDataUtils extends KicsyObject {
+
+    static getDifferencesBetweenArrayData(source, target) {
+        let differences = [];
+
+        for (let i = 0; i < source.length; i++) {
+            Object.keys(target[i]).forEach((key) => {
+                if (source[i][key] !== target[i][key]) {
+                    differences.push({ key, source: source[i][key], target: target[i][key] });
+                }
+            })
+        }
+
+        return differences;
+    }
+}
+
+
+

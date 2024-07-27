@@ -13,6 +13,11 @@
     <h1>Test</h1>
     <script>
 
+
+
+
+
+
         let arrayData =
             [{ "vehiculo": { "tipo": "carro", "marca": "ford" } },
             { "vehiculo": { "tipo": "moto", "marca": "yamaha" } },
@@ -30,18 +35,28 @@
 
 
         let layer1;
+        let layer2;
+
 
         KLayer(
-            KLayer(
-                KButton().setName("tipo"),
-                KButton().setName("marca"),
-            ).getMe((layer) => layer1 = layer).setName("vehiculo")
-            ,
-            KButton("Hola mundo")
+            KDataViewer(
+
+                KLayer(
+                    KText().setName("tipo"),
+                    KText().setName("marca"),
+                )
+                    .getMe((layer) => layer1 = layer)
+                    .setName("vehiculo")
+            )
+                .getMe((me) => layer2 = me),
+            KButton("Dame datos").addEvent("click", () => { console.log(layer1.getData()) })
         )
             .publish()
 
-        layer1.setArrayData(arrayData);
+        //layer1.setData(arrayData[0]);
+        layer2.setArrayData(arrayData);
+
+
 
 
 

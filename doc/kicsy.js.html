@@ -501,40 +501,209 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
      * Sets the data for all child components of the container.
      * If a child component has a setData method, it is called with the corresponding value.
      * If a child component has a setValue method, it is called with the corresponding value.
-     * Each child must have a name attribute set. Use {@link KicsyComponent#setName} to add child components.
+     * Each child must have a name attribute set. Use KicsyComponent#setName to add child components.
      *
-     * @param {Object} data - The data object containing the values to set.
-     * @return {KicsyVisualContainerComponent} - The current instance of the container.
+     * @param {Object} data - An object containing the data to set for each child component.
      */
     setData(data) {
+        // Get the name attribute of the current container component's DOM element
+        let name = this.dom.getAttribute("name");
+
         // Iterate over each child component of the container's DOM element
         for (let child of this.dom.childNodes) {
             // Get the name attribute of the child component's DOM element
-            let name = child.getAttribute("name");
+            let childName = child.getAttribute("name");
 
-            // If the data object contains a value for the current child component's name
-            if (data[name] != undefined) {
-                // If the child component has a setData method, call it with the corresponding value
-                if (child.kicsy.setData != undefined) {
+            // If the child component has a setData method, call it with the corresponding value
+            if (child.kicsy.setData != undefined) {
+                // If the current child component does not have a name attribute, call setData with the entire data object
+                if (name == undefined) {
+                    // Call the setData method of the child component with the entire data object
+                    child.kicsy.setData(data);
+                }
+                // Otherwise, call setData with the corresponding value from the data object
+                else {
+                    // Call the setData method of the child component with the value from the data object corresponding to the name attribute of the child component
                     child.kicsy.setData(data[name]);
                 }
-                // Otherwise, call the setValue method with the corresponding value
-                else {
-                    child.kicsy.setValue(data[name]);
+            }
+            // If the child component does not have a setData method, check if it has a setValue method
+            else {
+                // If the current child component does not have a name attribute, check if the data object has a value for the child component's name
+                if (name == undefined) {
+                    // If the data object has a value for the child component's name, call the setValue method of the child component with the corresponding value
+                    if (childName != undefined &amp;&amp; data[childName] != undefined) {
+                        child.kicsy.setValue(data[childName]);
+                    }
+                } else {
+                    // If the data object has a value for the child component's name within the sub-object corresponding to the name attribute of the current container component, call the setValue method of the child component with the corresponding value
+                    if (childName != undefined &amp;&amp; data[name] != undefined &amp;&amp; data[name][childName] != undefined) {
+                        child.kicsy.setValue(data[name][childName]);
+                    }
+                    // If the data object has a value for the current container component's name, call the setValue method of the child component with the corresponding value
+                    else if (data[name] != undefined) {
+                        child.kicsy.setValue(data[name]);
+                    }
+                }
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Retrieves data from all child components of the container.
+     * If a child component has a getData method, it is called recursively with the corresponding value.
+     * If a child component has a getValue method, its value is stored in the data object.
+     * Each child must have a name attribute set. Use {@link KicsyComponent#setName} to add child components.
+     *
+     * @param {function} [callback] - The callback function to call with the data object. If not provided, the data object is returned.
+     * @param {Object} [data] - The data object to store the values in. If not provided, a new object is created.
+     * @returns {KicsyVisualContainerComponent|Object} - If no callback function is provided, the data object is returned.
+     * Otherwise, the current instance of the container is returned.
+     */
+    getData(callback = undefined, data = {}) {
+
+        // Get the name attribute of the current container component's DOM element
+        let name = this.dom.getAttribute("name");
+
+        // Iterate over each child component of the container's DOM element
+        for (let child of this.dom.childNodes) {
+            // Get the name attribute of the child component's DOM element
+            let childName = child.getAttribute("name");
+
+            // If the child component has a getData method, call it recursively
+            if (child.kicsy.getData != undefined) {
+                if (name == undefined) {
+                    // If the current container component does not have a name attribute, call getData with the entire data object
+                    child.kicsy.getData(callback, data);
+                } else {
+                    // Otherwise, call getData with the corresponding value from the data object
+                    child.kicsy.getData(callback, data[name]);
                 }
             } else {
-                // If the child component has a setData method, call it with the corresponding value
-                if (child.kicsy.setData != undefined) {
-                    child.kicsy.setData(data);
+                // If the child component does not have a getData method, store its value in the data object
+                if (name != undefined &amp;&amp; childName != undefined) {
+                    // Create a new object with the child component's name as the key and its value as the value
+                    let childValue = {};
+                    childValue[childName] = child.kicsy.getValue();
+                    // If the data object does not have a value for the current container component's name, assign the child object to it
+                    if (data[name] == undefined) {
+                        data[name] = childValue;
+                    } else {
+                        // Otherwise, assign the child object to the corresponding value in the data object
+                        Object.assign(data[name], childValue);
+                    }
+                } else {
+                    // If the child component does not have a name attribute, store its value in the data object with its name as the key
+                    if (childName != undefined) {
+                        let childValue = child.kicsy.getValue();
+                        data[childName] = childValue;
+                    }
                 }
             }
         }
 
-        // Return the current instance of the container
+        // If a callback function is provided, call it with the data object and return the current instance of the container
+        if (callback != undefined) {
+            callback(data);
+            return this;
+        } else {
+            return data;
+        }
+    }
+}
+
+
+class KDataViewerClass extends KicsyVisualContainerComponent {
+
+    // The root component of the data viewer
+    rootComponent;
+
+    /**
+     * Constructor for the KDataViewerClass class.
+     *
+     * This constructor creates a new instance of the KDataViewerClass class,
+     * which is a subclass of KicsyVisualContainerComponent. It calls the
+     * constructor of the parent class with the "div" HTML tag to initialize
+     * the DOM element for the container.
+     *
+     * @return {KDataViewerClass} - The newly created KDataViewerClass instance.
+     */
+    constructor() {
+        // Call the constructor of the parent class (KicsyVisualContainerComponent)
+        // with the "div" HTML tag to initialize the DOM element for the container.
+        super("div");
+    }
+
+    /**
+     * Sets the root component of the data viewer.
+     *
+     * This function sets the root component of the data viewer to the
+     * provided component. The root component is a KicsyVisualContainerComponent
+     * instance that is used to house all of the components that are to be
+     * viewed in the data viewer. Only one root component can be set at any
+     * given time.
+     *
+     * @param {KicsyVisualContainerComponent} component - The root component
+     * of the data viewer.
+     * @return {KDataViewerClass} - The current instance of the KDataViewerClass
+     * class.
+     */
+    setRootComponent(component) {
+        // Verify that the component is a KicsyVisualContainerComponent instance
+        if (!(component instanceof KicsyVisualContainerComponent)) {
+            throw new Error("The root component must be a KicsyVisualContainerComponent.");
+        }
+
+        // Set the root component
+        this.rootComponent = component;
+
+        // Return the current instance of the KDataViewerClass class
         return this;
     }
 
+    /**
+     * Adds the provided component to the data viewer.
+     *
+     * This function is a convenience wrapper around the
+     * setRootComponent function. It adds the provided component to the
+     * data viewer by calling setRootComponent with the provided
+     * component. This allows the data viewer to be created and have
+     * the root component set all in one go.
+     *
+     * @param {KicsyVisualContainerComponent} component - The root component
+     * of the data viewer.
+     * @return {KDataViewerClass} - The current instance of the KDataViewerClass
+     * class.
+     */
+    add(component) {
+        // Call the setRootComponent method with the provided component
+        this.setRootComponent(component);
+
+        // Return the current instance of the KDataViewerClass class
+        return this;
+    }
 }
+
+/**
+ * Creates a new instance of KDataViewerClass with the provided arguments.
+ *
+ * This function is a convenience wrapper around the KDataViewerClass
+ * constructor. It allows the KDataViewerClass class to be instantiated
+ * without having to use the "new" keyword.
+ *
+ * @param {...any} args - Additional arguments to pass to the constructor.
+ * @returns {KDataViewerClass} - The newly created KDataViewerClass instance.
+ */
+function KDataViewer(...args) {
+    // Create a new instance of KDataViewerClass with the provided arguments
+    const dataViewer = new KDataViewerClass(...args);
+
+    // Return the newly created KDataViewerClass instance
+    return dataViewer;
+}
+
+
 
 /**
  * Creates a new instance of KLabel with the provided arguments.
@@ -608,8 +777,15 @@ function KLayer(...args) {
  * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
  */
 function KButton(...args) {
+
+    let obj = new KicsyVisualComponent("input", "button", ...args);
+
+    if (typeof args[0] == "string" || typeof args[0] == "number") {
+        obj.dom.value = args[0];
+    }
+
     // Create a new KicsyVisualComponent instance with the "input" HTML tag, "button" type, and the provided arguments
-    return new KicsyVisualComponent("input", "button", ...args);
+    return obj;
 }
 
 /**
@@ -900,6 +1076,98 @@ function KDateTimeLocal(...args) {
     return new KicsyVisualComponent("input", "datetime-local", ...args);
 }
 
+
+
+class KRowClass extends KicsyVisualContainerComponent {
+    /**
+     * Creates a new instance of KRowClass with the provided components.
+     *
+     * @param {...KicsyVisualComponent} components - The components to be appended to the row.
+     */
+    constructor(...components) {
+        super(...components);
+
+        /**
+         * Change the display style of each child component to "inline-block"
+         * to make them appear in a single row.
+         */
+        for (let child of this.dom.childNodes) {
+            child.style.display = "inline-block";
+        }
+    }
+}
+
+/**
+ * Creates a new instance of KRow with the provided components.
+ *
+ * @param {...KicsyVisualComponent} components - The components to be appended to the row.
+ * @returns {KicsyVisualContainerComponent} - The newly created KicsyVisualContainerComponent instance.
+ */
+function KRow(...components) {
+    // Create a new instance of KRowClass with the provided components
+    let obj = new KRowClass(...components);
+
+    // Return the newly created KicsyVisualContainerComponent instance
+    return obj;
+}
+
+
+class KColumnClass extends KicsyVisualContainerComponent {
+    /**
+     * Creates a new instance of KColumnClass with the provided components.
+     *
+     * @param {...KicsyVisualComponent} components - The components to be appended to the column.
+     */
+    constructor(...components) {
+        super(...components);
+
+        /**
+         * Change the display style of each child component to "block"
+         * to make them appear in a single column.
+         */
+        for (let child of this.dom.childNodes) {
+            // Set the display style of each child to "block"
+            child.style.display = "block";
+        }
+    }
+}
+
+/**
+ * Creates a new instance of KColumn with the provided components.
+ *
+ * @param {...KicsyVisualComponent} components - The components to be appended to the column.
+ * @returns {KicsyVisualContainerComponent} - The newly created KicsyVisualContainerComponent instance.
+ */
+function KColumn(...components) {
+    // Create a new instance of KColumnClass with the provided components
+    let obj = new KColumnClass(...components);
+
+    // Return the newly created KicsyVisualContainerComponent instance
+    return obj;
+}
+
+/************************************************************************************ */
+/*                           DATA AREA FUNCTIONS                                      */
+/************************************************************************************ */
+class KDataUtils extends KicsyObject {
+
+    static getDifferencesBetweenArrayData(source, target) {
+        let differences = [];
+
+        for (let i = 0; i &lt; source.length; i++) {
+            Object.keys(target[i]).forEach((key) => {
+                if (source[i][key] !== target[i][key]) {
+                    differences.push({ key, source: source[i][key], target: target[i][key] });
+                }
+            })
+        }
+
+        return differences;
+    }
+}
+
+
+
 </code></pre>
         </article>
     </section>
@@ -910,13 +1178,13 @@ function KDateTimeLocal(...args) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Kicsy.html">Kicsy</a></li><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KCheckbox">KCheckbox</a></li><li><a href="global.html#KColorPicker">KColorPicker</a></li><li><a href="global.html#KDate">KDate</a></li><li><a href="global.html#KDateTimeLocal">KDateTimeLocal</a></li><li><a href="global.html#KEmail">KEmail</a></li><li><a href="global.html#KFile">KFile</a></li><li><a href="global.html#KHidden">KHidden</a></li><li><a href="global.html#KImage">KImage</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KLayer">KLayer</a></li><li><a href="global.html#KMonth">KMonth</a></li><li><a href="global.html#KNumber">KNumber</a></li><li><a href="global.html#KPassword">KPassword</a></li><li><a href="global.html#KRadio">KRadio</a></li><li><a href="global.html#KRange">KRange</a></li><li><a href="global.html#KReset">KReset</a></li><li><a href="global.html#KSearch">KSearch</a></li><li><a href="global.html#KSubmit">KSubmit</a></li><li><a href="global.html#KTel">KTel</a></li><li><a href="global.html#KText">KText</a></li><li><a href="global.html#KTextarea">KTextarea</a></li><li><a href="global.html#KTime">KTime</a></li><li><a href="global.html#KUrl">KUrl</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KColumnClass.html">KColumnClass</a></li><li><a href="KDataViewerClass.html">KDataViewerClass</a></li><li><a href="Kicsy.html">Kicsy</a></li><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li><li><a href="KRowClass.html">KRowClass</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KCheckbox">KCheckbox</a></li><li><a href="global.html#KColorPicker">KColorPicker</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataViewer">KDataViewer</a></li><li><a href="global.html#KDate">KDate</a></li><li><a href="global.html#KDateTimeLocal">KDateTimeLocal</a></li><li><a href="global.html#KEmail">KEmail</a></li><li><a href="global.html#KFile">KFile</a></li><li><a href="global.html#KHidden">KHidden</a></li><li><a href="global.html#KImage">KImage</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KLayer">KLayer</a></li><li><a href="global.html#KMonth">KMonth</a></li><li><a href="global.html#KNumber">KNumber</a></li><li><a href="global.html#KPassword">KPassword</a></li><li><a href="global.html#KRadio">KRadio</a></li><li><a href="global.html#KRange">KRange</a></li><li><a href="global.html#KReset">KReset</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KSearch">KSearch</a></li><li><a href="global.html#KSubmit">KSubmit</a></li><li><a href="global.html#KTel">KTel</a></li><li><a href="global.html#KText">KText</a></li><li><a href="global.html#KTextarea">KTextarea</a></li><li><a href="global.html#KTime">KTime</a></li><li><a href="global.html#KUrl">KUrl</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Fri Jul 26 2024 07:13:23 GMT-0400 (hora de Venezuela)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Fri Jul 26 2024 14:27:28 GMT-0400 (hora de Venezuela)
 </footer>
 
 <script> prettyPrint(); </script>
