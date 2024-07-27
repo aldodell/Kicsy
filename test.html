@@ -13,50 +13,62 @@
     <h1>Test</h1>
     <script>
 
+        let b1 = KButton("hola").addEvent("click", () => { console.log("hola"); }).publish();
+        let b2 = b1.clone().publish();
+
+        let c1 = KLayer(
+            KButton("A"), KButton("B"), KButton("C").addEvent("click", () => { console.log("C"); })
+        ).publish();
+
+        let c2 = c1.clone().publish();
+
+
+        console.log(b2);
 
 
 
 
 
-        let arrayData =
-            [{ "vehiculo": { "tipo": "carro", "marca": "ford" } },
-            { "vehiculo": { "tipo": "moto", "marca": "yamaha" } },
-            { "vehiculo": { "tipo": "avion", "marca": "boing" } },
-            { "vehiculo": { "tipo": "barco", "marca": "Sea" } },
-            { "vehiculo": { "tipo": "avion", "marca": "cessna" } },
-            { "vehiculo": { "tipo": "moto", "marca": "honda" } },
-            { "vehiculo": { "tipo": "moto", "marca": "BERA" } },
-            { "vehiculo": { "tipo": "carro", "marca": "mazda" } },
-            { "vehiculo": { "tipo": "carro", "marca": "chevrolet" } },
-
-
-
-            ];
-
-
-        let layer1;
-        let layer2;
-
-
-        KLayer(
-            KDataViewer(
-
+        /*
+                let arrayData =
+                    [{ "vehiculo": { "tipo": "carro", "marca": "ford" } },
+                    { "vehiculo": { "tipo": "moto", "marca": "yamaha" } },
+                    { "vehiculo": { "tipo": "avion", "marca": "boing" } },
+                    { "vehiculo": { "tipo": "barco", "marca": "Sea" } },
+                    { "vehiculo": { "tipo": "avion", "marca": "cessna" } },
+                    { "vehiculo": { "tipo": "moto", "marca": "honda" } },
+                    { "vehiculo": { "tipo": "moto", "marca": "BERA" } },
+                    { "vehiculo": { "tipo": "carro", "marca": "mazda" } },
+                    { "vehiculo": { "tipo": "carro", "marca": "chevrolet" } },
+        
+        
+        
+                    ];
+        
+        
+                let layer1;
+                let layer2;
+        
+        
                 KLayer(
-                    KText().setName("tipo"),
-                    KText().setName("marca"),
+                    KDataViewer(
+        
+                        KLayer(
+                            KText().setName("tipo"),
+                            KText().setName("marca"),
+                        )
+                            .getMe((layer) => layer1 = layer)
+                            .setName("vehiculo")
+                    )
+                        .getMe((me) => layer2 = me),
+                    KButton("Dame datos").addEvent("click", () => { console.log(layer1.getData()) })
                 )
-                    .getMe((layer) => layer1 = layer)
-                    .setName("vehiculo")
-            )
-                .getMe((me) => layer2 = me),
-            KButton("Dame datos").addEvent("click", () => { console.log(layer1.getData()) })
-        )
-            .publish()
-
-        //layer1.setData(arrayData[0]);
-        layer2.setArrayData(arrayData);
-
-
+                    .publish()
+        
+                //layer1.setData(arrayData[0]);
+                layer2.setArrayData(arrayData);
+        
+        */
 
 
 

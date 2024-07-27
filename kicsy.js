@@ -10,9 +10,6 @@
  */
 
 
-
-
-
 /**
  * Kicsy class base
  */
@@ -48,33 +45,23 @@ class Kicsy {
 
 class KicsyObject {
 
+    constructor() {
 
-    /**
-     * Creates a shallow clone of the current object.
-     *
-     * @param {KicsyObject} [className=KicsyObject] - The class of the object to clone. Defaults to the class of the current object.
-     * @return {KicsyObject} - The cloned object.
-     */
-    clone(className = KicsyObject) {
-        // Create a new object with the same prototype as the provided class
-        let obj = Object.create(className.prototype);
-
-        // Copy the properties of the current object to the new object
-        Object.assign(obj, this);
-
-        // Return the cloned object
-        return obj;
     }
 
+    clone() {
+        return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+    }
 
 }
-
 
 class KicsyComponent extends KicsyObject {
     /** 
      * The DOM element of the component 
      * @type { HTMLElement } */
     dom;
+
+    static id = 0;
 
     /**
      * Constructor for KicsyComponent class.
@@ -120,6 +107,45 @@ class KicsyComponent extends KicsyObject {
         //Set autoreference
         this.dom.kicsy = this;
 
+        //setup id
+        KicsyComponent.id++;
+        this.dom.setAttribute("id", "K" + KicsyComponent.id);
+
+    }
+
+    /**
+     * Creates a shallow copy of the current KicsyComponent instance.
+     *
+     * @param {function} [className=KicsyComponent] - The class to instantiate for the cloned object.
+     * @return {KicsyComponent} - The cloned KicsyComponent instance.
+     */
+    clone(className = KicsyComponent) {
+        // Create a new instance of the provided class
+        let obj = new className();
+
+        // Copy the properties of the current instance to the new instance
+        obj = Object.assign(obj, this);
+
+        // Create a shallow copy of the DOM element for the new instance
+        obj.dom = this.dom.cloneNode(false);
+
+        // Set the "kicsy" property of the new instance's DOM element to the current instance
+        obj.dom.kicsy = this;
+
+        // Copy the events array from the current instance's DOM element to the new instance's DOM element
+        obj.dom.events = this.dom.events;
+
+        // Iterate over each event in the new instance's DOM element's events array
+        for (let e of obj.dom.events) {
+            // Add an event listener to the new instance's DOM element with the event's event name and callback function
+            obj.dom.addEventListener(e.event, e.callback);
+        }
+
+        // Set the "id" attribute of the new instance's DOM element to the current instance's ID + 1
+        obj.dom.setAttribute("id", "K" + KicsyComponent.id);
+
+        // Return the cloned KicsyComponent instance
+        return obj;
     }
 
     static build(html, type) {
@@ -275,18 +301,8 @@ class KicsyComponent extends KicsyObject {
 
     }
 
-    clone(className = KicsyVisualComponent) {
-        let obj = super.clone(className);
-        obj.dom = this.dom.cloneNode(true);
-        obj.dom.kicsy = obj;
-        obj.dom.events = [];
-        for (let e of this.dom.events) {
-            obj.dom.addEventListener(e.event, e.callback);
-            obj.dom.events.push({ "event": e.event, "callback": e.callback });
-        }
 
-        return obj;
-    }
+
 
 }
 
@@ -371,11 +387,9 @@ class KicsyVisualComponent extends KicsyComponent {
         this.dom.style.display = "inline";
         return this;
     }
-
     clone(className = KicsyVisualComponent) {
         return super.clone(className);
     }
-
 }
 
 class KicsyVisualContainerComponent extends KicsyVisualComponent {
@@ -411,6 +425,17 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
         return this;
     }
 
+    clone(className = KicsyVisualContainerComponent) {
+        let obj = super.clone(className);
+
+        for(let child of this.dom.children) {
+            let cloned = child.kicsy.clone();
+            obj.dom.appendChild(cloned.dom);
+        }
+
+        return obj;
+    }
+
     /**
      * Adds the provided CSS text to the CSS style of all children of the container.
      * Style is added to each child individually, wich are contained in the container's DOM element.
@@ -444,48 +469,6 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
     }
 
 
-    /**
-     * Creates a deep clone of the container, including all child components.
-     *
-     * @param {KicsyVisualContainerComponent} [className=KicsyVisualContainerComponent] - The class of the object to clone. Defaults to KicsyVisualContainerComponent.
-     * @return {KicsyVisualContainerComponent} - The cloned container.
-     */
-    clone(className = KicsyVisualContainerComponent) {
-
-        /**
-         * Recursively clones the DOM structure of the source element and appends the clones to the target element.
-         *
-         * @param {HTMLElement} source - The element to clone.
-         * @param {HTMLElement} target - The element to append the clones to.
-         */
-        function deepClone(source, target) {
-            for (let child of source.childNodes) {
-                let cloneChild = child.cloneNode(false);
-                cloneChild.kicsy = child.kicsy;
-
-                // Copy events from source to clone
-                if (child.events != undefined) {
-                    cloneChild.events = child.events;
-
-                    for (let e of child.events) {
-                        cloneChild.addEventListener(e.event, e.callback);
-                    }
-                }
-
-                target.appendChild(cloneChild);
-                deepClone(child, cloneChild);
-            }
-        }
-
-        let domClone = this.dom.cloneNode(false);
-        deepClone(this.dom, domClone);
-
-        let obj = super.clone(className);
-        obj.dom = domClone;
-        obj.dom.kicsy = obj;
-
-        return obj;
-    }
 
     /**
      * Sets the data for all child components of the container.
