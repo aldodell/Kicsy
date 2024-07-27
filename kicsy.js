@@ -55,6 +55,10 @@ class KicsyObject {
 
 }
 
+/**
+ * Kicsy component base
+ * @extends KicsyObject
+ */
 class KicsyComponent extends KicsyObject {
     /** 
      * The DOM element of the component 
@@ -87,7 +91,7 @@ class KicsyComponent extends KicsyObject {
         }
 
         //Save reference for clone
-        this.dom.events = [];
+        this.events = [];
 
         // If any of the additional arguments is a function, call it with the current instance as an argument
         for (const arg of args) {
@@ -129,20 +133,19 @@ class KicsyComponent extends KicsyObject {
         // Create a shallow copy of the DOM element for the new instance
         obj.dom = this.dom.cloneNode(false);
 
-        // Set the "kicsy" property of the new instance's DOM element to the current instance
-        obj.dom.kicsy = this;
-
-        // Copy the events array from the current instance's DOM element to the new instance's DOM element
-        obj.dom.events = this.dom.events;
-
-        // Iterate over each event in the new instance's DOM element's events array
-        for (let e of obj.dom.events) {
-            // Add an event listener to the new instance's DOM element with the event's event name and callback function
-            obj.dom.addEventListener(e.event, e.callback);
-        }
 
         // Set the "id" attribute of the new instance's DOM element to the current instance's ID + 1
         obj.dom.setAttribute("id", "K" + KicsyComponent.id);
+
+
+        // Set the "kicsy" property of the new instance's DOM element to the current instance
+        obj.dom.kicsy = obj;
+
+        // Iterate over each event in the new instance's DOM element's events array
+        for (let e of obj.events) {
+            // Add an event listener to the new instance's DOM element with the event's event name and callback function
+            obj.dom.addEventListener(e.event, e.callback);
+        }
 
         // Return the cloned KicsyComponent instance
         return obj;
@@ -200,7 +203,7 @@ class KicsyComponent extends KicsyObject {
         this.dom.addEventListener(event, callback);
 
         //Save reference for clone
-        this.dom.events.push({ "event": event, "callback": callback });
+        this.events.push({ "event": event, "callback": callback });
 
         // Return the current instance of the KicsyComponent class
         return this;
@@ -209,12 +212,14 @@ class KicsyComponent extends KicsyObject {
 
     /**
      * Remove an event listener from the DOM element.
-     *
+     * @todo Remove events from array
      * @param {string} event - The event to stop listening for.
      * @param {function} callback - The callback function to remove.
      * @return {KicsyComponent} - The current instance of the KicsyComponent class.
      */
     removeEvent(event, callback) {
+
+
         // Remove the specified event listener from the DOM element
         this.dom.removeEventListener(event, callback);
 
@@ -306,7 +311,10 @@ class KicsyComponent extends KicsyObject {
 
 }
 
-
+/**
+ * The KicsyVisualComponent class represents a visual component that can contain other components.
+ * @extends {KicsyComponent}
+ */
 class KicsyVisualComponent extends KicsyComponent {
 
     /**
@@ -378,20 +386,46 @@ class KicsyVisualComponent extends KicsyComponent {
     }
 
 
+    /**
+     * Sets the display style of the component's DOM element to "inline-block".
+     *
+     * @return {KicsyVisualComponent} - The current instance of the KicsyVisualComponent class.
+     */
     applyInlineBlockStyle() {
+        // Set the display style of the component's DOM element to "inline-block"
         this.dom.style.display = "inline-block";
+
+        // Return the current instance of the KicsyVisualComponent class
         return this;
     }
 
+    /**
+     * Sets the display style of the component's DOM element to "inline".
+     *
+     * @return {KicsyVisualComponent} - The current instance of the KicsyVisualComponent class.
+     */
     applyInlineStyle() {
+        // Set the display style of the component's DOM element to "inline"
         this.dom.style.display = "inline";
+
+        // Return the current instance of the KicsyVisualComponent class
         return this;
     }
+    /**
+     * Creates a clone of the current component.
+     *
+     * @param {Function} [className=KicsyVisualComponent] - The class of the component to be cloned.
+     * @return {KicsyVisualComponent} - The cloned component.
+     */
     clone(className = KicsyVisualComponent) {
         return super.clone(className);
     }
 }
 
+/**
+ * The KicsyVisualContainerComponent class represents a container component that can contain other components.
+ * @extends {KicsyVisualComponent}
+ */
 class KicsyVisualContainerComponent extends KicsyVisualComponent {
 
 
@@ -425,14 +459,30 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
         return this;
     }
 
+    /**
+     * Creates a shallow clone of the current KicsyVisualContainerComponent instance.
+     *
+     * The clone is created by cloning the root component of the container and then cloning each of its children.
+     * The children are cloned recursively, this means that if the children of the container have children of their own,
+     * these children are also cloned.
+     *
+     * @param {function} [className=KicsyVisualContainerComponent] - The class to instantiate for the cloned object. Defaults to KicsyVisualContainerComponent.
+     * @return {KicsyVisualContainerComponent} - The cloned KicsyVisualContainerComponent instance.
+     */
     clone(className = KicsyVisualContainerComponent) {
+        // Create a shallow clone of the root component of the container
         let obj = super.clone(className);
 
-        for(let child of this.dom.children) {
+        // Iterate over each child component of the container's DOM element
+        for (let child of this.dom.children) {
+            // Clone the child component
             let cloned = child.kicsy.clone();
+
+            // Append the cloned child component to the cloned container's DOM element
             obj.dom.appendChild(cloned.dom);
         }
 
+        // Return the cloned container
         return obj;
     }
 
@@ -586,13 +636,22 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
     }
 }
 
-
+/**
+ * Class for KDataViewerComponent.
+ * @extends {KicsyVisualContainerComponent}
+ */
 class KDataViewerClass extends KicsyVisualContainerComponent {
 
     // The root component of the data viewer
     rootComponent;
 
+    /**
+     * Constructor for KDataViewerClass.
+     * 
+     * @param {...any} args - Additional arguments to pass to the constructor.
+     */
     constructor(...args) {
+        // Call the constructor of the parent class with the provided arguments
         super(...args);
     }
 
@@ -600,17 +659,43 @@ class KDataViewerClass extends KicsyVisualContainerComponent {
         // throw new Error("The add method is not supported for KDataViewerClass.");
     }
 
+    /**
+     * Sets the data of the data viewer with the array of data objects.
+     * 
+     * @param {Array} arrayData - The array of data objects to set in the data viewer.
+     * @returns {KDataViewerClass} - The current instance of the data viewer.
+     */
     setArrayData(arrayData) {
-        let tree = this.rootComponent.clone();
-        this.rootComponent.clear();
-
+        // For each record in the array of data objects
         for (let i = 0; i < arrayData.length; i++) {
-            this.dom.appendChild(tree.dom);
+            // Clone the root component of the data viewer
+            let tree = this.rootComponent.clone();
+            // Set the data of the cloned component with the current record
             tree.setData(arrayData[i]);
-            tree = tree.clone();
+            // Append the cloned component to the DOM of the data viewer
+            this.dom.appendChild(tree.dom);
         }
+        // Return the current instance of the data viewer
         return this;
+    }
 
+    /**
+     * Creates a shallow copy of the current KDataViewerClass instance.
+     *
+     * This function creates a new instance of the KDataViewerClass class with the same root component as the current instance.
+     *
+     * @param {function} [className=KDataViewerClass] - The class to instantiate for the cloned object. Defaults to KDataViewerClass.
+     * @return {KDataViewerClass} - The cloned KDataViewerClass instance.
+     */
+    clone(className = KDataViewerClass) {
+        // Create a new instance of the provided class
+        let obj = super.clone(className);
+
+        // Clone the root component and set it for the new instance
+        obj.rootComponent = this.rootComponent.clone();
+
+        // Return the cloned instance
+        return obj;
     }
 }
 
