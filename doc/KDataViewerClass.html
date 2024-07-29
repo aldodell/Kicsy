@@ -30,7 +30,10 @@
     
         <h2><span class="attribs"><span class="type-signature"></span></span>KDataViewerClass<span class="signature">(&hellip;args)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description">Class for KDataViewerComponent.</div>
+            <div class="class-description">Class for KDataViewerComponent.
+This class represents a container component that can contain other components, but only one.
+The child components are stored in the root component and could have children.
+Is very important that children nodes will be near from this component.</div>
         
     
 </header>
@@ -158,7 +161,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsy.js.html">kicsy.js</a>, <a href="kicsy.js.html#line643">line 643</a>
+        <a href="kicsy.js.html">kicsy.js</a>, <a href="kicsy.js.html#line680">line 680</a>
     </li></ul></dd>
     
 
@@ -185,6 +188,40 @@
 
 
 
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>//Initial data
+     let arrayData =
+            [
+                { "vehiculo": { "tipo": "carro", "marca": "ford" } },
+                { "vehiculo": { "tipo": "moto", "marca": "yamaha" } },
+                { "vehiculo": { "tipo": "avion", "marca": "boing" } },
+                { "vehiculo": { "tipo": "barco", "marca": "Sea" } },
+                { "vehiculo": { "tipo": "avion", "marca": "cessna" } },
+                { "vehiculo": { "tipo": "moto", "marca": "honda" } },
+                { "vehiculo": { "tipo": "moto", "marca": "BERA" } },
+                { "vehiculo": { "tipo": "carro", "marca": "mazda" } },
+                { "vehiculo": { "tipo": "carro", "marca": "chevrolet" } },
+
+            ];
+
+
+        // Use to get references to components
+        let viewer;
+        let arrayData2;
+
+        //Note KDataViewer wrapping only ONE KLayer wich has two KText
+        KDataViewer(
+            KLayer(
+                KText().setName("tipo"),
+                KText().setName("marca")
+            ).setName("vehiculo")
+        )
+            .getMe(me => viewer = me)
+            .publish()
+            .setArrayData(arrayData);</code></pre>
 
 
 
@@ -314,7 +351,8 @@
 
 
 <div class="description">
-    Appends the provided components to the container.
+    The add method is not supported for KDataViewerClass.
+The correct way to add components to this object is using constructors paradigm.
 </div>
 
 
@@ -424,7 +462,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsy.js.html">kicsy.js</a>, <a href="kicsy.js.html#line438">line 438</a>
+        <a href="kicsy.js.html">kicsy.js</a>, <a href="kicsy.js.html#line703">line 703</a>
     </li></ul></dd>
     
 
@@ -447,6 +485,35 @@
 
 
 
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        Throws an error when the add method is called.
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
 
 
 <h5>Returns:</h5>
@@ -1636,7 +1703,7 @@ This function creates a new instance of the KDataViewerClass class with the same
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsy.js.html">kicsy.js</a>, <a href="kicsy.js.html#line690">line 690</a>
+        <a href="kicsy.js.html">kicsy.js</a>, <a href="kicsy.js.html#line766">line 766</a>
     </li></ul></dd>
     
 
@@ -1676,6 +1743,183 @@ This function creates a new instance of the KDataViewerClass class with the same
     </dt>
     <dd>
         
+<span class="param-type"><a href="KDataViewerClass.html">KDataViewerClass</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getArrayData"><span class="type-signature"></span>getArrayData<span class="signature">(callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Array|<a href="KDataViewerClass.html">KDataViewerClass</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Retrieves an array of data objects from the data viewer's child components.
+
+This function iterates over each child component of the data viewer's DOM and calls the `getData` method on its associated `kicsy` object.
+The resulting data objects are collected into an array and returned.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">An optional callback function to call with the array of data objects. If provided, the current instance of the data viewer is also passed as the second argument to the callback function.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="kicsy.js.html">kicsy.js</a>, <a href="kicsy.js.html#line738">line 738</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - If a callback function is provided, the current instance of the data viewer is returned. Otherwise, an array of data objects is returned.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array</span>
+|
+
 <span class="param-type"><a href="KDataViewerClass.html">KDataViewerClass</a></span>
 
 
@@ -2891,7 +3135,7 @@ If no surface element is provided, it defaults to the body element.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsy.js.html">kicsy.js</a>, <a href="kicsy.js.html#line668">line 668</a>
+        <a href="kicsy.js.html">kicsy.js</a>, <a href="kicsy.js.html#line714">line 714</a>
     </li></ul></dd>
     
 
@@ -3609,7 +3853,7 @@ Each child must have a name attribute set. Use KicsyComponent#setName to add chi
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Fri Jul 26 2024 22:44:17 GMT-0400 (hora de Venezuela)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Fri Jul 26 2024 23:42:00 GMT-0400 (hora de Venezuela)
 </footer>
 
 <script> prettyPrint(); </script>

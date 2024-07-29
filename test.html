@@ -28,24 +28,13 @@
 
             ];
 
-        KDataViewer(
-            KLayer(
-                KText().setName("tipo"),
-                KText().setName("marca")
-            ).setName("vehiculo")
-        )
-            .publish()
-            .setArrayData(arrayData);
+        let viewer;
+        let arrayData2
 
 
-        let b1 = KButton("Boton 1").addEvent("click", function () { console.log("click"); })
-            .publish();
-
-        let b2 = b1.clone().publish();
-
-
-
-
+        KWindow("Esto es una prueba")
+        .setSize(300, 300)
+        .publish();
 
 
     </script>

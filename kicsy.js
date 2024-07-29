@@ -17,7 +17,6 @@ class Kicsy {
 
     static version = "0.0.1";
 
-
     /**
      * Load and include multiple JavaScript modules.
      *
@@ -411,6 +410,50 @@ class KicsyVisualComponent extends KicsyComponent {
         // Return the current instance of the KicsyVisualComponent class
         return this;
     }
+
+
+    /**
+     * Used to make the component draggable
+     * @param {*} pointer component that will receive the drag action from mouse
+     * @param {*} movable component that will be moved. If not provided, it is the same as pointer
+     * @returns itself
+     */
+    makeDraggable(pointer, movable) {
+
+        if (pointer === undefined) {
+            pointer = this;
+        }
+
+        if (movable === undefined) {
+            movable = pointer;
+        }
+
+        pointer.dom.onmousedown = function (event) {
+            let rect = pointer.dom.getBoundingClientRect();
+            movable.dragX = event.clientX - rect.x;
+            movable.dragY = event.clientY - rect.y;
+            pointer.dom.style.cursor = "grab";
+
+
+            movable.dom.onmousemove = function (event) {
+                movable.dom.style.transform = null;
+                movable.dom.style.left = event.clientX - movable.dragX + "px";
+                movable.dom.style.top = event.clientY - movable.dragY + "px";
+            }
+
+            movable.dom.onmouseup = function () {
+                movable.dom.onmousemove = null;
+                movable.dom.onmouseup = null;
+                pointer.dom.style.cursor = "auto";
+
+            };
+
+        };
+    }
+
+
+
+
     /**
      * Creates a clone of the current component.
      *
@@ -638,7 +681,44 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
 
 /**
  * Class for KDataViewerComponent.
+ * This class represents a container component that can contain other components, but only one.
+ * The child components are stored in the root component and could have children.
+ * Is very important that children nodes will be near from this component.
  * @extends {KicsyVisualContainerComponent}
+ * @example
+ * 
+ *      //Initial data
+ *      let arrayData =
+            [
+                { "vehiculo": { "tipo": "carro", "marca": "ford" } },
+                { "vehiculo": { "tipo": "moto", "marca": "yamaha" } },
+                { "vehiculo": { "tipo": "avion", "marca": "boing" } },
+                { "vehiculo": { "tipo": "barco", "marca": "Sea" } },
+                { "vehiculo": { "tipo": "avion", "marca": "cessna" } },
+                { "vehiculo": { "tipo": "moto", "marca": "honda" } },
+                { "vehiculo": { "tipo": "moto", "marca": "BERA" } },
+                { "vehiculo": { "tipo": "carro", "marca": "mazda" } },
+                { "vehiculo": { "tipo": "carro", "marca": "chevrolet" } },
+
+            ];
+
+
+        // Use to get references to components
+        let viewer;
+        let arrayData2;
+
+        //Note KDataViewer wrapping only ONE KLayer wich has two KText
+        KDataViewer(
+            KLayer(
+                KText().setName("tipo"),
+                KText().setName("marca")
+            ).setName("vehiculo")
+        )
+            .getMe(me => viewer = me)
+            .publish()
+            .setArrayData(arrayData);
+
+
  */
 class KDataViewerClass extends KicsyVisualContainerComponent {
 
@@ -655,8 +735,17 @@ class KDataViewerClass extends KicsyVisualContainerComponent {
         super(...args);
     }
 
+
+    /**
+     * The add method is not supported for KDataViewerClass.
+     * The correct way to add components to this object is using constructors paradigm.
+     * 
+     * @throws {Error} Throws an error when the add method is called.
+     * @override 
+     */
     add(...args) {
-        // throw new Error("The add method is not supported for KDataViewerClass.");
+        // TODO: Implement add method for KDataViewerClass
+        //throw new Error("The add method is not supported for KDataViewerClass.");
     }
 
     /**
@@ -677,6 +766,36 @@ class KDataViewerClass extends KicsyVisualContainerComponent {
         }
         // Return the current instance of the data viewer
         return this;
+    }
+
+
+    /**
+     * Retrieves an array of data objects from the data viewer's child components.
+     *
+     * This function iterates over each child component of the data viewer's DOM and calls the `getData` method on its associated `kicsy` object.
+     * The resulting data objects are collected into an array and returned.
+     *
+     * @param {function} [callback] - An optional callback function to call with the array of data objects. If provided, the current instance of the data viewer is also passed as the second argument to the callback function.
+     * @return {Array|KDataViewerClass} - If a callback function is provided, the current instance of the data viewer is returned. Otherwise, an array of data objects is returned.
+     */
+    getArrayData(callback) {
+        // Create an empty array to store the data objects
+        let data = [];
+
+        // Iterate over each child component of the data viewer's DOM
+        for (let child of this.dom.childNodes) {
+            // Call the `getData` method on the `kicsy` object of the child component and store the result in the data array
+            data.push(child.kicsy.getData());
+        }
+
+        // If a callback function is provided, call it with the data array and return the current instance of the data viewer
+        if (callback != undefined) {
+            callback(data, this);
+            return this;
+        } else {
+            // Otherwise, return the data array
+            return data;
+        }
     }
 
     /**
@@ -1110,6 +1229,8 @@ class KRowClass extends KicsyVisualContainerComponent {
         for (let child of this.dom.childNodes) {
             child.style.display = "inline-block";
         }
+
+        this.addCssText("display: block; position: relative; width: 100%;");
     }
 }
 
@@ -1145,6 +1266,7 @@ class KColumnClass extends KicsyVisualContainerComponent {
             // Set the display style of each child to "block"
             child.style.display = "block";
         }
+        this.addCssText("display: inline-block; position: relative; height: 100%;");
     }
 }
 
@@ -1171,11 +1293,12 @@ class KDataUtils extends KicsyObject {
         let differences = [];
 
         for (let i = 0; i < source.length; i++) {
-            Object.keys(target[i]).forEach((key) => {
-                if (source[i][key] !== target[i][key]) {
-                    differences.push({ key, source: source[i][key], target: target[i][key] });
-                }
-            })
+            let j1 = JSON.stringify(source[i]);
+            let j2 = JSON.stringify(target[i]);
+            if (j1 !== j2) {
+                differences.push({ key: i, source: source[i], target: target[i] });
+            }
+
         }
 
         return differences;
@@ -1184,3 +1307,64 @@ class KDataUtils extends KicsyObject {
 
 
 
+/************************************************************************************ */
+/*                           WINDOWS FUNCTIONS                                        */
+/************************************************************************************ */
+
+
+class KWindowClass extends KicsyVisualContainerComponent {
+
+    header;
+    body;
+    footer;
+    superHeader;
+    // frame;
+
+    constructor(...args) {
+        super(...args);
+
+        this.header = new KLabel();
+        this.body = new KLayer();
+        this.footer = new KLayer();
+        this.superHeader = new KLayer();
+        //  this.frame = new KLayer();
+
+        //Build frame with header, body and footer
+        this.add(this.header, this.body, this.footer, this.superHeader);
+
+        //Initialze styles
+        this.addCssText("position: absolute;border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px;");
+        this.header.addCssText("display: block; position: relative; width: 100%; height: 30px;margin: 0px;text-align: center;line-height: 30px;font-weight: bold;");
+        this.body.addCssText("display: block; position: relative; width: 100%;height: calc(100% - 60px);margin: 0px");
+        this.footer.addCssText("display: block; position: relative; width: 100%;height: 30px;margin: 0px;");
+        this.superHeader.addCssText("display: block; position: relative; margin: 0px;width: 120%; left: -10%; height: 60px; top: calc(-100% - 20px)"); //width: 120%; left: -10%; height: 60px; top: -15px; 
+
+        //shadow
+        this.addCssText("box-shadow: 5px 5px 5px gray;");
+
+        //Background styles
+        this.header.addCssText("background: lightblue;")
+        this.body.addCssText("background-color: white;");
+        this.footer.addCssText("background: lightblue;");
+
+        //Make window draggable
+        this.makeDraggable(this.superHeader, this);
+
+
+        //Changer pointers
+        this.add = this.body.add;
+
+    }
+
+    setTitle(text) {
+        this.header.setValue(text);
+        return this;
+    }
+
+}
+
+function KWindow(title = "Kicsy Window") {
+    let obj = new KWindowClass();
+    obj.setTitle(title);
+    return obj;
+}

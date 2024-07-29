@@ -215,3 +215,70 @@ TEMPRAL
             return arrayData;
         }
     }
+
+
+
+
+
+
+        KRow(
+            KColumn(
+                KButton("Boton 1"),
+                KButton("Boton 2"),
+                KButton("Boton 3"),
+                KButton("Boton 4"),
+                KButton("Boton 5"),
+                KButton("Boton 6"),
+                KButton("Boton 7"),
+                KButton("Boton 8"),
+                KButton("Boton 9"),
+                KButton("Boton 10"),
+            ).setSize(100, 300),
+            KColumn(
+                KButton("Boton 1"),
+                KButton("Boton 2"),
+                KButton("Boton 3"),
+                KButton("Boton 4"),
+                KButton("Boton 5"),
+                KButton("Boton 6"),
+                KButton("Boton 7"),
+                KButton("Boton 8"),
+                KButton("Boton 9"),
+                KButton("Boton 10"),
+            ).setSize(100, 300)
+        )
+
+            .publish();
+
+
+
+
+        KDataViewer(
+            KLayer(
+                KText().setName("tipo"),
+                KText().setName("marca")
+            ).setName("vehiculo")
+        )
+            .getMe(me => viewer = me)
+            .publish()
+            .setArrayData(arrayData);
+
+
+        let b1 = KButton("Boton 1").addEvent("click", function () {
+            arrayData2 = viewer.getArrayData();
+            console.log(KDataUtils.getDifferencesBetweenArrayData(arrayData, arrayData2));
+        })
+            .publish();
+
+        let b2 = b1.clone().publish();
+
+
+         let galaxyStyle = "background: radial-gradient(circle at bottom, navy 0, black 100%);";
+       
+
+
+
+
+
+
+
