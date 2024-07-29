@@ -38,6 +38,8 @@ class Kicsy {
 
     }
 
+    static applications = [];
+
 }
 
 
@@ -452,7 +454,48 @@ class KicsyVisualComponent extends KicsyComponent {
     }
 
 
+    /**
+     * Hides the component by setting its visibility to "hidden".
+     * This will make the component invisible on the page.
+     * @returns {void} 
+     */
+    hide() {
+        // Set the visibility style of the component's DOM element to "hidden".
+        this.dom.style.visibility = "hidden";
+    }
 
+    /**
+     * Shows the component by setting its visibility to "visible".
+     * This will make the component visible on the page.
+     * @returns {void} 
+     */
+    show() {
+        // Set the visibility style of the component's DOM element to "visible".
+        // This will make the component visible on the page.
+        this.dom.style.visibility = "visible";
+    }
+
+    /**
+     * Increases the z-index of the component, making it appear "above" other components.
+     *
+     * @returns {void}
+     */
+    climb() {
+        // Increase the z-index of the component's DOM element.
+        // This will make the component appear "above" other components on the page.
+        this.dom.style.zIndex++;
+    }
+
+    /**
+     * Decreases the z-index of the component, making it appear "below" other components.
+     *
+     * @returns {void}
+     */
+    descend() {
+        // Decrease the z-index of the component's DOM element.
+        // This will make the component appear "below" other components on the page.
+        this.dom.style.zIndex--;
+    }
 
     /**
      * Creates a clone of the current component.
@@ -1284,6 +1327,75 @@ function KColumn(...components) {
     return obj;
 }
 
+
+/************************************************************************************ */
+/*                           WINDOWS FUNCTIONS                                        */
+/************************************************************************************ */
+
+
+class KWindowClass extends KicsyVisualContainerComponent {
+
+    header;
+    body;
+    footer;
+    superHeader;
+    // frame;
+
+    constructor() {
+        super();
+
+        this.header = new KLabel();
+        this.body = new KLayer();
+        this.footer = new KLayer();
+        this.superHeader = new KLayer();
+        this.controlButton = KLayer();
+
+        //Build frame with header, body and footer
+        this.add(this.header, this.body, this.footer, this.superHeader, this.controlButton);
+
+
+        //Initialze styles
+        this.addCssText("position: absolute;border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px;");
+        this.header.addCssText("display: block; position: relative; width: 100%; height: 30px;margin: 0px;text-align: center;line-height: 30px;font-weight: bold;");
+        this.body.addCssText("display: block; position: relative; width: 100%;height: calc(100% - 60px);margin: 0px");
+        this.footer.addCssText("display: block; position: relative; width: 100%;height: 30px;margin: 0px;");
+        this.superHeader.addCssText("display: block; position: relative; margin: 0px;width: 120%; left: -10%; height: 60px; top: calc(-100% - 20px)");
+        this.controlButton.addCssText("display: block; position: absolute; margin: 0px;width: 20px; height: 20px; right: 0px; top: 5px; border : 1px solid gray; border-radius: 30px; background-color: red;");
+
+        //shadow
+        this.addCssText("box-shadow: 5px 5px 5px gray;");
+
+        //Background styles
+        this.header.addCssText("background: lightblue;")
+        this.body.addCssText("background-color: white;");
+        this.footer.addCssText("background: lightblue;");
+
+        //Make window draggable
+        this.makeDraggable(this.superHeader, this);
+
+        //Control button wth close event
+        this.controlButton.addEvent("click", () => {
+            this.hide();
+        })
+
+        //pointers
+        this.add = function (...args) { this.body.add(...args); return this; };
+
+    }
+
+    setTitle(text) {
+        this.header.setValue(text);
+        return this;
+    }
+
+}
+
+function KWindow(title = "Kicsy Window") {
+    let obj = new KWindowClass();
+    obj.setTitle(title);
+    return obj;
+}
+
 /************************************************************************************ */
 /*                           DATA AREA FUNCTIONS                                      */
 /************************************************************************************ */
@@ -1305,66 +1417,209 @@ class KDataUtils extends KicsyObject {
     }
 }
 
-
-
 /************************************************************************************ */
-/*                           WINDOWS FUNCTIONS                                        */
+/*                           Messages FUNCTIONS                                        */
 /************************************************************************************ */
+class KMessageClass extends KicsyObject {
+    /** App wich generates the message */
+    source
+    /** App wich receives the message */
+    target
+    /** User wich generated the message */
+    author
+    /** User wich receives the message */
+    destinatary
+    /** Action wich the message contains */
+    action
+    /** Content of the message */
+    payload
+    /**
+     * Constructor for the KMessageClass object.
+     * 
+     * @param {string} [source=""] - The source of the message.
+     * @param {string} [target=""] - The target of the message.
+     * @param {string} [author=""] - The author of the message.
+     * @param {string} [destinatary=""] - The destinatary of the message.
+     * @param {string} [action=""] - The action of the message.
+     * @param {object} [payload={}] - The payload of the message.
+     */
+    constructor(source = "", target = "", author = "", destinatary = "", action = "", payload = {}) {
+        // Call the constructor of the parent class
+        super();
 
+        // Set the source of the message
+        this.source = source;
 
-class KWindowClass extends KicsyVisualContainerComponent {
+        // Set the target of the message
+        this.target = target;
 
-    header;
-    body;
-    footer;
-    superHeader;
-    // frame;
+        // Set the author of the message
+        this.author = author;
 
-    constructor(...args) {
-        super(...args);
+        // Set the destinatary of the message
+        this.destinatary = destinatary;
 
-        this.header = new KLabel();
-        this.body = new KLayer();
-        this.footer = new KLayer();
-        this.superHeader = new KLayer();
-        //  this.frame = new KLayer();
+        // Set the action of the message
+        this.action = action;
 
-        //Build frame with header, body and footer
-        this.add(this.header, this.body, this.footer, this.superHeader);
-
-        //Initialze styles
-        this.addCssText("position: absolute;border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px;");
-        this.header.addCssText("display: block; position: relative; width: 100%; height: 30px;margin: 0px;text-align: center;line-height: 30px;font-weight: bold;");
-        this.body.addCssText("display: block; position: relative; width: 100%;height: calc(100% - 60px);margin: 0px");
-        this.footer.addCssText("display: block; position: relative; width: 100%;height: 30px;margin: 0px;");
-        this.superHeader.addCssText("display: block; position: relative; margin: 0px;width: 120%; left: -10%; height: 60px; top: calc(-100% - 20px)"); //width: 120%; left: -10%; height: 60px; top: -15px; 
-
-        //shadow
-        this.addCssText("box-shadow: 5px 5px 5px gray;");
-
-        //Background styles
-        this.header.addCssText("background: lightblue;")
-        this.body.addCssText("background-color: white;");
-        this.footer.addCssText("background: lightblue;");
-
-        //Make window draggable
-        this.makeDraggable(this.superHeader, this);
-
-
-        //Changer pointers
-        this.add = this.body.add;
-
+        // Set the payload of the message
+        this.payload = payload;
     }
 
-    setTitle(text) {
-        this.header.setValue(text);
-        return this;
+
+    /**
+     * Sends the message to the target application.
+     * 
+     * This function iterates over the applications in the Kicsy.applications array
+     * and calls the processMessage method of the application with the current instance
+     * of the KMessageClass as an argument. The processMessage method processes the message
+     * and returns the result. If the target application is found, the processMessage method
+     * is called and the result is returned.
+     * 
+     * @return {any} The result of the processMessage method of the target application.
+     */
+    send() {
+        // Iterate over the applications in the Kicsy.applications array
+        Kicsy.applications.forEach(app => {
+            // If the name of the application matches the target of the message
+            if (app.name === this.target) {
+                // Call the processMessage method of the application with the current instance of the KMessageClass as an argument
+                return app.processMessage(this);
+            }
+        })
+    }
+
+    /**
+     * Sends a message asynchronously to a specified URL.
+     * 
+     * @param {string} url - The URL to send the message to.
+     * @param {function} callback - The callback function to call with the JSON response.
+     */
+    async remoteSend(url, callback) {
+        // Create a new Headers object to set the Content-Type header.
+        const myHeaders = new Headers();
+        // myHeaders.append("Content-Type", "application/json");
+        // myHeaders.append("Accept", "application/json");
+        // myHeaders.append("Access-Control-Allow-Origin", "*");
+
+        console.log(JSON.stringify(this));
+
+        let form = new FormData();
+        form.append("message", JSON.stringify(this));
+
+        // Create a new Request object with the specified URL, method, body, and headers.
+        const myRequest = new Request(url, {
+            method: "POST", // Set the request method to POST.
+            body: form, // Convert the KMessageClass instance to a JSON string and set it as the request body.
+            //   headers: myHeaders, // Set the request headers to the previously created Headers object.
+        });
+
+        // Send the request asynchronously using the fetch function.
+        const response = await fetch(myRequest);
+
+        // Check if the response is successful (status code 200-299).
+        if (response.ok) {
+            // Call the callback function with the JSON response.
+            callback(await response.text());
+        }
+    }
+
+
+    /**
+     * Broadcasts the message to all the applications registered in Kicsy.applications.
+     *
+     * This function iterates over the applications in the Kicsy.applications array
+     * and calls the processMessage method of the application with the current instance
+     * of the KMessageClass as an argument. The processMessage method processes the message
+     * and returns the result. If the target application is found, the processMessage method
+     * is called and the result is returned.
+     *
+     * @return {void} This function does not return anything.
+     */
+    broadcast() {
+        // Iterate over the applications in the Kicsy.applications array
+        Kicsy.applications.forEach(app => {
+            // Call the processMessage method of the application with the current instance of the KMessageClass as an argument
+            app.processMessage(this);
+        });
     }
 
 }
 
-function KWindow(title = "Kicsy Window") {
-    let obj = new KWindowClass();
-    obj.setTitle(title);
-    return obj;
+/**
+ * Creates a new instance of KMessageClass with the provided arguments.
+ *
+ * @param {string} [source=""] - The source of the message.
+ * @param {string} [target=""] - The target of the message.
+ * @param {string} [author=""] - The author of the message.
+ * @param {string} [destinatary=""] - The destinatary of the message.
+ * @param {string} [action=""] - The action of the message.
+ * @param {object} [payload={}] - The payload of the message.
+ * @return {KMessageClass} - The newly created KMessageClass instance.
+ */
+function KMessage(source = "", target = "", author = "", destinatary = "", action = "", payload = {}) {
+    // Create a new instance of KMessageClass with the provided arguments
+    return new KMessageClass(source, target, author, destinatary, action, payload);
 }
+
+
+/************************************************************************************ */
+/*                           Applications FUNCTIONS                                        */
+/************************************************************************************ */
+class KApplicationClass extends KicsyObject {
+
+    /** Application name */
+    name = "Application";
+    /** Application description */
+    description = "Aplication description";
+    /** Application environments */
+    environments = [];
+    /** Application version */
+    version = "1.0.0";
+    /** Application author */
+    author = "Kicsy";
+    /** Application root view */
+    rootView = null;
+    constructor(name, description, environments, version = 1, author) {
+        this.name = name;
+        this.description = description;
+        this.version = version;
+        this.author = author;
+    }
+
+    preprocessMessage(message) {
+        switch (message.action) {
+            case "hide":
+                if (this.rootView != undefined) this.rootView.hide();
+                break;
+            case "show":
+                if (this.rootView != undefined) this.rootView.show();
+                break;
+            case "run":
+                if (this.rootView != undefined) this.run();
+                break;
+        }
+
+    }
+
+    processMessage(message) {
+        this.preprocessMessage(message);
+    }
+
+    run() {
+        if (this.rootView != undefined) {
+            this.rootView.show();
+        }
+
+    }
+
+}
+
+
+
+
+
+
+
+
+

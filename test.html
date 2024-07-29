@@ -33,8 +33,17 @@
 
 
         KWindow("Esto es una prueba")
-        .setSize(300, 300)
-        .publish();
+            .setSize(300, 300)
+            .add(
+                KButton("Click me")
+                    .addCssText("position: absolute; top:0; left: 0;")
+            )
+            .publish();
+
+        KMessage("source", "target", "author", "destinatary", "action", "payload")
+            .remoteSend("http://localhost/Kicsy/a.php", (data) => {
+                console.log(data);
+            })
 
 
     </script>

@@ -45,7 +45,6 @@ class Kicsy {
 
     static version = "0.0.1";
 
-
     /**
      * Load and include multiple JavaScript modules.
      *
@@ -66,6 +65,8 @@ class Kicsy {
         }
 
     }
+
+    static applications = [];
 
 }
 
@@ -439,6 +440,59 @@ class KicsyVisualComponent extends KicsyComponent {
         // Return the current instance of the KicsyVisualComponent class
         return this;
     }
+
+
+    /**
+     * Used to make the component draggable
+     * @param {*} pointer component that will receive the drag action from mouse
+     * @param {*} movable component that will be moved. If not provided, it is the same as pointer
+     * @returns itself
+     */
+    makeDraggable(pointer, movable) {
+
+        if (pointer === undefined) {
+            pointer = this;
+        }
+
+        if (movable === undefined) {
+            movable = pointer;
+        }
+
+        pointer.dom.onmousedown = function (event) {
+            let rect = pointer.dom.getBoundingClientRect();
+            movable.dragX = event.clientX - rect.x;
+            movable.dragY = event.clientY - rect.y;
+            pointer.dom.style.cursor = "grab";
+
+
+            movable.dom.onmousemove = function (event) {
+                movable.dom.style.transform = null;
+                movable.dom.style.left = event.clientX - movable.dragX + "px";
+                movable.dom.style.top = event.clientY - movable.dragY + "px";
+            }
+
+            movable.dom.onmouseup = function () {
+                movable.dom.onmousemove = null;
+                movable.dom.onmouseup = null;
+                pointer.dom.style.cursor = "auto";
+
+            };
+
+        };
+    }
+
+
+    hide() {
+        this.dom.style.visibility = "hidden";
+    }
+
+    show() {
+        this.dom.style.visibility = "visible";
+    }
+
+
+
+
     /**
      * Creates a clone of the current component.
      *
@@ -766,13 +820,13 @@ class KDataViewerClass extends KicsyVisualContainerComponent {
     getArrayData(callback) {
         // Create an empty array to store the data objects
         let data = [];
-        
+
         // Iterate over each child component of the data viewer's DOM
         for (let child of this.dom.childNodes) {
             // Call the `getData` method on the `kicsy` object of the child component and store the result in the data array
             data.push(child.kicsy.getData());
         }
-        
+
         // If a callback function is provided, call it with the data array and return the current instance of the data viewer
         if (callback != undefined) {
             callback(data, this);
@@ -1214,6 +1268,8 @@ class KRowClass extends KicsyVisualContainerComponent {
         for (let child of this.dom.childNodes) {
             child.style.display = "inline-block";
         }
+
+        this.addCssText("display: block; position: relative; width: 100%;");
     }
 }
 
@@ -1249,6 +1305,7 @@ class KColumnClass extends KicsyVisualContainerComponent {
             // Set the display style of each child to "block"
             child.style.display = "block";
         }
+        this.addCssText("display: inline-block; position: relative; height: 100%;");
     }
 }
 
@@ -1266,6 +1323,75 @@ function KColumn(...components) {
     return obj;
 }
 
+
+/************************************************************************************ */
+/*                           WINDOWS FUNCTIONS                                        */
+/************************************************************************************ */
+
+
+class KWindowClass extends KicsyVisualContainerComponent {
+
+    header;
+    body;
+    footer;
+    superHeader;
+    // frame;
+
+    constructor() {
+        super();
+
+        this.header = new KLabel();
+        this.body = new KLayer();
+        this.footer = new KLayer();
+        this.superHeader = new KLayer();
+        this.controlButton = KLayer();
+
+        //Build frame with header, body and footer
+        this.add(this.header, this.body, this.footer, this.superHeader, this.controlButton);
+
+
+        //Initialze styles
+        this.addCssText("position: absolute;border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px;");
+        this.header.addCssText("display: block; position: relative; width: 100%; height: 30px;margin: 0px;text-align: center;line-height: 30px;font-weight: bold;");
+        this.body.addCssText("display: block; position: relative; width: 100%;height: calc(100% - 60px);margin: 0px");
+        this.footer.addCssText("display: block; position: relative; width: 100%;height: 30px;margin: 0px;");
+        this.superHeader.addCssText("display: block; position: relative; margin: 0px;width: 120%; left: -10%; height: 60px; top: calc(-100% - 20px)");
+        this.controlButton.addCssText("display: block; position: absolute; margin: 0px;width: 20px; height: 20px; right: 0px; top: 5px; border : 1px solid gray; border-radius: 30px; background-color: red;");
+
+        //shadow
+        this.addCssText("box-shadow: 5px 5px 5px gray;");
+
+        //Background styles
+        this.header.addCssText("background: lightblue;")
+        this.body.addCssText("background-color: white;");
+        this.footer.addCssText("background: lightblue;");
+
+        //Make window draggable
+        this.makeDraggable(this.superHeader, this);
+
+        //Control button wth close event
+        this.controlButton.addEvent("click", () => {
+            this.hide();
+        })
+
+        //pointers
+        this.add = function (...args) { this.body.add(...args); return this; };
+
+    }
+
+    setTitle(text) {
+        this.header.setValue(text);
+        return this;
+    }
+
+}
+
+function KWindow(title = "Kicsy Window") {
+    let obj = new KWindowClass();
+    obj.setTitle(title);
+    return obj;
+}
+
 /************************************************************************************ */
 /*                           DATA AREA FUNCTIONS                                      */
 /************************************************************************************ */
@@ -1280,12 +1406,186 @@ class KDataUtils extends KicsyObject {
             if (j1 !== j2) {
                 differences.push({ key: i, source: source[i], target: target[i] });
             }
-          
+
         }
 
         return differences;
     }
 }
+
+/************************************************************************************ */
+/*                           Messages FUNCTIONS                                        */
+/************************************************************************************ */
+class KMessageClass extends KicsyObject {
+    /** App wich generates the message */
+    source
+    /** App wich receives the message */
+    target
+    /** User wich generated the message */
+    author
+    /** User wich receives the message */
+    destinatary
+    /** Action wich the message contains */
+    action
+    /** Content of the message */
+    payload
+    /**
+     * Constructor for the KMessageClass object.
+     * 
+     * @param {string} [source=""] - The source of the message.
+     * @param {string} [target=""] - The target of the message.
+     * @param {string} [author=""] - The author of the message.
+     * @param {string} [destinatary=""] - The destinatary of the message.
+     * @param {string} [action=""] - The action of the message.
+     * @param {object} [payload={}] - The payload of the message.
+     */
+    constructor(source = "", target = "", author = "", destinatary = "", action = "", payload = {}) {
+        // Call the constructor of the parent class
+        super();
+
+        // Set the source of the message
+        this.source = source;
+
+        // Set the target of the message
+        this.target = target;
+
+        // Set the author of the message
+        this.author = author;
+
+        // Set the destinatary of the message
+        this.destinatary = destinatary;
+
+        // Set the action of the message
+        this.action = action;
+
+        // Set the payload of the message
+        this.payload = payload;
+    }
+
+
+    /**
+     * Sends the message to the target application.
+     * 
+     * This function iterates over the applications in the Kicsy.applications array
+     * and calls the processMessage method of the application with the current instance
+     * of the KMessageClass as an argument. The processMessage method processes the message
+     * and returns the result. If the target application is found, the processMessage method
+     * is called and the result is returned.
+     * 
+     * @return {any} The result of the processMessage method of the target application.
+     */
+    send() {
+        // Iterate over the applications in the Kicsy.applications array
+        Kicsy.applications.forEach(app => {
+            // If the name of the application matches the target of the message
+            if (app.name === this.target) {
+                // Call the processMessage method of the application with the current instance of the KMessageClass as an argument
+                return app.processMessage(this);
+            }
+        })
+    }
+
+    /**
+     * Sends a message asynchronously to a specified URL.
+     * 
+     * @param {string} url - The URL to send the message to.
+     * @param {function} callback - The callback function to call with the JSON response.
+     */
+    async remoteSend(url, callback) {
+        // Create a new Headers object to set the Content-Type header.
+        const myHeaders = new Headers();
+        // myHeaders.append("Content-Type", "application/json");
+        // myHeaders.append("Accept", "application/json");
+        // myHeaders.append("Access-Control-Allow-Origin", "*");
+
+        console.log(JSON.stringify(this));
+
+        let form = new FormData();
+        form.append("message", JSON.stringify(this));
+
+        // Create a new Request object with the specified URL, method, body, and headers.
+        const myRequest = new Request(url, {
+            method: "POST", // Set the request method to POST.
+            body: form, // Convert the KMessageClass instance to a JSON string and set it as the request body.
+            //   headers: myHeaders, // Set the request headers to the previously created Headers object.
+        });
+
+        // Send the request asynchronously using the fetch function.
+        const response = await fetch(myRequest);
+
+        // Check if the response is successful (status code 200-299).
+        if (response.ok) {
+            // Call the callback function with the JSON response.
+            callback(await response.text());
+        }
+    }
+
+
+    /**
+     * Broadcasts the message to all the applications registered in Kicsy.applications.
+     *
+     * This function iterates over the applications in the Kicsy.applications array
+     * and calls the processMessage method of the application with the current instance
+     * of the KMessageClass as an argument. The processMessage method processes the message
+     * and returns the result. If the target application is found, the processMessage method
+     * is called and the result is returned.
+     *
+     * @return {void} This function does not return anything.
+     */
+    broadcast() {
+        // Iterate over the applications in the Kicsy.applications array
+        Kicsy.applications.forEach(app => {
+            // Call the processMessage method of the application with the current instance of the KMessageClass as an argument
+            app.processMessage(this);
+        });
+    }
+
+}
+
+function KMessage(source = "", target = "", author = "", destinatary = "", action = "", payload = {}) {
+    return new KMessageClass(source, target, author, destinatary, action, payload);
+}
+
+
+/************************************************************************************ */
+/*                           Applications FUNCTIONS                                        */
+/************************************************************************************ */
+class KApplicationClass extends KicsyObject {
+
+    /** Application name */
+    name = "Application";
+    /** Application description */
+    description = "Aplication description";
+    /** Application environments */
+    environments = [];
+    /** Application version */
+    version = "1.0.0";
+    /** Application author */
+    author = "Kicsy";
+    /** Application root view */
+    rootView = null;
+    constructor(name, description, environments, version = 1, author) {
+        this.name = name;
+        this.description = description;
+        this.version = version;
+        this.author = author;
+    }
+
+    preprocessMessage(message) {
+
+    }
+
+    processMessage(message) {
+        this.preprocessMessage(message);
+    }
+
+}
+
+
+
+
+
+
 
 
 
@@ -1299,13 +1599,13 @@ class KDataUtils extends KicsyObject {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KColumnClass.html">KColumnClass</a></li><li><a href="KDataViewerClass.html">KDataViewerClass</a></li><li><a href="Kicsy.html">Kicsy</a></li><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li><li><a href="KRowClass.html">KRowClass</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KCheckbox">KCheckbox</a></li><li><a href="global.html#KColorPicker">KColorPicker</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataViewer">KDataViewer</a></li><li><a href="global.html#KDate">KDate</a></li><li><a href="global.html#KDateTimeLocal">KDateTimeLocal</a></li><li><a href="global.html#KEmail">KEmail</a></li><li><a href="global.html#KFile">KFile</a></li><li><a href="global.html#KHidden">KHidden</a></li><li><a href="global.html#KImage">KImage</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KLayer">KLayer</a></li><li><a href="global.html#KMonth">KMonth</a></li><li><a href="global.html#KNumber">KNumber</a></li><li><a href="global.html#KPassword">KPassword</a></li><li><a href="global.html#KRadio">KRadio</a></li><li><a href="global.html#KRange">KRange</a></li><li><a href="global.html#KReset">KReset</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KSearch">KSearch</a></li><li><a href="global.html#KSubmit">KSubmit</a></li><li><a href="global.html#KTel">KTel</a></li><li><a href="global.html#KText">KText</a></li><li><a href="global.html#KTextarea">KTextarea</a></li><li><a href="global.html#KTime">KTime</a></li><li><a href="global.html#KUrl">KUrl</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KColumnClass.html">KColumnClass</a></li><li><a href="KDataViewerClass.html">KDataViewerClass</a></li><li><a href="Kicsy.html">Kicsy</a></li><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li><li><a href="KMessageClass.html">KMessageClass</a></li><li><a href="KRowClass.html">KRowClass</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KCheckbox">KCheckbox</a></li><li><a href="global.html#KColorPicker">KColorPicker</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataViewer">KDataViewer</a></li><li><a href="global.html#KDate">KDate</a></li><li><a href="global.html#KDateTimeLocal">KDateTimeLocal</a></li><li><a href="global.html#KEmail">KEmail</a></li><li><a href="global.html#KFile">KFile</a></li><li><a href="global.html#KHidden">KHidden</a></li><li><a href="global.html#KImage">KImage</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KLayer">KLayer</a></li><li><a href="global.html#KMonth">KMonth</a></li><li><a href="global.html#KNumber">KNumber</a></li><li><a href="global.html#KPassword">KPassword</a></li><li><a href="global.html#KRadio">KRadio</a></li><li><a href="global.html#KRange">KRange</a></li><li><a href="global.html#KReset">KReset</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KSearch">KSearch</a></li><li><a href="global.html#KSubmit">KSubmit</a></li><li><a href="global.html#KTel">KTel</a></li><li><a href="global.html#KText">KText</a></li><li><a href="global.html#KTextarea">KTextarea</a></li><li><a href="global.html#KTime">KTime</a></li><li><a href="global.html#KUrl">KUrl</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Fri Jul 26 2024 23:42:00 GMT-0400 (hora de Venezuela)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Mon Jul 29 2024 09:04:25 GMT-0400 (hora de Venezuela)
 </footer>
 
 <script> prettyPrint(); </script>
