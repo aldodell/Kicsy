@@ -44,6 +44,9 @@
 class Kicsy {
 
     static version = "0.0.1";
+    static mainSurface = document.body;
+    static applications = [];
+    static currentUser = null;
 
     /**
      * Load and include multiple JavaScript modules.
@@ -66,9 +69,9 @@ class Kicsy {
 
     }
 
-    static applications = [];
-
 }
+
+
 
 
 
@@ -93,6 +96,7 @@ class KicsyComponent extends KicsyObject {
      * The DOM element of the component 
      * @type { HTMLElement } */
     dom;
+    postPublishedCallback;
 
     static id = 0;
 
@@ -298,6 +302,24 @@ class KicsyComponent extends KicsyObject {
         return this;
     }
 
+    postPublished() {
+
+        if (this.dom.children != undefined) {
+            for (let component of this.dom.children) {
+                if (component.kicsy != undefined) {
+                    component.kicsy.postPublished();
+                }
+            }
+        }
+
+
+        if (this.postPublishedCallback != undefined) {
+            this.postPublishedCallback(this);
+        }
+
+        return this;
+    }
+
     /**
      * Publishes the component to a specified surface element.
      * If no surface element is provided, it defaults to the body element.
@@ -314,9 +336,16 @@ class KicsyComponent extends KicsyObject {
         // Append the component's DOM element to the surface element
         surfaceElement.appendChild(this.dom);
 
+        if (surfaceElement == document.body) {
+            this.postPublished();
+        }
+
+
         // Return the current instance of the KicsyComponent class
         return this;
     }
+
+
 
     /**
      * Calls the provided callback function with the current instance of the KicsyComponent class.
@@ -482,16 +511,48 @@ class KicsyVisualComponent extends KicsyComponent {
     }
 
 
+    /**
+     * Hides the component by setting its visibility to "hidden".
+     * This will make the component invisible on the page.
+     * @returns {void} 
+     */
     hide() {
+        // Set the visibility style of the component's DOM element to "hidden".
         this.dom.style.visibility = "hidden";
     }
 
+    /**
+     * Shows the component by setting its visibility to "visible".
+     * This will make the component visible on the page.
+     * @returns {void} 
+     */
     show() {
+        // Set the visibility style of the component's DOM element to "visible".
+        // This will make the component visible on the page.
         this.dom.style.visibility = "visible";
     }
 
+    /**
+     * Increases the z-index of the component, making it appear "above" other components.
+     *
+     * @returns {void}
+     */
+    climb() {
+        // Increase the z-index of the component's DOM element.
+        // This will make the component appear "above" other components on the page.
+        this.dom.style.zIndex++;
+    }
 
-
+    /**
+     * Decreases the z-index of the component, making it appear "below" other components.
+     *
+     * @returns {void}
+     */
+    descend() {
+        // Decrease the z-index of the component's DOM element.
+        // This will make the component appear "below" other components on the page.
+        this.dom.style.zIndex--;
+    }
 
     /**
      * Creates a clone of the current component.
@@ -509,6 +570,12 @@ class KicsyVisualComponent extends KicsyComponent {
  * @extends {KicsyVisualComponent}
  */
 class KicsyVisualContainerComponent extends KicsyVisualComponent {
+
+    isAttached(node) {
+        if (node.parentNode == null) return false;
+        if (node.parentNode == document.body) return true;
+        this.isAttached(node.parentNode);
+    }
 
 
     /**
@@ -892,6 +959,7 @@ function KLabel(...args) {
     // Define a setValue method for the object that sets the innerText of the DOM element to the provided text
     obj.setValue = function (text) {
         obj.dom.innerText = text;
+        return obj;
     }
 
     // If the first argument is a string or a number, call the setValue method with the first argument
@@ -1250,6 +1318,73 @@ function KDateTimeLocal(...args) {
     return new KicsyVisualComponent("input", "datetime-local", ...args);
 }
 
+/**
+ * Creates a new instance of KCanvas.
+ *
+ * @param {...any} args - Additional arguments to pass to the constructor.
+ * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
+ */
+function KCanvas(...args) {
+    // Create a new KicsyVisualComponent instance with the "canvas" HTML tag and the provided arguments
+    let obj = new KicsyVisualComponent("canvas", ...args);
+
+    // Define the setValue method to set the drawCallback property of the KicsyVisualComponent instance
+    obj.setValue = function (value) {
+        // Set the drawCallback property of the KicsyVisualComponent instance to the provided value
+        obj.drawCallback = value;
+        // Return the current instance of the KicsyVisualComponent
+        return this;
+    }
+
+    // Define the getValue method to get the drawCallback property of the KicsyVisualComponent instance
+    obj.getValue = function () {
+        // Return the drawCallback property of the KicsyVisualComponent instance
+        return obj.drawCallback;
+    }
+
+    obj.setReferenceSize = function (width, height) {
+        obj.dom.width = width.toString().match(/\d+/)[0];
+        obj.dom.height = height.toString().match(/\d+/)[0];
+        return this;
+    }
+
+    // Define the postPublished method to be called after the component is published
+    obj.postPublishedCallback = function (obj) {
+
+        // Get the 2D rendering context of the DOM element's canvas
+        let ctx = obj.dom.getContext("2d");
+        // Get the drawCallback property of the KicsyVisualComponent instance
+        let callback = obj.drawCallback;
+        // Call the drawCallback function with the 2D rendering context as the argument
+        callback(ctx);
+    }
+
+    // Return the newly created KicsyVisualComponent instance
+    return obj;
+}
+
+
+function KAppIcon(title, drawerCallback = KDefaultImages("TERMINAL"), clickEventListener = null) {
+    let frame = KLayer(
+        KCanvas()
+            .setSize(64, 64)
+            .setReferenceSize(64, 64)
+            .setValue(drawerCallback)
+            .addCssText("display: block; position: relative; left:32px; top: 4px;"),
+        KLabel()
+            .setValue(title)
+            .addCssText("display: block; position: relative; margin-left:4px; margin-right:4px; margin-top:16px; text-align: center; line-height: 16px;"),
+    )
+        .setSize(128, 128)
+        .addCssText("display: inline-block; position: relative; width: 128px; height: 128px; border: 1px solid black; border-radius: 8px; margin: 0px; padding: 0px; box-shadow: 5px 5px 5px gray;");
+
+
+    if (clickEventListener) {
+        frame.addEvent("click", clickEventListener);
+    }
+    return frame;
+}
+
 
 
 class KRowClass extends KicsyVisualContainerComponent {
@@ -1542,9 +1677,113 @@ class KMessageClass extends KicsyObject {
 
 }
 
+/**
+ * Creates a new instance of KMessageClass with the provided arguments.
+ *
+ * @param {string} [source=""] - The source of the message.
+ * @param {string} [target=""] - The target of the message.
+ * @param {string} [author=""] - The author of the message.
+ * @param {string} [destinatary=""] - The destinatary of the message.
+ * @param {string} [action=""] - The action of the message.
+ * @param {object} [payload={}] - The payload of the message.
+ * @return {KMessageClass} - The newly created KMessageClass instance.
+ */
 function KMessage(source = "", target = "", author = "", destinatary = "", action = "", payload = {}) {
+    // Create a new instance of KMessageClass with the provided arguments
     return new KMessageClass(source, target, author, destinatary, action, payload);
 }
+
+
+
+/************************************************************************************ */
+/*                           USER FUNCTIONS                                        */
+/************************************************************************************ */
+class KUserClass extends KicsyObject {
+    name;
+    fingerprint;
+    environments = [];
+    constructor(name = "anonymous", environments = ["base"]) {
+        super();
+        this.name = name;
+        this.environments = environments;
+        this.fingerprint = name + "-" + environments; // TODO: generate fingerprint
+    }
+}
+
+Kicsy.currentUser = new KUserClass("anonymous", ["system"]);
+
+/************************************************************************************ */
+/*                          Default images                                        */
+/************************************************************************************ */
+function KDefaultImages(id) {
+
+
+    switch (id) {
+        case "TERMINAL":
+            return function (ctx) {
+
+                // #g1827
+                ctx.save();
+                ctx.transform(0.775165, 0.000000, 0.000000, 0.775165, -16.990300, -19.259500);
+
+                // #rect1345
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.997375)';
+                ctx.strokeStyle = 'rgb(0, 0, 255)';
+                ctx.lineWidth = 4.953780;
+                ctx.lineJoin = 'round';
+                ctx.moveTo(24.159860, 27.087230);
+                ctx.lineTo(102.239860, 27.087230);
+                ctx.lineTo(102.239860, 105.167230);
+                ctx.lineTo(24.159860, 105.167230);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // #text1437
+                ctx.save();
+                ctx.transform(0.882053, 0.000000, 0.000000, 1.133720, 0.000000, 0.000000);
+                ctx.fillStyle = 'rgb(0, 0, 255)';
+                ctx.lineWidth = 1.651260;
+                ctx.font = "italic bold 40.967px Courier";
+                ctx.fillText("&lt;/>", 33.022026, 78.598145);
+                ctx.restore();
+
+                // #path1490
+                ctx.beginPath();
+                ctx.fillStyle = 'rgb(0, 0, 255)';
+                ctx.strokeStyle = 'rgb(0, 0, 255)';
+                ctx.lineWidth = 1.651260;
+                ctx.lineCap = 'butt';
+                ctx.lineJoin = 'miter';
+                ctx.moveTo(22.879864, 44.601038);
+                ctx.lineTo(103.519860, 44.601038);
+                ctx.fill();
+                ctx.stroke();
+
+                // #path1820
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.997375)';
+                ctx.strokeStyle = 'rgb(0, 0, 255)';
+                ctx.lineWidth = 4.953780;
+                ctx.lineJoin = 'round';
+                ctx.moveTo(93.824593, 30.296697);
+                ctx.bezierCurveTo(96.700948, 30.296697, 99.032695, 32.352681, 99.032695, 34.888866);
+                ctx.bezierCurveTo(99.032695, 37.425051, 96.700948, 39.481035, 93.824593, 39.481035);
+                ctx.bezierCurveTo(90.948238, 39.481035, 88.616491, 37.425051, 88.616491, 34.888866);
+                ctx.bezierCurveTo(88.616491, 32.352681, 90.948238, 30.296697, 93.824593, 30.296697);
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+
+
+
+            }
+            break;
+    }
+
+}
+
 
 
 /************************************************************************************ */
@@ -1564,14 +1803,41 @@ class KApplicationClass extends KicsyObject {
     author = "Kicsy";
     /** Application root view */
     rootView = null;
+
+    iconDrawer;
+
     constructor(name, description, environments, version = 1, author) {
+        super();
         this.name = name;
         this.description = description;
         this.version = version;
         this.author = author;
+        this.environments = environments;
+        this.iconDrawer = KDefaultImages("TERMINAL");
+
+        Kicsy.applications.push(this);
+
+        //Send mesasge to desktop app to update icon drawer
+        KMessage(this.name, "desktop", "Kicsy", "system", "update", "").send();
+    }
+
+    setIconDrawer(iconDrawer) {
+        this.iconDrawer = iconDrawer;
+        return this;
     }
 
     preprocessMessage(message) {
+        switch (message.action) {
+            case "hide":
+                if (this.rootView != undefined) this.rootView.hide();
+                break;
+            case "show":
+                if (this.rootView != undefined) this.rootView.show();
+                break;
+            case "run":
+                if (this.rootView != undefined) this.run();
+                break;
+        }
 
     }
 
@@ -1579,17 +1845,88 @@ class KApplicationClass extends KicsyObject {
         this.preprocessMessage(message);
     }
 
+    run() {
+        if (this.rootView != undefined) {
+            if (this.rootView.parentNode == null) { this.rootView.publish(Kicsy.mainSurface); }
+            this.rootView.show();
+        }
+    }
 }
 
 
 
 
+/**
+ * Function: KDesktopApp
+ * 
+ * Description: This function creates and returns a new instance of the KApplicationClass
+ *              with the name "KDesktopApp", description "Desktop App", environments "base",
+ *              version "1.0", and author "Kicsy". 
+ * 
+ * Returns: KApplicationClass instance
+ */
+(function KDesktopApp() {
+    // Create a new instance of the KApplicationClass with the specified properties
+    let app = new KApplicationClass("desktop", "Desktop App", ["base"], "1.0", "Kicsy");
+
+    // Create a new KLayer instance with a CSS style of "position: absolute; width: 100%;
+    // height: 130px; left:0px; bottom:0px; margin: 0px; padding: 0px; border: 1px solid black;
+    // overflow-x: scroll;" and assign it to the menuLayer variable
+    app.menuLayer = new KLayer()
+        .addCssText("position: absolute; width: 100%; height: 130px; left:0px; bottom:0px; margin: 0px; padding: 0px; border: 1px solid black; overflow-x: scroll;");
+
+    // Create a new KLayer instance with a CSS style of "position: absolute; width: 100%;
+    // height: 100%; left:0px; top:0px; margin: 0px; padding: 0px; background-color: PaleGreen;"
+    // and add it as a child of the menuLayer. Assign the newly created KLayer to the rootView variable
+    app.rootView = new KLayer(app.menuLayer)
+        .addCssText("position: absolute; width: 100%; height: 100%; left:0px; top:0px; margin: 0px; padding: 0px; background-color: PaleGreen;");
+
+    // Publish the rootView of the application to the document.body of the page
+    app.rootView.publish(Kicsy.mainSurface);
+
+    // Set the Kicsy.mainSurface to the rootView of the application
+    Kicsy.mainSurface = app.rootView.dom;
+
+    app.processMessage = function (message) {
+        if (message.action == "update") {
+            app.update();
+        }
+    }
+
+    app.update = function () {
+        app.menuLayer.clear();
+        Kicsy.applications.forEach(application => {
+            Kicsy.currentUser.environments.forEach(environment => {
+                if (application.environments.includes(environment)) {
+                    let appIcon = KAppIcon(application.name, application.iconDrawer, application.run);
+                    app.menuLayer.add(appIcon);
+                }
+            })
+
+        })
+    }
 
 
+    // Return the newly created application instance
+    return app;
+})();
 
+(function KAlertApp() {
+    let app = new KApplicationClass("alert", "Alert App", ["base"], "1.0", "Kicsy");
+    app.processMessage = function (message) {
+        app.super.processMessage(message);
+        if (message.action == "run") {
+            alert(message.payload);
+        }
+    }
+    return app;
+})();
 
-
-</code></pre>
+(function KVersionApp() {
+    let app = new KApplicationClass("version", "Version App", ["system"], "1.0", "Kicsy");
+    app.rootView = KWindow("Kicsy version: " + Kicsy.version).setSize(200, 100);
+    return app;
+})();</code></pre>
         </article>
     </section>
 
@@ -1599,13 +1936,13 @@ class KApplicationClass extends KicsyObject {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KColumnClass.html">KColumnClass</a></li><li><a href="KDataViewerClass.html">KDataViewerClass</a></li><li><a href="Kicsy.html">Kicsy</a></li><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li><li><a href="KMessageClass.html">KMessageClass</a></li><li><a href="KRowClass.html">KRowClass</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KCheckbox">KCheckbox</a></li><li><a href="global.html#KColorPicker">KColorPicker</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataViewer">KDataViewer</a></li><li><a href="global.html#KDate">KDate</a></li><li><a href="global.html#KDateTimeLocal">KDateTimeLocal</a></li><li><a href="global.html#KEmail">KEmail</a></li><li><a href="global.html#KFile">KFile</a></li><li><a href="global.html#KHidden">KHidden</a></li><li><a href="global.html#KImage">KImage</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KLayer">KLayer</a></li><li><a href="global.html#KMonth">KMonth</a></li><li><a href="global.html#KNumber">KNumber</a></li><li><a href="global.html#KPassword">KPassword</a></li><li><a href="global.html#KRadio">KRadio</a></li><li><a href="global.html#KRange">KRange</a></li><li><a href="global.html#KReset">KReset</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KSearch">KSearch</a></li><li><a href="global.html#KSubmit">KSubmit</a></li><li><a href="global.html#KTel">KTel</a></li><li><a href="global.html#KText">KText</a></li><li><a href="global.html#KTextarea">KTextarea</a></li><li><a href="global.html#KTime">KTime</a></li><li><a href="global.html#KUrl">KUrl</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KColumnClass.html">KColumnClass</a></li><li><a href="KDataViewerClass.html">KDataViewerClass</a></li><li><a href="Kicsy.html">Kicsy</a></li><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li><li><a href="KMessageClass.html">KMessageClass</a></li><li><a href="KRowClass.html">KRowClass</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KCanvas">KCanvas</a></li><li><a href="global.html#KCheckbox">KCheckbox</a></li><li><a href="global.html#KColorPicker">KColorPicker</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataViewer">KDataViewer</a></li><li><a href="global.html#KDate">KDate</a></li><li><a href="global.html#KDateTimeLocal">KDateTimeLocal</a></li><li><a href="global.html#KEmail">KEmail</a></li><li><a href="global.html#KFile">KFile</a></li><li><a href="global.html#KHidden">KHidden</a></li><li><a href="global.html#KImage">KImage</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KLayer">KLayer</a></li><li><a href="global.html#KMessage">KMessage</a></li><li><a href="global.html#KMonth">KMonth</a></li><li><a href="global.html#KNumber">KNumber</a></li><li><a href="global.html#KPassword">KPassword</a></li><li><a href="global.html#KRadio">KRadio</a></li><li><a href="global.html#KRange">KRange</a></li><li><a href="global.html#KReset">KReset</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KSearch">KSearch</a></li><li><a href="global.html#KSubmit">KSubmit</a></li><li><a href="global.html#KTel">KTel</a></li><li><a href="global.html#KText">KText</a></li><li><a href="global.html#KTextarea">KTextarea</a></li><li><a href="global.html#KTime">KTime</a></li><li><a href="global.html#KUrl">KUrl</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Mon Jul 29 2024 09:04:25 GMT-0400 (hora de Venezuela)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Wed Jul 31 2024 11:40:46 GMT-0400 (hora de Venezuela)
 </footer>
 
 <script> prettyPrint(); </script>

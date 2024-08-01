@@ -3,47 +3,18 @@
 
 <head>
     <title>Test</title>
-    <script src="kicsy.js"></script>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="#">
 </head>
 
 <body>
-    <h1>Test</h1>
+
+    <script src="kicsy.js"></script>
     <script>
 
-
-        let arrayData =
-            [
-                { "vehiculo": { "tipo": "carro", "marca": "ford" } },
-                { "vehiculo": { "tipo": "moto", "marca": "yamaha" } },
-                { "vehiculo": { "tipo": "avion", "marca": "boing" } },
-                { "vehiculo": { "tipo": "barco", "marca": "Sea" } },
-                { "vehiculo": { "tipo": "avion", "marca": "cessna" } },
-                { "vehiculo": { "tipo": "moto", "marca": "honda" } },
-                { "vehiculo": { "tipo": "moto", "marca": "BERA" } },
-                { "vehiculo": { "tipo": "carro", "marca": "mazda" } },
-                { "vehiculo": { "tipo": "carro", "marca": "chevrolet" } },
-
-            ];
-
-        let viewer;
-        let arrayData2
-
-
-        KWindow("Esto es una prueba")
-            .setSize(300, 300)
-            .add(
-                KButton("Click me")
-                    .addCssText("position: absolute; top:0; left: 0;")
-            )
-            .publish();
-
-        KMessage("source", "target", "author", "destinatary", "action", "payload")
-            .remoteSend("http://localhost/Kicsy/a.php", (data) => {
-                console.log(data);
-            })
+        //KWindow("hola mundo").setSize(200, 100).publish();
 
 
     </script>

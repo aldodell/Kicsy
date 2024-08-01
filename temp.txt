@@ -1,6 +1,300 @@
+
+class KApplicationClass extends KicsyObject {
+    name;
+    description;
+    environments;
+    version;
+    author;
+    rootView
+    help;
+    iconDrawer;
+
+    constructor(
+        name = "Application with no name. Change it now!",
+        description = "No description",
+        environments = ["system"],
+        version = 1, author = "Kicsy",
+        rootView = undefined,
+        iconDrawer = KDefaultImages("TERMINAL"),
+        help = "No help exists for this application") {
+
+        super();
+        this.name = name;
+        this.description = description;
+        this.environments = environments;
+        this.version = version;
+        this.author = author;
+        this.rootView = rootView;
+        this.iconDrawer = iconDrawer;
+        this.help = help;
+    }
+
+    register() {
+        Kicsy.applications.push(this);
+        return this;
+    }
+
+    run() {
+        if (this.rootView != undefined) {
+            if (this.rootView.parentNode == null) { this.rootView.publish(Kicsy.mainSurface); }
+            this.rootView.show();
+        }
+        return this;
+    }
+
+    processMessage(message) {
+        switch (message.action) {
+            case "run":
+                return this.run();
+        }
+    }
+
+    processMessage(message) {
+        return this.processMessage(message);
+    }
+
+}
+
+(function KVersionApp() {
+    let app = new KApplicationClass("version", "Version App", ["system"], "1.0", "Kicsy");
+    app.rootView = KWindow("Kicsy version: " + Kicsy.version).setSize(200, 100);
+    app.register();
+    return app;
+})();
+
+
+
+
+
+
+
+
+
+
+/************************************************************************************ */
+/*                           Applications FUNCTIONS                                        */
+/************************************************************************************ */
+class KApplicationClass extends KicsyObject {
+
+    /** Application name */
+    name = "Application";
+    /** Application description */
+    description = "Aplication description";
+    /** Application environments */
+    environments = [];
+    /** Application version */
+    version = "1.0.0";
+    /** Application author */
+    author = "Kicsy";
+    /** Application root view */
+    rootView = null;
+
+    iconDrawer;
+
+    constructor(name, description, environments, version = 1, author) {
+        super();
+        this.name = name;
+        this.description = description;
+        this.version = version;
+        this.author = author;
+        this.environments = environments;
+        this.iconDrawer = KDefaultImages("TERMINAL");
+
+    }
+
+    /**
+     * Sets the icon drawer for the application.
+     *
+     * @param {any} iconDrawer - The icon drawer to set.
+     * @return {KApplicationClass} - The current instance of the KApplicationClass.
+     */
+    setIconDrawer(iconDrawer) {
+        // Set the icon drawer for the application.
+        this.iconDrawer = iconDrawer;
+        // Return the current instance of the KApplicationClass.
+        return this;
+    }
+
+    /**
+     * Preprocesses a message for the application.
+     *
+     * @param {Object} message - The message to be preprocessed.
+     */
+    preprocessMessage(message) {
+        // Check the action in the message and perform the corresponding action.
+        switch (message.action) {
+            case "hide":
+                // If the root view is defined, hide it.
+                if (this.rootView != undefined) this.rootView.hide();
+                break;
+            case "show":
+                // If the root view is defined, show it.
+                if (this.rootView != undefined) this.rootView.show();
+                break;
+            case "run":
+                // If the root view is defined, run it.
+                if (this.rootView != undefined) this.run();
+                break;
+        }
+    }
+
+    /**
+     * Processes a message for the application.
+     *
+     * This method calls the preprocessMessage method with the given message
+     * and does not return any value.
+     *
+     * @param {Object} message - The message to be processed.
+     */
+    processMessage(message) {
+        // Call the preprocessMessage method with the given message.
+        // This method will handle the action in the message and perform the corresponding action.
+        this.preprocessMessage(message);
+    }
+
+    register() {
+        Kicsy.applications.push(this);
+        KMessage(this.name, "desktop", "Kicsy", "system", "update", "").send();
+        return this;
+    }
+
+    /**
+     * Runs the application.
+     *
+     * If the root view is defined and it is not already published, it is published to the main surface.
+     * Then, the root view is shown.
+     */
+    run() {
+        // Check if the root view is defined.
+        if (this.rootView != undefined) {
+            // Check if the root view is not already published.
+            if (this.rootView.parentNode == null) {
+                // Publish the root view to the main surface.
+                this.rootView.publish(Kicsy.mainSurface);
+            }
+            // Show the root view.
+            this.rootView.show();
+        }
+    }
+}
+
+
+
+
+/**
+ * Function: KDesktopApp
+ * 
+ * Description: This function creates and returns a new instance of the KApplicationClass
+ *              with the name "KDesktopApp", description "Desktop App", environments "base",
+ *              version "1.0", and author "Kicsy". 
+ * 
+ * Returns: KApplicationClass instance
+ */
+(function KDesktopApp() {
+    // Create a new instance of the KApplicationClass with the specified properties
+    let app = new KApplicationClass("desktop", "Desktop App", ["base"], "1.0", "Kicsy");
+
+    // Create a new KLayer instance with a CSS style of "position: absolute; width: 100%;
+    // height: 130px; left:0px; bottom:0px; margin: 0px; padding: 0px; border: 1px solid black;
+    // overflow-x: scroll;" and assign it to the menuLayer variable
+    app.menuLayer = new KLayer()
+        .addCssText("position: absolute; width: 100%; height: 130px; left:0px; bottom:0px; margin: 0px; padding: 0px; border: 1px solid black; overflow-x: scroll;");
+
+    // Create a new KLayer instance with a CSS style of "position: absolute; width: 100%;
+    // height: 100%; left:0px; top:0px; margin: 0px; padding: 0px; background-color: PaleGreen;"
+    // and add it as a child of the menuLayer. Assign the newly created KLayer to the rootView variable
+    app.rootView = new KLayer(app.menuLayer)
+        .addCssText("position: absolute; width: 100%; height: 100%; left:0px; top:0px; margin: 0px; padding: 0px; background-color: PaleGreen;");
+
+    // Publish the rootView of the application to the document.body of the page
+    app.rootView.publish(Kicsy.mainSurface);
+
+    // Set the Kicsy.mainSurface to the rootView of the application
+    Kicsy.mainSurface = app.rootView.dom;
+
+    /**
+     * Function: processMessage
+     * 
+     * Description: This function handles the processing of a message for the KDesktopApp application.
+     *              If the action of the message is "update", it calls the update function of the application.
+     * 
+     * @param {Object} message - The message to be processed.
+     */
+    app.processMessage = function (message) {
+
+        switch (message.action) {
+            case "update":
+                app.update();
+                break;
+
+            default:
+                break;
+
+        }
+
+    }
+
+    /**
+     * Function: update
+     * 
+     * Description: This function updates the menu layer of the KDesktopApp application.
+     *              It clears the menu layer and adds icons for each application that
+     *              has an environment that is included in the current user's environments.
+     */
+    app.update = function () {
+        // Clear the menu layer
+        app.menuLayer.clear();
+
+        // Loop through each application
+        Kicsy.applications.forEach(application => {
+            // Loop through each environment in the current user's environments
+            Kicsy.currentUser.environments.forEach(environment => {
+                // Check if the application has the environment
+                if (application.environments.includes(environment)) {
+                    // Create a new KAppIcon for the application and add it to the menu layer
+                    let appIcon = KAppIcon(application.name, application.iconDrawer, application.run);
+                    app.menuLayer.add(appIcon);
+                }
+            })
+        })
+    }
+
+    // Return the newly created application instance
+    return app;
+})();
+
+(function KAlertApp() {
+    let app = new KApplicationClass("alert", "Alert App", ["base"], "1.0", "Kicsy");
+    app.processMessage = function (message) {
+        app.super.processMessage(message);
+        if (message.action == "run") {
+            alert(message.payload);
+        }
+    }
+    return app;
+})();
+
+(function KVersionApp() {
+    let app = new KApplicationClass("version", "Version App", ["system"], "1.0", "Kicsy");
+    app.rootView = KWindow("Kicsy version: " + Kicsy.version).setSize(200, 100);
+    app.register();
+    return app;
+})();
+
+
+
+
+
+
+
 /**
 TEMPRAL
 */
+
+
+
+
+
 
 /**
      * Sets the data for all child components of the container.
