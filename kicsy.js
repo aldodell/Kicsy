@@ -2061,7 +2061,7 @@ function KAlert() {
     return app;
 }
 KAlert();
-KAlert();
+
 
 /**
  * Creates a new instance of the Eval App.
