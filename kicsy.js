@@ -1645,14 +1645,17 @@ class KMessageClass extends KicsyObject {
      * @return {any} The result of the processMessage method of the target application.
      */
     send() {
-        // Iterate over the applications in the Kicsy.applications array
-        Kicsy.applications.forEach(app => {
-            // If the name of the application matches the target of the message
+
+        let r;
+
+        for (let app of Kicsy.applications) {
             if (app.name === this.target) {
-                // Call the processMessage method of the application with the current instance of the KMessageClass as an argument
-                return app.processMessage(this);
+                r = app.processMessage(this);
+                break;
             }
-        })
+        }
+
+        return r;
     }
 
     /**
@@ -1788,20 +1791,22 @@ class KApplicationClass extends KicsyObject {
         return this;
     }
 
-    run() {
-        return this.name;
+    run(message) {
+        return message;
     }
 
     preProcessMessage(message) {
         switch (message.action) {
             case "run":
-                return this.run();
+                let r = this.run(message);
+                return r;
                 break;
         }
     }
 
     processMessage(message) {
-        return this.preProcessMessage(message);
+        let r = this.preProcessMessage(message);
+        return r;
     }
 
 }
@@ -1864,19 +1869,42 @@ class KApplicationClass extends KicsyObject {
 
 
     app.processLine = function (statement = "") {
-        statement.split("|").forEach(line => {
-            line = line + "  ";
-            let target = line.substring(0, line.indexOf(" ")).trim();
-            let payload = line.substring(line.indexOf(" ") + 1).trim();
+
+        let tokens = statement.trim().split("|");
+        let tokensLength = tokens.length;
+        let i;
+        let result;
+
+        for (i = 0; i < tokens.length; i++) {
+            let line = tokens[i].trim();
+            let target = line.match(/^\s*\w*\s*/)[0]; //line.substring(0, line.indexOf(" ")).trim();
+            let payload = line.substring(target.length).trim();
+            target = target.trim();
+            if (payload.length == 0 && result != undefined) { payload = result; }
+
+
+            try {
+                payload = JSON.parse(payload);
+            } catch { }
+
+
             if (target.length > 0) {
-                let result = KMessage("terminal", target, Kicsy.currentUser.name, Kicsy.currentUser.name, "run", payload).send();
-                if (result != undefined) {
-                    if (result.length > 0) {
-                        app.newLine(result);
+                result = KMessage("terminal", target, Kicsy.currentUser.name, Kicsy.currentUser.name, "run", payload).send();
+                //Last token
+                if (tokensLength == i + 1) {
+
+                    if (result != undefined) {
+                        if (result.length > 0) {
+                            app.newAnswer(result);
+                            result = undefined;
+                        }
+                    } else {
+                        app.newLine();
                     }
+
                 }
             }
-        });
+        }
     }
 
 
@@ -1889,10 +1917,7 @@ class KApplicationClass extends KicsyObject {
 
         textLine.addEvent("keydown", function (event) {
             if (event.key == "Enter") {
-                let result = app.processLine(textLine.getValue());
-                if (result != undefined) {
-                    app.newLine(result);
-                }
+                app.processLine(textLine.getValue());
             }
         });
 
@@ -1906,29 +1931,50 @@ class KApplicationClass extends KicsyObject {
 
     }
 
+    app.newAnswer = function (text) {
+        let row = KRow().addCssText("margin: 0px; padding: 0px;");
+        let textArea = KTextarea().addCssText("margin: 0px; padding: 4px;border-width: 0;outline: none;background-color: transparent;color:inherit;width: 100%;");
+        textArea.setValue(text);
+        row.add(textArea);
+        app.rootView.add(row);
+        app.newLine();
+    }
+
     app.rootView = rootView;
     app.register();
     app.newLine("");
+
+    app.help = "<b>Terminal App</b><br/>";
+
     return app;
 })();
 
 
 (function KVersionApp() {
-
-    // let rootView = KWindow("Kicsy version: " + Kicsy.version).setSize(200, 100);
     let app = new KApplicationClass("version", "Version App", ["system"]);
 
-    app.run = function () {
-        //  app.rootView.show();
+    app.run = function (message) {
         return Kicsy.version;
     }
 
-
+    app.help = "Returns Kicsy version";
     app.register();
-    // app.rootView.hide();
+
     return app;
 
 
+})();
+
+
+(function KAlert() {
+
+    let app = new KApplicationClass("alert", "Alert App", ["system"]);
+    app.run = function (message) {
+        alert(message.payload);
+    }
+
+    app.register();
+    return app;
 })();
 
 
