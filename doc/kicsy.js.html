@@ -69,17 +69,78 @@ class Kicsy {
 
     }
 
+
 }
 
 
+/************************************************************************************ */
+/*                          Default images                                        */
+/************************************************************************************ */
+function KDefaultImages(id) {
+    switch (id) {
+        case "TERMINAL":
+            return function (ctx) {
 
+                // #g1827
+                ctx.save();
+                ctx.transform(0.775165, 0.000000, 0.000000, 0.775165, -16.990300, -19.259500);
 
+                // #rect1345
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.997375)';
+                ctx.strokeStyle = 'rgb(0, 0, 255)';
+                ctx.lineWidth = 4.953780;
+                ctx.lineJoin = 'round';
+                ctx.moveTo(24.159860, 27.087230);
+                ctx.lineTo(102.239860, 27.087230);
+                ctx.lineTo(102.239860, 105.167230);
+                ctx.lineTo(24.159860, 105.167230);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // #text1437
+                ctx.save();
+                ctx.transform(0.882053, 0.000000, 0.000000, 1.133720, 0.000000, 0.000000);
+                ctx.fillStyle = 'rgb(0, 0, 255)';
+                ctx.lineWidth = 1.651260;
+                ctx.font = "italic bold 40.967px Courier";
+                ctx.fillText("&lt;/>", 33.022026, 78.598145);
+                ctx.restore();
+
+                // #path1490
+                ctx.beginPath();
+                ctx.fillStyle = 'rgb(0, 0, 255)';
+                ctx.strokeStyle = 'rgb(0, 0, 255)';
+                ctx.lineWidth = 1.651260;
+                ctx.lineCap = 'butt';
+                ctx.lineJoin = 'miter';
+                ctx.moveTo(22.879864, 44.601038);
+                ctx.lineTo(103.519860, 44.601038);
+                ctx.fill();
+                ctx.stroke();
+
+                // #path1820
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.997375)';
+                ctx.strokeStyle = 'rgb(0, 0, 255)';
+                ctx.lineWidth = 4.953780;
+                ctx.lineJoin = 'round';
+                ctx.moveTo(93.824593, 30.296697);
+                ctx.bezierCurveTo(96.700948, 30.296697, 99.032695, 32.352681, 99.032695, 34.888866);
+                ctx.bezierCurveTo(99.032695, 37.425051, 96.700948, 39.481035, 93.824593, 39.481035);
+                ctx.bezierCurveTo(90.948238, 39.481035, 88.616491, 37.425051, 88.616491, 34.888866);
+                ctx.bezierCurveTo(88.616491, 32.352681, 90.948238, 30.296697, 93.824593, 30.296697);
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            }
+            break;
+    }
+
+}
 
 class KicsyObject {
-
-    constructor() {
-
-    }
 
     clone() {
         return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
@@ -340,7 +401,6 @@ class KicsyComponent extends KicsyObject {
             this.postPublished();
         }
 
-
         // Return the current instance of the KicsyComponent class
         return this;
     }
@@ -589,6 +649,9 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
         for (const component of components) {
             // Append the component's DOM element to the container's DOM element
             this.dom.appendChild(component.dom);
+            if (this.dom.parentNode != null) {
+                component.postPublished();
+            }
         }
         return this;
     }
@@ -1567,10 +1630,10 @@ class KMessageClass extends KicsyObject {
     /**
      * Constructor for the KMessageClass object.
      * 
-     * @param {string} [source=""] - The source of the message.
-     * @param {string} [target=""] - The target of the message.
-     * @param {string} [author=""] - The author of the message.
-     * @param {string} [destinatary=""] - The destinatary of the message.
+     * @param {string} [source=""] - The source app of the message.
+     * @param {string} [target=""] - The target app of the message.
+     * @param {string} [author=""] - The author (user)of the message.
+     * @param {string} [destinatary=""] - The destinatary (user)  of the message.
      * @param {string} [action=""] - The action of the message.
      * @param {object} [payload={}] - The payload of the message.
      */
@@ -1610,14 +1673,17 @@ class KMessageClass extends KicsyObject {
      * @return {any} The result of the processMessage method of the target application.
      */
     send() {
-        // Iterate over the applications in the Kicsy.applications array
-        Kicsy.applications.forEach(app => {
-            // If the name of the application matches the target of the message
+
+        let r;
+
+        for (let app of Kicsy.applications) {
             if (app.name === this.target) {
-                // Call the processMessage method of the application with the current instance of the KMessageClass as an argument
-                return app.processMessage(this);
+                r = app.processMessage(this);
+                break;
             }
-        })
+        }
+
+        return r;
     }
 
     /**
@@ -1677,6 +1743,7 @@ class KMessageClass extends KicsyObject {
 
 }
 
+
 /**
  * Creates a new instance of KMessageClass with the provided arguments.
  *
@@ -1710,223 +1777,356 @@ class KUserClass extends KicsyObject {
     }
 }
 
+// Create a new instance of KUserClass with the name "anonymous" and environments "system"
 Kicsy.currentUser = new KUserClass("anonymous", ["system"]);
 
-/************************************************************************************ */
-/*                          Default images                                        */
-/************************************************************************************ */
-function KDefaultImages(id) {
-
-
-    switch (id) {
-        case "TERMINAL":
-            return function (ctx) {
-
-                // #g1827
-                ctx.save();
-                ctx.transform(0.775165, 0.000000, 0.000000, 0.775165, -16.990300, -19.259500);
-
-                // #rect1345
-                ctx.beginPath();
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.997375)';
-                ctx.strokeStyle = 'rgb(0, 0, 255)';
-                ctx.lineWidth = 4.953780;
-                ctx.lineJoin = 'round';
-                ctx.moveTo(24.159860, 27.087230);
-                ctx.lineTo(102.239860, 27.087230);
-                ctx.lineTo(102.239860, 105.167230);
-                ctx.lineTo(24.159860, 105.167230);
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-
-                // #text1437
-                ctx.save();
-                ctx.transform(0.882053, 0.000000, 0.000000, 1.133720, 0.000000, 0.000000);
-                ctx.fillStyle = 'rgb(0, 0, 255)';
-                ctx.lineWidth = 1.651260;
-                ctx.font = "italic bold 40.967px Courier";
-                ctx.fillText("&lt;/>", 33.022026, 78.598145);
-                ctx.restore();
-
-                // #path1490
-                ctx.beginPath();
-                ctx.fillStyle = 'rgb(0, 0, 255)';
-                ctx.strokeStyle = 'rgb(0, 0, 255)';
-                ctx.lineWidth = 1.651260;
-                ctx.lineCap = 'butt';
-                ctx.lineJoin = 'miter';
-                ctx.moveTo(22.879864, 44.601038);
-                ctx.lineTo(103.519860, 44.601038);
-                ctx.fill();
-                ctx.stroke();
-
-                // #path1820
-                ctx.beginPath();
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.997375)';
-                ctx.strokeStyle = 'rgb(0, 0, 255)';
-                ctx.lineWidth = 4.953780;
-                ctx.lineJoin = 'round';
-                ctx.moveTo(93.824593, 30.296697);
-                ctx.bezierCurveTo(96.700948, 30.296697, 99.032695, 32.352681, 99.032695, 34.888866);
-                ctx.bezierCurveTo(99.032695, 37.425051, 96.700948, 39.481035, 93.824593, 39.481035);
-                ctx.bezierCurveTo(90.948238, 39.481035, 88.616491, 37.425051, 88.616491, 34.888866);
-                ctx.bezierCurveTo(88.616491, 32.352681, 90.948238, 30.296697, 93.824593, 30.296697);
-                ctx.fill();
-                ctx.stroke();
-                ctx.restore();
-
-
-
-            }
-            break;
-    }
-
-}
-
-
-
-/************************************************************************************ */
-/*                           Applications FUNCTIONS                                        */
-/************************************************************************************ */
 class KApplicationClass extends KicsyObject {
-
-    /** Application name */
-    name = "Application";
-    /** Application description */
-    description = "Aplication description";
-    /** Application environments */
-    environments = [];
-    /** Application version */
-    version = "1.0.0";
-    /** Application author */
-    author = "Kicsy";
-    /** Application root view */
-    rootView = null;
-
+    name;
+    description;
+    environments;
+    version;
+    author;
+    rootView
+    help;
     iconDrawer;
 
-    constructor(name, description, environments, version = 1, author) {
+    constructor(
+        name = "Application with no name. Change it now!",
+        description = "No description",
+        environments = ["system"],
+        rootView = undefined,
+        version = 1,
+        author = "Kicsy",
+        iconDrawer = KDefaultImages("TERMINAL"),
+        help = "No help exists for this application") {
+
         super();
         this.name = name;
         this.description = description;
+        this.environments = environments;
         this.version = version;
         this.author = author;
-        this.environments = environments;
-        this.iconDrawer = KDefaultImages("TERMINAL");
-
-        Kicsy.applications.push(this);
-
-        //Send mesasge to desktop app to update icon drawer
-        KMessage(this.name, "desktop", "Kicsy", "system", "update", "").send();
+        this.rootView = rootView;
+        this.iconDrawer = iconDrawer;
+        this.help = help;
     }
 
-    setIconDrawer(iconDrawer) {
-        this.iconDrawer = iconDrawer;
+    register() {
+        if (this.rootView != undefined) {
+            if (this.rootView.dom.parentNode == null) { this.rootView.publish(Kicsy.mainSurface); }
+        }
+        Kicsy.applications.push(this);
         return this;
     }
 
-    preprocessMessage(message) {
+    run(message) {
+        return message;
+    }
+
+    preProcessMessage(message) {
         switch (message.action) {
-            case "hide":
-                if (this.rootView != undefined) this.rootView.hide();
-                break;
-            case "show":
-                if (this.rootView != undefined) this.rootView.show();
-                break;
             case "run":
-                if (this.rootView != undefined) this.run();
+                let r = this.run(message);
+                return r;
                 break;
         }
-
     }
 
     processMessage(message) {
-        this.preprocessMessage(message);
+        let r = this.preProcessMessage(message);
+        return r;
     }
 
-    run() {
-        if (this.rootView != undefined) {
-            if (this.rootView.parentNode == null) { this.rootView.publish(Kicsy.mainSurface); }
-            this.rootView.show();
-        }
-    }
 }
-
 
 
 
 /**
- * Function: KDesktopApp
+ * Function to create a desktop application.
  * 
- * Description: This function creates and returns a new instance of the KApplicationClass
- *              with the name "KDesktopApp", description "Desktop App", environments "base",
- *              version "1.0", and author "Kicsy". 
- * 
- * Returns: KApplicationClass instance
+ * @return {Object} - The desktop application object.
  */
-(function KDesktopApp() {
-    // Create a new instance of the KApplicationClass with the specified properties
-    let app = new KApplicationClass("desktop", "Desktop App", ["base"], "1.0", "Kicsy");
+function KDesktopApp() {
+    // Create a root view layer for the desktop application.
+    let rootView = KLayer();
+    // Create a menu layer for the desktop application.
+    let menu = KLayer();
 
-    // Create a new KLayer instance with a CSS style of "position: absolute; width: 100%;
-    // height: 130px; left:0px; bottom:0px; margin: 0px; padding: 0px; border: 1px solid black;
-    // overflow-x: scroll;" and assign it to the menuLayer variable
-    app.menuLayer = new KLayer()
-        .addCssText("position: absolute; width: 100%; height: 130px; left:0px; bottom:0px; margin: 0px; padding: 0px; border: 1px solid black; overflow-x: scroll;");
+    // Add CSS styles to the root view layer.
+    rootView.addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px; background-color: white;");
+    // Add CSS styles to the menu layer.
+    menu.addCssText("display: block; position: absolute; width: 100%; height: 128px; left: 0px; bottom: 0px; margin: 0px; padding: 0px; overflow-x: scroll; background-color: gray;");
+    // Add the menu layer to the root view layer.
+    rootView.add(menu);
 
-    // Create a new KLayer instance with a CSS style of "position: absolute; width: 100%;
-    // height: 100%; left:0px; top:0px; margin: 0px; padding: 0px; background-color: PaleGreen;"
-    // and add it as a child of the menuLayer. Assign the newly created KLayer to the rootView variable
-    app.rootView = new KLayer(app.menuLayer)
-        .addCssText("position: absolute; width: 100%; height: 100%; left:0px; top:0px; margin: 0px; padding: 0px; background-color: PaleGreen;");
+    // Create a new instance of the KApplicationClass with the specified properties.
+    let app = new KApplicationClass("desktop", "Desktop App", ["base"], rootView);
+    // Set the menu layer of the desktop application.
+    app.menu = menu;
 
-    // Publish the rootView of the application to the document.body of the page
-    app.rootView.publish(Kicsy.mainSurface);
-
-    // Set the Kicsy.mainSurface to the rootView of the application
-    Kicsy.mainSurface = app.rootView.dom;
-
+    /**
+     * Function to process messages for the desktop application.
+     * 
+     * @param {Object} message - The message object.
+     */
     app.processMessage = function (message) {
-        if (message.action == "update") {
-            app.update();
+        // Process the message using the preProcessMessage function.
+        app.preProcessMessage(message);
+
+        // Switch on the action property of the message object.
+        switch (message.action) {
+            // If the action is "update", update the menu of the desktop application.
+            case "update":
+                app.update();
+                break;
         }
     }
 
+    /**
+     * Function to update the menu of the desktop application.
+     */
     app.update = function () {
-        app.menuLayer.clear();
-        Kicsy.applications.forEach(application => {
-            Kicsy.currentUser.environments.forEach(environment => {
-                if (application.environments.includes(environment)) {
-                    let appIcon = KAppIcon(application.name, application.iconDrawer, application.run);
-                    app.menuLayer.add(appIcon);
-                }
-            })
+        // Clear the menu of the desktop application.
+        app.menu.clear();
 
+        // Iterate over each application in the Kicsy.applications array.
+        Kicsy.applications.forEach(application => {
+            // Iterate over each environment of the current user.
+            Kicsy.currentUser.environments.forEach(environment => {
+
+                // Check if the application's environments include the current environment and if the application has a root view.
+                if (application.environments.includes(environment) &amp;&amp; application.rootView != undefined) {
+                    // Create an application icon for the application and add it to the menu of the desktop application.
+                    let appIcon = KAppIcon(application.name, application.iconDrawer, application.run);
+                    app.menu.add(appIcon);
+                }
+
+            })
         })
     }
-
-
-    // Return the newly created application instance
+    // Register the desktop application.
+    app.register();
+    // Return the desktop application object.
     return app;
-})();
+}
+KDesktopApp();
 
-(function KAlertApp() {
-    let app = new KApplicationClass("alert", "Alert App", ["base"], "1.0", "Kicsy");
-    app.processMessage = function (message) {
-        app.super.processMessage(message);
-        if (message.action == "run") {
-            alert(message.payload);
+
+/**
+ * Function to create and return a terminal application object.
+ * @returns {Object} The terminal application object.
+ */
+function KTerminalApp() {
+
+    // Create a window for the terminal application.
+    let rootView = KWindow("Kicsy Terminal")
+        .setSize(480, 240) // Set the size of the window.
+        .getMe((me) => {
+            me.body.addCssText("background-color: black; color: lime;"); // Set the background and text color of the window.
+        });
+
+
+    // Create a terminal application object.
+    let app = new KApplicationClass("terminal", "Terminal App", ["system"], rootView);
+
+
+    /**
+     * Function to process a statement and display the result.
+     * @param {string} statement - The statement to process.
+     */
+    app.processLine = function (statement = "") {
+
+        let tokens = statement.trim().split("|"); // Split the statement into tokens.
+        let tokensLength = tokens.length; // Get the length of the tokens array.
+        let i;
+        let result;
+
+        for (i = 0; i &lt; tokens.length; i++) {
+            let line = tokens[i].trim(); // Trim the current token.
+            let target = line.match(/^\s*\w*\s*/)[0]; // Get the target of the token.
+            let payload = line.substring(target.length).trim(); // Get the payload of the token.
+            target = target.trim(); // Trim the target.
+            if (payload.length == 0 &amp;&amp; result != undefined) { payload = result; } // Set the payload to the result if it is empty.
+
+
+            try {
+                payload = JSON.parse(payload); // Parse the payload as JSON.
+            } catch { }
+
+
+            if (target.length > 0) {
+                result = KMessage("terminal", target, Kicsy.currentUser.name, Kicsy.currentUser.name, "run", payload).send(); // Send a message to the target.
+                // Last token
+                if (tokensLength == i + 1) {
+
+                    if (result != undefined) {
+                        if (result.length > 0) {
+                            app.newAnswer(result); // Display the result.
+                            result = undefined;
+                        }
+                    } else {
+                        app.newLine(); // Create a new line.
+                    }
+
+                }
+            }
         }
     }
-    return app;
-})();
 
-(function KVersionApp() {
-    let app = new KApplicationClass("version", "Version App", ["system"], "1.0", "Kicsy");
-    app.rootView = KWindow("Kicsy version: " + Kicsy.version).setSize(200, 100);
+
+    /**
+     * Function to create a new line in the terminal.
+     * @param {string} text - The text to display in the line.
+     */
+    app.newLine = function (text) {
+
+        let userText = Kicsy.currentUser.name + " /:>"; // Create the user text.
+        let row = KRow().addCssText("margin: 0px; padding: 0px;"); // Create the row.
+        let userLabel = KLabel(userText).addCssText("margin: 4px; padding: 0px;left:0px;border-width: 0;"); // Create the user label.
+        let textLine = KText(text).addCssText("margin: 0px; padding: 0px;border-width: 0;outline: none;background-color: transparent;color:inherit;"); // Create the text line.
+
+        textLine.addEvent("keydown", function (event) {
+            if (event.key == "Enter") {
+                app.processLine(textLine.getValue()); // Process the line when the enter key is pressed.
+            }
+        });
+
+        row.add(userLabel, textLine); // Add the user label and text line to the row.
+        app.rootView.add(row); // Add the row to the terminal window.
+
+
+        let w = parseInt(row.dom.getBoundingClientRect().width - userLabel.dom.getBoundingClientRect().width);// + //"calc(" + row.dom.style.width + " - " + userLabel.dom.offsetWidth + "px)";
+        textLine.dom.style.width = (w - 10) + "px"; // Set the width of the text line.
+        textLine.dom.focus(); // Set focus to the text line.
+
+    }
+
+    /**
+     * Function to display an answer in the terminal.
+     * @param {string} text - The text to display as an answer.
+     */
+    app.newAnswer = function (text) {
+        let row = KRow().addCssText("margin: 0px; padding: 0px;"); // Create the row.
+        let textArea = KTextarea().addCssText("margin: 0px; padding: 4px;border-width: 0;outline: none;background-color: transparent;color:inherit;width: 100%;"); // Create the text area.
+        textArea.setValue(text); // Set the value of the text area.
+        row.add(textArea); // Add the text area to the row.
+        app.rootView.add(row); // Add the row to the terminal window.
+        app.newLine(); // Create a new line.
+    }
+
+    app.rootView = rootView; // Set the root view of the terminal application.
+    app.register(); // Register the terminal application.
+    app.newLine(""); // Create a new line in the terminal.
+
+    app.help = "&lt;b>Terminal App&lt;/b>&lt;br/>"; // Set the help text of the terminal application.
+
+    return app; // Return the terminal application object.
+}
+KTerminalApp();
+
+
+/**
+ * Function to create and return a version application object.
+ * @returns {Object} The version application object.
+ */
+function KVersionApp() {
+    // Create a new instance of the KApplicationClass with the specified properties.
+    let app = new KApplicationClass(
+        "version", // Name of the application.
+        "Version App", // Description of the application.
+        ["system"] // Environments that the application belongs to.
+    );
+
+    /**
+     * Function to run the version application.
+     * @param {Object} message - The message object.
+     * @returns {string} The version of Kicsy.
+     */
+    app.run = function (message) {
+        return Kicsy.version; // Return the version of Kicsy.
+    }
+
+    // Set the help text of the version application.
+    app.help = "Returns Kicsy version";
+
+    // Register the version application.
+    app.register();
+
+    // Return the version application object.
     return app;
-})();</code></pre>
+}
+KVersionApp();
+
+
+/**
+ * Function to create and return an alert application object.
+ * The alert application displays a pop-up alert with the payload of a message.
+ *
+ * @returns {KApplicationClass} The alert application object.
+ */
+function KAlert() {
+    
+    // Create a new instance of the KApplicationClass with the specified properties.
+    let app = new KApplicationClass(
+        "alert", // Name of the application.
+        "Alert App", // Description of the application.
+        ["system"] // Environments that the application belongs to.
+    );
+
+    /**
+     * Function to run the alert application.
+     * Displays a pop-up alert with the payload of a message.
+     * @param {Object} message - The message object.
+     */
+    app.run = function (message) {
+        alert(message.payload); // Display the payload of the message as a pop-up alert.
+    }
+
+    // Register the alert application.
+    app.register();
+
+    // Return the alert application object.
+    return app;
+}
+KAlert();
+KAlert();
+
+/**
+ * Creates a new instance of the Eval App.
+ * The Eval App is an application that evaluates the payload of a message and returns the result.
+ *
+ * @return {KApplicationClass} The newly created instance of the Eval App.
+ */
+function KEval() {
+    // Create a new instance of KApplicationClass with name "eval", description "Eval App", and environments "system"
+    let app = new KApplicationClass("eval", "Eval App", ["system"]);
+
+    /**
+     * Evaluates the payload of a message and returns the result.
+     *
+     * @param {KMessageClass} message - The message to evaluate. The payload of the message is evaluated using the eval function.
+     * @return {any} The result of evaluating the payload of the message.
+     */
+    app.run = function (message) {
+        return eval(message.payload); // Evaluate the payload of the message using the eval function
+    }
+
+    // Register the Eval App in the Kicsy.applications array
+    app.register();
+
+    // Return the newly created instance of the Eval App
+    return app;
+}
+KEval();
+
+
+KMessage("system", "desktop", "Kicsy", "system", "update").send();
+
+
+
+
+
+</code></pre>
         </article>
     </section>
 
@@ -1936,13 +2136,13 @@ class KApplicationClass extends KicsyObject {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KColumnClass.html">KColumnClass</a></li><li><a href="KDataViewerClass.html">KDataViewerClass</a></li><li><a href="Kicsy.html">Kicsy</a></li><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li><li><a href="KMessageClass.html">KMessageClass</a></li><li><a href="KRowClass.html">KRowClass</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KCanvas">KCanvas</a></li><li><a href="global.html#KCheckbox">KCheckbox</a></li><li><a href="global.html#KColorPicker">KColorPicker</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataViewer">KDataViewer</a></li><li><a href="global.html#KDate">KDate</a></li><li><a href="global.html#KDateTimeLocal">KDateTimeLocal</a></li><li><a href="global.html#KEmail">KEmail</a></li><li><a href="global.html#KFile">KFile</a></li><li><a href="global.html#KHidden">KHidden</a></li><li><a href="global.html#KImage">KImage</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KLayer">KLayer</a></li><li><a href="global.html#KMessage">KMessage</a></li><li><a href="global.html#KMonth">KMonth</a></li><li><a href="global.html#KNumber">KNumber</a></li><li><a href="global.html#KPassword">KPassword</a></li><li><a href="global.html#KRadio">KRadio</a></li><li><a href="global.html#KRange">KRange</a></li><li><a href="global.html#KReset">KReset</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KSearch">KSearch</a></li><li><a href="global.html#KSubmit">KSubmit</a></li><li><a href="global.html#KTel">KTel</a></li><li><a href="global.html#KText">KText</a></li><li><a href="global.html#KTextarea">KTextarea</a></li><li><a href="global.html#KTime">KTime</a></li><li><a href="global.html#KUrl">KUrl</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KColumnClass.html">KColumnClass</a></li><li><a href="KDataViewerClass.html">KDataViewerClass</a></li><li><a href="Kicsy.html">Kicsy</a></li><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li><li><a href="KMessageClass.html">KMessageClass</a></li><li><a href="KRowClass.html">KRowClass</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KAlert">KAlert</a></li><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KCanvas">KCanvas</a></li><li><a href="global.html#KCheckbox">KCheckbox</a></li><li><a href="global.html#KColorPicker">KColorPicker</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataViewer">KDataViewer</a></li><li><a href="global.html#KDate">KDate</a></li><li><a href="global.html#KDateTimeLocal">KDateTimeLocal</a></li><li><a href="global.html#KDesktopApp">KDesktopApp</a></li><li><a href="global.html#KEmail">KEmail</a></li><li><a href="global.html#KEval">KEval</a></li><li><a href="global.html#KFile">KFile</a></li><li><a href="global.html#KHidden">KHidden</a></li><li><a href="global.html#KImage">KImage</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KLayer">KLayer</a></li><li><a href="global.html#KMessage">KMessage</a></li><li><a href="global.html#KMonth">KMonth</a></li><li><a href="global.html#KNumber">KNumber</a></li><li><a href="global.html#KPassword">KPassword</a></li><li><a href="global.html#KRadio">KRadio</a></li><li><a href="global.html#KRange">KRange</a></li><li><a href="global.html#KReset">KReset</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KSearch">KSearch</a></li><li><a href="global.html#KSubmit">KSubmit</a></li><li><a href="global.html#KTel">KTel</a></li><li><a href="global.html#KTerminalApp">KTerminalApp</a></li><li><a href="global.html#KText">KText</a></li><li><a href="global.html#KTextarea">KTextarea</a></li><li><a href="global.html#KTime">KTime</a></li><li><a href="global.html#KUrl">KUrl</a></li><li><a href="global.html#KVersionApp">KVersionApp</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Wed Jul 31 2024 11:40:46 GMT-0400 (hora de Venezuela)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Thu Aug 01 2024 10:53:24 GMT-0400 (hora de Venezuela)
 </footer>
 
 <script> prettyPrint(); </script>

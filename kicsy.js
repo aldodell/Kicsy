@@ -1813,36 +1813,62 @@ class KApplicationClass extends KicsyObject {
 
 
 
-(function KDesktopApp() {
-
+/**
+ * Function to create a desktop application.
+ * 
+ * @return {Object} - The desktop application object.
+ */
+function KDesktopApp() {
+    // Create a root view layer for the desktop application.
     let rootView = KLayer();
+    // Create a menu layer for the desktop application.
     let menu = KLayer();
 
+    // Add CSS styles to the root view layer.
     rootView.addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px; background-color: white;");
-    menu.addCssText("display: block; position: absolute; width: 100%; height: 128px; left: 0px; bottom: 0px; margin: 0px; padding: 0px; overflow-x: scroll; background-color: gray;");
+    // Add CSS styles to the menu layer.
+    menu.addCssText("display: block; position: absolute; width: 100%; height: 128px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;");
+    // Add the menu layer to the root view layer.
     rootView.add(menu);
 
+    // Create a new instance of the KApplicationClass with the specified properties.
     let app = new KApplicationClass("desktop", "Desktop App", ["base"], rootView);
-    app.menu = menu;;
+    // Set the menu layer of the desktop application.
+    app.menu = menu;
 
-
+    /**
+     * Function to process messages for the desktop application.
+     * 
+     * @param {Object} message - The message object.
+     */
     app.processMessage = function (message) {
+        // Process the message using the preProcessMessage function.
         app.preProcessMessage(message);
 
+        // Switch on the action property of the message object.
         switch (message.action) {
+            // If the action is "update", update the menu of the desktop application.
             case "update":
                 app.update();
                 break;
         }
     }
 
+    /**
+     * Function to update the menu of the desktop application.
+     */
     app.update = function () {
+        // Clear the menu of the desktop application.
         app.menu.clear();
 
+        // Iterate over each application in the Kicsy.applications array.
         Kicsy.applications.forEach(application => {
+            // Iterate over each environment of the current user.
             Kicsy.currentUser.environments.forEach(environment => {
 
+                // Check if the application's environments include the current environment and if the application has a root view.
                 if (application.environments.includes(environment) && application.rootView != undefined) {
+                    // Create an application icon for the application and add it to the menu of the desktop application.
                     let appIcon = KAppIcon(application.name, application.iconDrawer, application.run);
                     app.menu.add(appIcon);
                 }
@@ -1850,56 +1876,68 @@ class KApplicationClass extends KicsyObject {
             })
         })
     }
+    // Register the desktop application.
     app.register();
-    // app.update();
+    // Return the desktop application object.
     return app;
-})();
+}
+KDesktopApp();
 
 
-(function KTerminalApp() {
+/**
+ * Function to create and return a terminal application object.
+ * @returns {Object} The terminal application object.
+ */
+function KTerminalApp() {
 
+    // Create a window for the terminal application.
     let rootView = KWindow("Kicsy Terminal")
-        .setSize(480, 240)
+        .setSize(480, 240) // Set the size of the window.
         .getMe((me) => {
-            me.body.addCssText("background-color: black; color: lime;");
-        })
+            me.body.addCssText("background-color: black; color: lime;"); // Set the background and text color of the window.
+        });
 
 
+    // Create a terminal application object.
     let app = new KApplicationClass("terminal", "Terminal App", ["system"], rootView);
 
 
+    /**
+     * Function to process a statement and display the result.
+     * @param {string} statement - The statement to process.
+     */
     app.processLine = function (statement = "") {
 
-        let tokens = statement.trim().split("|");
-        let tokensLength = tokens.length;
+        let tokens = statement.trim().split("|"); // Split the statement into tokens.
+        let tokensLength = tokens.length; // Get the length of the tokens array.
         let i;
         let result;
 
         for (i = 0; i < tokens.length; i++) {
-            let line = tokens[i].trim();
-            let target = line.match(/^\s*\w*\s*/)[0]; //line.substring(0, line.indexOf(" ")).trim();
-            let payload = line.substring(target.length).trim();
-            target = target.trim();
-            if (payload.length == 0 && result != undefined) { payload = result; }
+            let line = tokens[i].trim(); // Trim the current token.
+            let target = line.match(/^\s*\w*\s*/)[0]; // Get the target of the token.
+            let payload = line.substring(target.length).trim(); // Get the payload of the token.
+            target = target.trim(); // Trim the target.
+            if (payload.length == 0 && result != undefined) { payload = result; } // Set the payload to the result if it is empty.
 
 
             try {
-                payload = JSON.parse(payload);
+                payload = JSON.parse(payload); // Parse the payload as JSON.
             } catch { }
 
 
             if (target.length > 0) {
-                result = KMessage("terminal", target, Kicsy.currentUser.name, Kicsy.currentUser.name, "run", payload).send();
-                //Last token
+                result = KMessage("terminal", target, Kicsy.currentUser.name, Kicsy.currentUser.name, "run", payload).send(); // Send a message to the target.
+                // Last token
                 if (tokensLength == i + 1) {
 
                     if (result != undefined) {
                         if (result.length > 0) {
-                            app.newAnswer(result);
+                            app.newAnswer(result); // Display the result.
                             result = undefined;
                         }
                     } else {
-                        app.newLine();
+                        app.newLine(); // Create a new line.
                     }
 
                 }
@@ -1908,74 +1946,150 @@ class KApplicationClass extends KicsyObject {
     }
 
 
+    /**
+     * Function to create a new line in the terminal.
+     * @param {string} text - The text to display in the line.
+     */
     app.newLine = function (text) {
 
-        let userText = Kicsy.currentUser.name + " /:>";
-        let row = KRow().addCssText("margin: 0px; padding: 0px;");
-        let userLabel = KLabel(userText).addCssText("margin: 4px; padding: 0px;left:0px;border-width: 0;");
-        let textLine = KText(text).addCssText("margin: 0px; padding: 0px;border-width: 0;outline: none;background-color: transparent;color:inherit;");
+        let userText = Kicsy.currentUser.name + " /:>"; // Create the user text.
+        let row = KRow().addCssText("margin: 0px; padding: 0px;"); // Create the row.
+        let userLabel = KLabel(userText).addCssText("margin: 4px; padding: 0px;left:0px;border-width: 0;"); // Create the user label.
+        let textLine = KText(text).addCssText("margin: 0px; padding: 0px;border-width: 0;outline: none;background-color: transparent;color:inherit;"); // Create the text line.
 
         textLine.addEvent("keydown", function (event) {
             if (event.key == "Enter") {
-                app.processLine(textLine.getValue());
+                app.processLine(textLine.getValue()); // Process the line when the enter key is pressed.
             }
         });
 
-        row.add(userLabel, textLine);
-        app.rootView.add(row);
+        row.add(userLabel, textLine); // Add the user label and text line to the row.
+        app.rootView.add(row); // Add the row to the terminal window.
 
 
         let w = parseInt(row.dom.getBoundingClientRect().width - userLabel.dom.getBoundingClientRect().width);// + //"calc(" + row.dom.style.width + " - " + userLabel.dom.offsetWidth + "px)";
-        textLine.dom.style.width = (w - 10) + "px";
-        textLine.dom.focus();
+        textLine.dom.style.width = (w - 10) + "px"; // Set the width of the text line.
+        textLine.dom.focus(); // Set focus to the text line.
 
     }
 
+    /**
+     * Function to display an answer in the terminal.
+     * @param {string} text - The text to display as an answer.
+     */
     app.newAnswer = function (text) {
-        let row = KRow().addCssText("margin: 0px; padding: 0px;");
-        let textArea = KTextarea().addCssText("margin: 0px; padding: 4px;border-width: 0;outline: none;background-color: transparent;color:inherit;width: 100%;");
-        textArea.setValue(text);
-        row.add(textArea);
-        app.rootView.add(row);
-        app.newLine();
+        let row = KRow().addCssText("margin: 0px; padding: 0px;"); // Create the row.
+        let textArea = KTextarea().addCssText("margin: 0px; padding: 4px;border-width: 0;outline: none;background-color: transparent;color:inherit;width: 100%;"); // Create the text area.
+        textArea.setValue(text); // Set the value of the text area.
+        row.add(textArea); // Add the text area to the row.
+        app.rootView.add(row); // Add the row to the terminal window.
+        app.newLine(); // Create a new line.
     }
 
-    app.rootView = rootView;
-    app.register();
-    app.newLine("");
+    app.rootView = rootView; // Set the root view of the terminal application.
+    app.register(); // Register the terminal application.
+    app.newLine(""); // Create a new line in the terminal.
 
-    app.help = "<b>Terminal App</b><br/>";
+    app.help = "<b>Terminal App</b><br/>"; // Set the help text of the terminal application.
 
-    return app;
-})();
+    return app; // Return the terminal application object.
+}
+KTerminalApp();
 
 
-(function KVersionApp() {
-    let app = new KApplicationClass("version", "Version App", ["system"]);
+/**
+ * Function to create and return a version application object.
+ * @returns {Object} The version application object.
+ */
+function KVersionApp() {
+    // Create a new instance of the KApplicationClass with the specified properties.
+    let app = new KApplicationClass(
+        "version", // Name of the application.
+        "Version App", // Description of the application.
+        ["system"] // Environments that the application belongs to.
+    );
 
+    /**
+     * Function to run the version application.
+     * @param {Object} message - The message object.
+     * @returns {string} The version of Kicsy.
+     */
     app.run = function (message) {
-        return Kicsy.version;
+        return Kicsy.version; // Return the version of Kicsy.
     }
 
+    // Set the help text of the version application.
     app.help = "Returns Kicsy version";
+
+    // Register the version application.
     app.register();
 
+    // Return the version application object.
     return app;
+}
+KVersionApp();
 
 
-})();
+/**
+ * Function to create and return an alert application object.
+ * The alert application displays a pop-up alert with the payload of a message.
+ *
+ * @returns {KApplicationClass} The alert application object.
+ */
+function KAlert() {
+    
+    // Create a new instance of the KApplicationClass with the specified properties.
+    let app = new KApplicationClass(
+        "alert", // Name of the application.
+        "Alert App", // Description of the application.
+        ["system"] // Environments that the application belongs to.
+    );
 
-
-(function KAlert() {
-
-    let app = new KApplicationClass("alert", "Alert App", ["system"]);
+    /**
+     * Function to run the alert application.
+     * Displays a pop-up alert with the payload of a message.
+     * @param {Object} message - The message object.
+     */
     app.run = function (message) {
-        alert(message.payload);
+        alert(message.payload); // Display the payload of the message as a pop-up alert.
     }
 
+    // Register the alert application.
     app.register();
+
+    // Return the alert application object.
     return app;
-})();
+}
+KAlert();
+KAlert();
+
+/**
+ * Creates a new instance of the Eval App.
+ * The Eval App is an application that evaluates the payload of a message and returns the result.
+ *
+ * @return {KApplicationClass} The newly created instance of the Eval App.
+ */
+function KEval() {
+    // Create a new instance of KApplicationClass with name "eval", description "Eval App", and environments "system"
+    let app = new KApplicationClass("eval", "Eval App", ["system"]);
+
+    /**
+     * Evaluates the payload of a message and returns the result.
+     *
+     * @param {KMessageClass} message - The message to evaluate. The payload of the message is evaluated using the eval function.
+     * @return {any} The result of evaluating the payload of the message.
+     */
+    app.run = function (message) {
+        return eval(message.payload); // Evaluate the payload of the message using the eval function
+    }
+
+    // Register the Eval App in the Kicsy.applications array
+    app.register();
+
+    // Return the newly created instance of the Eval App
+    return app;
+}
+KEval();
 
 
 KMessage("system", "desktop", "Kicsy", "system", "update").send();
