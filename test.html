@@ -14,7 +14,49 @@
     <script src="kicsy.js"></script>
     <script>
 
-       
+        let arrayData = [
+
+            { "name": "Messi", "age": 36, "city": "Rosario" },
+            { "name": "Cristiano", "age": 39, "city": "Lisboa" },
+            { "name": "Lewandowski", "age": 37, "city": "Varsovia" },
+            { "name": "Neymar", "age": 34, "city": "Rio do Janeiro" },
+            { "name": "Suarez", "age": 34, "city": "Montevideo" },
+            { "name": "Messi", "age": 36, "city": "Rosario" },
+            { "name": "Cristiano", "age": 39, "city": "Lisboa" },
+            { "name": "Lewandowski", "age": 37, "city": "Varsovia" },
+            { "name": "Neymar", "age": 34, "city": "Rio do Janeiro" },
+            { "name": "Suarez", "age": 34, "city": "Montevideo" },
+            { "name": "Messi", "age": 36, "city": "Rosario" },
+            { "name": "Cristiano", "age": 39, "city": "Lisboa" },
+            { "name": "Lewandowski", "age": 37, "city": "Varsovia" },
+            { "name": "Neymar", "age": 34, "city": "Rio do Janeiro" },
+            { "name": "Suarez", "age": 34, "city": "Montevideo" },
+
+
+
+
+
+
+
+        ]
+
+
+        let table = new KDataTableViewClass()
+            .setSize(undefined, 200)
+            .addCssText("background-color: gold; color: black;")
+            .addColumn(KText(), "name", "Name", 100)
+            .addColumn(KText(), "age", "Age", 100)  
+            .addColumn(KText(), "city", "City", 100)
+            .publish()
+            .setArrayData(arrayData)
+            .getArrayData()
+
+
+           
+
+
+
+
 
 
     </script>

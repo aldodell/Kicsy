@@ -456,21 +456,22 @@ class KicsyVisualComponent extends KicsyComponent {
      */
     setSize(width, height) {
 
-        // If a number is provided for width, convert it to a string and append "px"
-        if (!isNaN(width)) {
-            width = width + "px";
+        if (width != undefined) {
+            // If a number is provided for width, convert it to a string and append "px"
+            if (!isNaN(width)) {
+                width = width + "px";
+            }
+            this.dom.style.width = width;
         }
 
-        // If a number is provided for height, convert it to a string and append "px"
-        if (!isNaN(height)) {
-            height = height + "px";
+        if (height != undefined) {
+            // If a number is provided for height, convert it to a string and append "px"
+            if (!isNaN(height)) {
+                height = height + "px";
+            }
+            this.dom.style.height = height;
         }
 
-        // Set the width and height of the component's DOM element
-        this.dom.style.width = width;
-        this.dom.style.height = height;
-
-        // Return the current instance of the KicsyVisualComponent class
         return this;
 
     }
@@ -877,17 +878,6 @@ class KDataViewerClass extends KicsyVisualContainerComponent {
     }
 
 
-    /**
-     * The add method is not supported for KDataViewerClass.
-     * The correct way to add components to this object is using constructors paradigm.
-     * 
-     * @throws {Error} Throws an error when the add method is called.
-     * @override 
-     */
-    add(...args) {
-        // TODO: Implement add method for KDataViewerClass
-        //throw new Error("The add method is not supported for KDataViewerClass.");
-    }
 
     /**
      * Sets the data of the data viewer with the array of data objects.
@@ -981,6 +971,7 @@ function KDataViewer(rootComponent, ...args) {
 
 
 
+
 /**
  * Creates a new instance of KLabel with the provided arguments.
  *
@@ -1017,18 +1008,11 @@ function KLayer(...args) {
     // Create a new KicsyVisualContainerComponent instance with the provided arguments
     let obj = new KicsyVisualContainerComponent(...args);
 
-    /**
-     * Sets the value of the KLayer.
-     *
-     * This method is not implemented on KLayer and logs a message to the console.
-     *
-     * @param {string} text - The value to set
-     * @returns {KLayer} - The current instance of KLayer
-     */
-    obj.setValue = function (text) {
-        console.log("KLayer.setValue is not implemented on KLayer");
+    obj.setValue = function (value) {
+        obj.dom.innerHTML = value;
         return this;
     }
+
 
     /**
      * Gets the value of the KLayer.
@@ -1494,6 +1478,158 @@ function KColumn(...components) {
 }
 
 
+
+class KDataTableViewClass extends KicsyVisualContainerComponent {
+
+    rowCssText = "";
+    arrayData = [];
+    columns = [];
+    cssTextNormalRow = "background-color: white; color: black;";
+    cssTextDeletedRow = "background-color: red; color: white;";
+    rowIndex;
+    captions;
+    body;
+
+
+    addRowCssText(cssText) {
+        this.rowCssText = cssText;
+        return this;
+    }
+
+    addColumn(component, name, description = "", width = 80) {
+
+
+        component.addEvent("focus",
+            function (e) {
+                let row = e.target.parentNode.kicsy;
+                let dateTable = e.target.parentNode.parentNode.parentNode.kicsy;
+                if (row.rowIndex == (dateTable.rowIndex - 1)) {
+                    dateTable.newRow();
+                }
+            }
+        );
+
+        this.columns.push({ "component": component, "name": name, "description": description, "width": width });
+        return this;
+    }
+
+    clear() {
+        this.captions.clear();
+        this.body.clear();
+        this.rowIndex = 0;
+        return this;
+    }
+
+    newRow() {
+
+        //create row
+        let row = KRow();
+        row.cssTextNormalRow = this.cssTextNormalRow;
+        row.cssTextDeletedRow = this.cssTextDeletedRow;
+        row.status = "normal";
+        row.rowIndex = this.rowIndex;
+
+        //Add cursor to row
+        row.add(
+            KButton("X")
+                .addCssText("width:20px;")
+                .addEvent("click", () => {
+                    if (row.status == "normal") {
+                        row.status = "deleted";
+                        row.addCssTextToChildren(row.cssTextDeletedRow);
+                    } else {
+                        row.status = "normal";
+                        row.addCssTextToChildren(row.cssTextNormalRow);
+                    }
+                })
+        )
+
+        //Add other columns
+        for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
+            let col = this.columns[colIndex];
+            let component = col.component.clone();
+
+            component
+                .setName(col.name)
+                .addCssText("width: " + col.width + "px;");
+
+            if (this.rowIndex < this.arrayData.length) {
+                component.setValue(this.arrayData[this.rowIndex][col.name]);
+            }
+
+
+            row.add(component);
+        }
+
+        this.rowIndex++;
+        this.body.add(row);
+        row.dom.scrollIntoView();
+
+    }
+
+    configureCaptions() {
+        let x = 0;
+        for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
+            let col = this.columns[colIndex];
+            let w = this.dom.firstChild.nextSibling.childNodes[0].childNodes[colIndex + 1].offsetWidth;
+            let component = KLayer().setValue(col.description).setSize(w).addCssText("display: inline-block; text-align: center;");
+            this.captions.add(component);
+        }
+
+
+        return this;
+    }
+
+    setArrayData(arrayData) {
+        this.rowIndex = 0;
+
+        this.arrayData = arrayData;
+        for (let rowIndex = 0; rowIndex < this.arrayData.length; rowIndex++) {
+            this.newRow();
+        }
+        this.configureCaptions();
+        return this;
+    }
+
+    getArrayData(callback) {
+        let result = [];
+
+        for (let iRow = 0; iRow < this.body.dom.childNodes.length; iRow++) {
+            let row = this.body.dom.childNodes[iRow].kicsy.getData();
+            result.push(row);
+        }
+        if (callback != undefined) {
+            callback(result);
+            return this;
+        } else {
+            return result;
+        }
+    }
+
+
+    constructor() {
+        super();
+
+        this.captions = KRow();
+        this.body = KRow();
+
+        this.addCssText("display: block; position: absolute; background-color: silver; border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px; left: 0px; top: 0px;");
+        this.captions.addCssText("display: block; position: relative;  margin: 4px; padding: 0px;  height: 20px; ");
+        this.body.addCssText("display: block; position: relative;  margin: 4px; padding: 0px; height: calc(100% - 48px); overflow-y: scroll;");
+        this.add(this.captions, this.body);
+
+
+    }
+}
+
+function KDataTableView() {
+    let obj = new KDataTableViewClass();
+    return obj;
+}
+
+
+
+
 /************************************************************************************ */
 /*                           WINDOWS FUNCTIONS                                        */
 /************************************************************************************ */
@@ -1801,6 +1937,10 @@ class KApplicationClass extends KicsyObject {
                 let r = this.run(message);
                 return r;
                 break;
+
+            case "help":
+                return this.help;
+                break;
         }
     }
 
@@ -1894,7 +2034,7 @@ function KTerminalApp() {
     let rootView = KWindow("Kicsy Terminal")
         .setSize(480, 240) // Set the size of the window.
         .getMe((me) => {
-            me.body.addCssText("background-color: black; color: lime;"); // Set the background and text color of the window.
+            me.body.addCssText("background-color: black; color: lime;overflow-y: scroll;"); // Set the background and text color of the window.
         });
 
 
@@ -1912,6 +2052,7 @@ function KTerminalApp() {
         let tokensLength = tokens.length; // Get the length of the tokens array.
         let i;
         let result;
+        let action = "run";
 
         for (i = 0; i < tokens.length; i++) {
             let line = tokens[i].trim(); // Trim the current token.
@@ -1920,14 +2061,18 @@ function KTerminalApp() {
             target = target.trim(); // Trim the target.
             if (payload.length == 0 && result != undefined) { payload = result; } // Set the payload to the result if it is empty.
 
+            if (payload.trim().startsWith("--")) {
+                action = payload.trim().substring(2);
+            } else {
+                action = "run";
+            }
 
             try {
                 payload = JSON.parse(payload); // Parse the payload as JSON.
             } catch { }
 
-
             if (target.length > 0) {
-                result = KMessage("terminal", target, Kicsy.currentUser.name, Kicsy.currentUser.name, "run", payload).send(); // Send a message to the target.
+                result = KMessage("terminal", target, Kicsy.currentUser.name, Kicsy.currentUser.name, action, payload).send(); // Send a message to the target.
                 // Last token
                 if (tokensLength == i + 1) {
 
@@ -1979,9 +2124,9 @@ function KTerminalApp() {
      */
     app.newAnswer = function (text) {
         let row = KRow().addCssText("margin: 0px; padding: 0px;"); // Create the row.
-        let textArea = KTextarea().addCssText("margin: 0px; padding: 4px;border-width: 0;outline: none;background-color: transparent;color:inherit;width: 100%;"); // Create the text area.
-        textArea.setValue(text); // Set the value of the text area.
-        row.add(textArea); // Add the text area to the row.
+        let answer = KLayer().addCssText("margin: 0px; padding: 4px;border-width: 0;outline: none;background-color: transparent;color:inherit;width: 100%;"); // Create the text area.
+        answer.setValue(text); // Set the value of the text area.
+        row.add(answer); // Add the text area to the row.
         app.rootView.add(row); // Add the row to the terminal window.
         app.newLine(); // Create a new line.
     }
@@ -1991,6 +2136,8 @@ function KTerminalApp() {
     app.newLine(""); // Create a new line in the terminal.
 
     app.help = "<b>Terminal App</b><br/>"; // Set the help text of the terminal application.
+
+    app.rootView.hide();
 
     return app; // Return the terminal application object.
 }
@@ -2037,7 +2184,7 @@ KVersionApp();
  * @returns {KApplicationClass} The alert application object.
  */
 function KAlert() {
-    
+
     // Create a new instance of the KApplicationClass with the specified properties.
     let app = new KApplicationClass(
         "alert", // Name of the application.
@@ -2053,6 +2200,8 @@ function KAlert() {
     app.run = function (message) {
         alert(message.payload); // Display the payload of the message as a pop-up alert.
     }
+
+    app.help = "Displays a pop-up alert with the payload of a message.";
 
     // Register the alert application.
     app.register();
