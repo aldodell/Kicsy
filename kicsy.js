@@ -120,6 +120,19 @@ class KicsyObject {
 
 }
 
+
+class KAnimationFrame extends KicsyObject {
+    cssText;
+    time;
+
+    constructor(cssText, time) {
+        super();
+        this.cssText = cssText;
+        this.time = time;
+    }
+}
+
+
 /**
  * Kicsy component base
  * @extends KicsyObject
@@ -406,7 +419,7 @@ class KicsyComponent extends KicsyObject {
  * @extends {KicsyComponent}
  */
 class KicsyVisualComponent extends KicsyComponent {
-
+    animationIndex = 0;
     /**
      * Constructor for KicsyVisualComponent class.
      *
@@ -595,6 +608,47 @@ class KicsyVisualComponent extends KicsyComponent {
      */
     clone(className = KicsyVisualComponent) {
         return super.clone(className);
+    }
+
+
+    initAnimationSettings(loop = true) {
+        this.animationSettings = { "loop": loop, "frames": [], "index": 0, timer: null };
+        return this;
+    }
+    addAnimationFrame(callback, time) {
+        this.animationSettings.frames.push({ "callback": callback, "time": time });
+        return this;
+    }
+
+    nextAnimationFrame(obj) {
+        if (obj.animationSettings.index == obj.animationSettings.frames.length) {
+            if (obj.animationSettings.loop) {
+                obj.startAnimation();
+            }
+        } else {
+
+            let frame = obj.animationSettings.frames[obj.animationSettings.index];
+
+            if (frame != undefined) {
+                frame.callback(obj);
+                obj.animationSettings.timer = setTimeout(obj.nextAnimationFrame, frame.time, obj);
+                obj.animationSettings.index++;
+            }
+        }
+    }
+
+    startAnimation() {
+        this.animationSettings.index = 0;
+        this.animationSettings.timer = null;
+        this.nextAnimationFrame(this);
+        return this;
+    }
+
+    stopAnimation() {
+        clearTimeout(this.animationSettings.timer);
+        this.animationSettings.index = 0;
+        this.animationSettings.timer = null;
+        return this;
     }
 }
 
@@ -2046,7 +2100,7 @@ class KApplicationClass extends KicsyObject {
         // Call the preProcessMessage method and pass the message object as a parameter.
         // The preProcessMessage method processes the message and returns the result.
         let r = this.preProcessMessage(message);
-        
+
         // Return the processed message object.
         return r;
     }
