@@ -40,19 +40,34 @@
 
         ]
 
+        /*
+                KWindow("Test")
+                    .setSize(600, 500)
+                    .add(
+                        KDataTableView()
+                            .setSize(undefined, 200)
+                            .addCssText("display: block; position: absolute; top:20px; left:20px;")
+                            .addColumn(KText(), "name", "Name", 100)
+                            .addColumn(KText(), "age", "Age", 100)
+                            .addColumn(KText(), "city", "City", 100)
+                            .setArrayData(arrayData),
+        
+                        KButton("Procesar")
+                            .addCssText("display: block; position: absolute;  left:400px; z-index:4;")
+                            .addEvent("click", () => {
+                                console.log(table.getStructuredData());
+                            })
+        
+                    )
+                    .publish();
+        */
 
-        let table = new KDataTableViewClass()
-            .setSize(undefined, 200)
-            .addCssText("background-color: gold; color: black;")
-            .addColumn(KText(), "name", "Name", 100)
-            .addColumn(KText(), "age", "Age", 100)  
-            .addColumn(KText(), "city", "City", 100)
-            .publish()
-            .setArrayData(arrayData)
-            .getArrayData()
+        let a1 = new KApplicationClass("App1", "PP", ["system"], KWindow("Test").setSize(600, 500)).register();
 
+        let a2 = new KApplicationClass("App2", "PP", ["system"], KWindow("Test").setSize(600, 500)).register();
 
-           
+        KMessage("system", "desktop", "Kicsy", "system", "update").send();
+
 
 
 

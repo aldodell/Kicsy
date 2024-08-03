@@ -1,6 +1,17 @@
+ for (let iRow = 0; iRow < target.length; iRow++) {
 
-    
-    setSize(width, height) {
-        super.setSize(width, height);
-        return this;
-    }
+            if (iRow >= source.length) {
+                result.push({ "status": "insert", "row": target[iRow] });
+                continue;
+            }
+
+            for (let iCol = 0; iCol < columnsNames.length; iCol++) {
+                if (source[iRow][columnsNames[iCol]] !== target[iRow][columnsNames[iCol]]) {
+                    result.push({ "status": "update", "row": target[iRow] });
+                    continue;
+                }
+            }
+            if (this.body.dom.childNodes[iRow].kicsy.status == "deleted") {
+                result[iRow].status = "delete";
+            }
+        }

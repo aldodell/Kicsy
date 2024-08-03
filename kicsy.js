@@ -605,6 +605,7 @@ class KicsyVisualComponent extends KicsyComponent {
 class KicsyVisualContainerComponent extends KicsyVisualComponent {
 
     isAttached(node) {
+        if (node == undefined) node = this.dom;
         if (node.parentNode == null) return false;
         if (node.parentNode == document.body) return true;
         this.isAttached(node.parentNode);
@@ -1395,10 +1396,10 @@ function KAppIcon(title, drawerCallback = KDefaultImages("TERMINAL"), clickEvent
             .addCssText("display: block; position: relative; margin-left:4px; margin-right:4px; margin-top:16px; text-align: center; line-height: 16px;"),
     )
         .setSize(128, 128)
-        .addCssText("display: inline-block; position: relative; width: 128px; height: 128px; border: 1px solid black; border-radius: 8px; margin: 0px; padding: 0px; box-shadow: 5px 5px 5px gray;");
+        .addCssText("display: inline-block; position: relative; width: 128px; height: 128px; border: 1px solid black; border-radius: 8px; margin: 0px; padding: 0px; box-shadow: 5px 5px 5px gray; background-color: white;");
 
 
-    if (clickEventListener) {
+    if (clickEventListener != null && clickEventListener != undefined) {
         frame.addEvent("click", clickEventListener);
     }
     return frame;
@@ -1489,6 +1490,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
     rowIndex;
     captions;
     body;
+    captionAdjustment = 8;
 
 
     addRowCssText(cssText) {
@@ -1497,8 +1499,6 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
     }
 
     addColumn(component, name, description = "", width = 80) {
-
-
         component.addEvent("focus",
             function (e) {
                 let row = e.target.parentNode.kicsy;
@@ -1571,25 +1571,24 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
         let x = 0;
         for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
             let col = this.columns[colIndex];
-            let w = this.dom.firstChild.nextSibling.childNodes[0].childNodes[colIndex + 1].offsetWidth;
-            let component = KLayer().setValue(col.description).setSize(w).addCssText("display: inline-block; text-align: center;");
+            let w = col.width + this.captionAdjustment;
+            let component = KLayer().setValue(col.description).setSize(w).addCssText("display: inline-block; text-align: center;margin:4px;");
             this.captions.add(component);
         }
-
-
         return this;
     }
 
     setArrayData(arrayData) {
         this.rowIndex = 0;
-
         this.arrayData = arrayData;
         for (let rowIndex = 0; rowIndex < this.arrayData.length; rowIndex++) {
             this.newRow();
         }
         this.configureCaptions();
+
         return this;
     }
+
 
     getArrayData(callback) {
         let result = [];
@@ -1606,6 +1605,48 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
         }
     }
 
+    getStructuredData(callback) {
+        let source = this.arrayData;
+        let target = this.getArrayData();
+        let columnsNames = this.columns.map((col) => col.name);
+        let result = [];
+
+        for (let iRow = 0; iRow < target.length; iRow++) {
+
+            //detect new rows
+            if (iRow >= source.length) {
+                result.push({ "status": "insert", "data": target[iRow] });
+                continue;
+            }
+
+
+            //detect deleted rows
+            let row = this.body.dom.childNodes[iRow].kicsy;
+            if (row.status == "deleted") {
+                result.push({ "status": "delete", "data": row.getData() });
+                continue;
+            }
+
+
+
+            //detect changed rows
+            let j1 = JSON.stringify(Object.values(target[iRow]).map((p) => p.toString()))
+            let j2 = JSON.stringify(Object.values(source[iRow]).map((p) => p.toString()))
+            if (j1 != j2) {
+                result.push({ "status": "update", "data": target[iRow] });
+                continue;
+            }
+        }
+
+        if (callback != undefined) {
+            callback(result);
+            return this;
+        } else {
+            return result;
+        }
+
+    }
+
 
     constructor() {
         super();
@@ -1614,7 +1655,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
         this.body = KRow();
 
         this.addCssText("display: block; position: absolute; background-color: silver; border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px; left: 0px; top: 0px;");
-        this.captions.addCssText("display: block; position: relative;  margin: 4px; padding: 0px;  height: 20px; ");
+        this.captions.addCssText("display: block; position: relative; margin: 4px; padding: 0px; height: 20px; width: fit-content;");
         this.body.addCssText("display: block; position: relative;  margin: 4px; padding: 0px; height: calc(100% - 48px); overflow-y: scroll;");
         this.add(this.captions, this.body);
 
@@ -1898,6 +1939,18 @@ class KApplicationClass extends KicsyObject {
     help;
     iconDrawer;
 
+    /**
+     * Constructor function for the KApplicationClass.
+     *
+     * @param {string} [name="Application with no name. Change it now!"] - The name of the application.
+     * @param {string} [description="No description"] - The description of the application.
+     * @param {Array} [environments=["system"]] - The environments that the application belongs to.
+     * @param {HTMLElement} [rootView=undefined] - The root view of the application.
+     * @param {number} [version=1] - The version of the application.
+     * @param {string} [author="Kicsy"] - The author of the application.
+     * @param {Function} [iconDrawer=KDefaultImages("TERMINAL")] - The icon drawer for the application.
+     * @param {string} [help="No help exists for this application"] - The help text for the application.
+     */
     constructor(
         name = "Application with no name. Change it now!",
         description = "No description",
@@ -1908,7 +1961,10 @@ class KApplicationClass extends KicsyObject {
         iconDrawer = KDefaultImages("TERMINAL"),
         help = "No help exists for this application") {
 
+        // Call the constructor of the parent class (KicsyObject)
         super();
+
+        // Assign the provided arguments to the corresponding properties of the class instance
         this.name = name;
         this.description = description;
         this.environments = environments;
@@ -1919,33 +1975,79 @@ class KApplicationClass extends KicsyObject {
         this.help = help;
     }
 
+    /**
+     * Registers the application.
+     * 
+     * @return {KApplicationClass} - The current instance of the KApplicationClass.
+     */
     register() {
+        // If the root view is defined and it is not already added to the DOM, add it to the main surface.
         if (this.rootView != undefined) {
-            if (this.rootView.dom.parentNode == null) { this.rootView.publish(Kicsy.mainSurface); }
+            if (this.rootView.dom.parentNode == null) {
+                this.rootView.publish(Kicsy.mainSurface);
+            }
         }
+        // Add the current instance of the KApplicationClass to the applications array of the Kicsy class.
         Kicsy.applications.push(this);
+        // Return the current instance of the KApplicationClass.
         return this;
     }
 
+    /**
+     * The run method is called when a message with the action "run" is processed by the application.
+     * 
+     * @param {Object} message - The message object containing the information needed to run the application.
+     * @return {Object} - The message object that was passed as a parameter.
+     */
     run(message) {
+        // Call the run method and pass the message object as a parameter.
+        // Return the message object that was passed as a parameter.
         return message;
     }
 
+    /**
+     * Pre-processes the message before it is processed by the application.
+     * 
+     * @param {Object} message - The message object to be processed.
+     * @return {Object} - The processed message object.
+     */
     preProcessMessage(message) {
+        // Switch on the action property of the message object.
         switch (message.action) {
+            // If the action is "run", show the root view and call the run method with the message object as a parameter.
             case "run":
+                // If the root view is defined, show it.
+                if (this.rootView != undefined) {
+                    this.rootView.show();
+                }
+                // Call the run method and pass the message object as a parameter.
                 let r = this.run(message);
+                // Return the processed message object.
                 return r;
+                // Break out of the switch statement.
                 break;
 
+            // If the action is "help", return the help property of the application.
             case "help":
+                // Return the help property of the application.
                 return this.help;
+                // Break out of the switch statement.
                 break;
         }
     }
 
+    /**
+     * Processes the message by calling the preProcessMessage method and returning its result.
+     * 
+     * @param {Object} message - The message object to be processed.
+     * @return {Object} - The processed message object.
+     */
     processMessage(message) {
+        // Call the preProcessMessage method and pass the message object as a parameter.
+        // The preProcessMessage method processes the message and returns the result.
         let r = this.preProcessMessage(message);
+        
+        // Return the processed message object.
         return r;
     }
 
@@ -1965,9 +2067,11 @@ function KDesktopApp() {
     let menu = KLayer();
 
     // Add CSS styles to the root view layer.
-    rootView.addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px; background-color: white;");
+    rootView.addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
+        .addCssText("background-image: radial-gradient(at bottom, coral 10%, rgb(0 0 128 / 50%) 40%, rgb(127 127 127 / 90%));");
     // Add CSS styles to the menu layer.
     menu.addCssText("display: block; position: absolute; width: 100%; height: 128px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;");
+    menu.addCssText("background-image: linear-gradient(navy, navy, white);");
     // Add the menu layer to the root view layer.
     rootView.add(menu);
 
@@ -2009,7 +2113,7 @@ function KDesktopApp() {
                 // Check if the application's environments include the current environment and if the application has a root view.
                 if (application.environments.includes(environment) && application.rootView != undefined) {
                     // Create an application icon for the application and add it to the menu of the desktop application.
-                    let appIcon = KAppIcon(application.name, application.iconDrawer, application.run);
+                    let appIcon = KAppIcon(application.name, application.iconDrawer, function () { KMessage(app.name, application.name, Kicsy.currentUser.name, Kicsy.currentUser.name, "run").send(); });
                     app.menu.add(appIcon);
                 }
 
@@ -2134,11 +2238,8 @@ function KTerminalApp() {
     app.rootView = rootView; // Set the root view of the terminal application.
     app.register(); // Register the terminal application.
     app.newLine(""); // Create a new line in the terminal.
-
     app.help = "<b>Terminal App</b><br/>"; // Set the help text of the terminal application.
-
-    app.rootView.hide();
-
+    app.rootView.hide(); // Hide the root view of the terminal application.
     return app; // Return the terminal application object.
 }
 KTerminalApp();
