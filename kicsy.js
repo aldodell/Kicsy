@@ -600,6 +600,10 @@ class KicsyVisualComponent extends KicsyComponent {
         this.dom.style.zIndex--;
     }
 
+    center() {
+        this.addCssText("position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);");
+    }
+
     /**
      * Creates a clone of the current component.
      *
@@ -1752,8 +1756,8 @@ class KWindowClass extends KicsyVisualContainerComponent {
 
 
         //Initialze styles
-        this.addCssText("position: absolute;border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px;");
-        this.header.addCssText("display: block; position: relative; width: 100%; height: 30px;margin: 0px;text-align: center;line-height: 30px;font-weight: bold;");
+        this.addCssText("position: absolute;border: 4px solid white; border-radius: 8px; margin: 0px; padding: 0px;");
+        this.header.addCssText("display: block; position: relative; width: 100%; height: 30px;margin: 0px;text-align: center;line-height: 30px;font-weight: bold;color:white; text-shadow: black 1px 0px 4px;");
         this.body.addCssText("display: block; position: relative; width: 100%;height: calc(100% - 60px);margin: 0px");
         this.footer.addCssText("display: block; position: relative; width: 100%;height: 30px;margin: 0px;");
         this.superHeader.addCssText("display: block; position: relative; margin: 0px;width: 120%; left: -10%; height: 60px; top: calc(-100% - 20px)");
@@ -1763,9 +1767,9 @@ class KWindowClass extends KicsyVisualContainerComponent {
         this.addCssText("box-shadow: 5px 5px 5px gray;");
 
         //Background styles
-        this.header.addCssText("background: lightblue;")
+        this.header.addCssText("background: linear-gradient(to right,navy 0%, white 90%);")
         this.body.addCssText("background-color: white;");
-        this.footer.addCssText("background: lightblue;");
+        this.footer.addCssText("background: linear-gradient(to right,navy 0%, white 90%);");
 
         //Make window draggable
         this.makeDraggable(this.superHeader, this);
@@ -1777,6 +1781,8 @@ class KWindowClass extends KicsyVisualContainerComponent {
 
         //pointers
         this.add = function (...args) { this.body.add(...args); return this; };
+
+        this.center();
 
     }
 
@@ -1882,6 +1888,7 @@ class KMessageClass extends KicsyObject {
         for (let app of Kicsy.applications) {
             if (app.name === this.target) {
                 r = app.processMessage(this);
+                return r;
                 break;
             }
         }
@@ -1937,11 +1944,16 @@ class KMessageClass extends KicsyObject {
      * @return {void} This function does not return anything.
      */
     broadcast() {
+        let result = [];
         // Iterate over the applications in the Kicsy.applications array
         Kicsy.applications.forEach(app => {
             // Call the processMessage method of the application with the current instance of the KMessageClass as an argument
-            app.processMessage(this);
+            let r = app.processMessage(this);
+            if (r != undefined) {
+                result.push(r);
+            }
         });
+        return result;
     }
 
 }
@@ -2081,6 +2093,10 @@ class KApplicationClass extends KicsyObject {
                 // Break out of the switch statement.
                 break;
 
+            case "getMe_rootView":
+                return this.rootView;
+                break;
+
             // If the action is "help", return the help property of the application.
             case "help":
                 // Return the help property of the application.
@@ -2107,6 +2123,26 @@ class KApplicationClass extends KicsyObject {
 
 }
 
+(function KWallPaperApp() {
+    let rootView = KLayer();
+
+    rootView.addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
+        .addCssText(" background-image: radial-gradient(at bottom,white 0%,rgb(0 0 128 / 99%) 30%);");
+    let app = new KApplicationClass("wallpaper", "Wallpaper App", ["base"], rootView);
+
+
+    app.processMessage = function (message) {
+        app.preProcessMessage(message);
+        switch (message.action) {
+            case "get_wallpaper":
+                return app.rootView;
+                break;
+        }
+    }
+    app.register();
+    return app;
+})();
+
 
 
 /**
@@ -2115,22 +2151,32 @@ class KApplicationClass extends KicsyObject {
  * @return {Object} - The desktop application object.
  */
 function KDesktopApp() {
-    // Create a root view layer for the desktop application.
-    let rootView = KLayer();
+
+    // Send a message to get the wallpaper for the desktop application and broadcast it to all applications.
+    let rootView = KMessage("desktop", "wallpaper", "kicsy", "kicsy", "get_wallpaper").broadcast();
+
+    // Check if the rootView array has any elements. If it does, assign the last element to rootView. If not, create a new KLayer object and set its CSS styles.
+    if (rootView.length > 0) {
+        rootView = rootView[rootView.length - 1];
+    } else {
+        rootView = KLayer();
+        rootView.addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
+            .addCssText(" background-image: radial-gradient(at bottom,white 0%,rgb(0 0 128 / 99%) 30%);");
+    }
+
     // Create a menu layer for the desktop application.
     let menu = KLayer();
 
-    // Add CSS styles to the root view layer.
-    rootView.addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
-        .addCssText("background-image: radial-gradient(at bottom, coral 10%, rgb(0 0 128 / 50%) 40%, rgb(127 127 127 / 90%));");
-    // Add CSS styles to the menu layer.
-    menu.addCssText("display: block; position: absolute; width: 100%; height: 128px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;");
-    menu.addCssText("background-image: linear-gradient(navy, navy, white);");
+    // Set the CSS styles for the menu layer.
+    menu.addCssText("display: block; position: absolute; width: 100%; height: 128px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;")
+        .addCssText("background-image: linear-gradient(navy, navy, white);");
+
     // Add the menu layer to the root view layer.
     rootView.add(menu);
 
     // Create a new instance of the KApplicationClass with the specified properties.
     let app = new KApplicationClass("desktop", "Desktop App", ["base"], rootView);
+
     // Set the menu layer of the desktop application.
     app.menu = menu;
 
@@ -2140,14 +2186,19 @@ function KDesktopApp() {
      * @param {Object} message - The message object.
      */
     app.processMessage = function (message) {
-        // Process the message using the preProcessMessage function.
+        // Process the message using the preProcessMessage method.
         app.preProcessMessage(message);
 
         // Switch on the action property of the message object.
         switch (message.action) {
-            // If the action is "update", update the menu of the desktop application.
+            // If the action is "update", call the update method to update the menu of the desktop application.
             case "update":
                 app.update();
+                break;
+
+            // If the action is "get_rootView", return the rootView of the desktop application.
+            case "get_rootView":
+                return app.rootView;
                 break;
         }
     }
@@ -2174,6 +2225,9 @@ function KDesktopApp() {
             })
         })
     }
+
+
+
     // Register the desktop application.
     app.register();
     // Return the desktop application object.
@@ -2219,8 +2273,8 @@ function KTerminalApp() {
             target = target.trim(); // Trim the target.
             if (payload.length == 0 && result != undefined) { payload = result; } // Set the payload to the result if it is empty.
 
-            if (payload.trim().startsWith("--")) {
-                action = payload.trim().substring(2);
+            if (payload.toString().trim().startsWith("--")) {
+                action = payload.toString().trim().substring(2);
             } else {
                 action = "run";
             }
@@ -2235,7 +2289,7 @@ function KTerminalApp() {
                 if (tokensLength == i + 1) {
 
                     if (result != undefined) {
-                        if (result.length > 0) {
+                        if (result.toString().length > 0) {
                             app.newAnswer(result); // Display the result.
                             result = undefined;
                         }
@@ -2383,6 +2437,9 @@ function KEval() {
      * @param {KMessageClass} message - The message to evaluate. The payload of the message is evaluated using the eval function.
      * @return {any} The result of evaluating the payload of the message.
      */
+
+    app.help = "<b>eval</b> <i>parameters</i><br/>Evaluates the payload of a message and returns the result.<br/>Example:<br/><code>eval 2+2</code>";
+
     app.run = function (message) {
         return eval(message.payload); // Evaluate the payload of the message using the eval function
     }
