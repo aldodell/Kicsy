@@ -419,7 +419,7 @@ class KicsyComponent extends KicsyObject {
  * @extends {KicsyComponent}
  */
 class KicsyVisualComponent extends KicsyComponent {
-    animationIndex = 0;
+    animationSettings;
     /**
      * Constructor for KicsyVisualComponent class.
      *
@@ -2123,23 +2123,78 @@ class KApplicationClass extends KicsyObject {
 
 }
 
+/**
+ * Function to create a Wallpaper application.
+ * 
+ * @return {Object} - The Wallpaper application object.
+ */
 (function KWallPaperApp() {
-    let rootView = KLayer();
+    // Create a new instance of the KLayer class to serve as the root view of the application.
+    let rootView = KLayer()
+        .addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
+        .addCssText("background-color: black;")
+        .addCssText("overflow: hidden;")    
 
-    rootView.addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
-        .addCssText(" background-image: radial-gradient(at bottom,white 0%,rgb(0 0 128 / 99%) 30%);");
+    let blocks = [];
+    let colors = ["red", "green", "violet", "lime"];
+
+    for (let i = 0; i < 4; i++) {
+        blocks.push(
+            KLayer()
+                .addCssText("display: block; position: absolute; width: 80%; height: 10%;")
+                
+                .initAnimationSettings(true)
+                .addAnimationFrame(function (obj) {
+                    let l = -2 + (Math.random() * 4);
+                    let t = -2 + (Math.random() * 4);
+                    let w = 0.9 + (Math.random() * 0.2);
+                    let h = 0.9 + (Math.random() * 0.2);
+                    let d = -15 + Math.random() * 30;
+
+                    console.log(l, t, w, h, d);
+
+
+                    obj
+                        .addCssText("transform: translate(" + l + "px," + t + "px) scale(" + w + "," + h + ") skew(" + d + "deg);")
+                        .addCssText("background: radial-gradient(circle at center, " + colors[i] + ", black);")
+                        .addCssText("filter: blur(200px);")
+                        .addCssText("opacity: 0.9;")
+                }, 40)
+                .startAnimation()
+        );
+        rootView.add(blocks[i]);
+    }
+
+    rootView
+
+
+
+    // Create a new instance of the KApplicationClass with the specified properties.
     let app = new KApplicationClass("wallpaper", "Wallpaper App", ["base"], rootView);
 
-
+    /**
+     * Function to process messages for the Wallpaper application.
+     * 
+     * @param {Object} message - The message object.
+     * @return {Object} - The processed message object.
+     */
     app.processMessage = function (message) {
+        // Call the preProcessMessage method of the application to process the message.
         app.preProcessMessage(message);
+
+        // Switch on the action property of the message object.
         switch (message.action) {
+            // If the action is "get_wallpaper", return the root view of the application.
             case "get_wallpaper":
                 return app.rootView;
                 break;
         }
     }
+
+    // Register the Wallpaper application.
     app.register();
+
+    // Return the Wallpaper application object.
     return app;
 })();
 
