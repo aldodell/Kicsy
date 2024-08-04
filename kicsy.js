@@ -2133,39 +2133,40 @@ class KApplicationClass extends KicsyObject {
     let rootView = KLayer()
         .addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
         .addCssText("background-color: black;")
-        .addCssText("overflow: hidden;")    
+        .addCssText("overflow: hidden;")
 
     let blocks = [];
-    let colors = ["red", "green", "violet", "lime"];
+    let colors = ["lime", "red", "green", "violet"];
 
     for (let i = 0; i < 4; i++) {
         blocks.push(
             KLayer()
-                .addCssText("display: block; position: absolute; width: 80%; height: 10%;")
-                
-                .initAnimationSettings(true)
-                .addAnimationFrame(function (obj) {
-                    let l = -2 + (Math.random() * 4);
-                    let t = -2 + (Math.random() * 4);
-                    let w = 0.9 + (Math.random() * 0.2);
-                    let h = 0.9 + (Math.random() * 0.2);
-                    let d = -15 + Math.random() * 30;
-
-                    console.log(l, t, w, h, d);
-
-
-                    obj
-                        .addCssText("transform: translate(" + l + "px," + t + "px) scale(" + w + "," + h + ") skew(" + d + "deg);")
-                        .addCssText("background: radial-gradient(circle at center, " + colors[i] + ", black);")
-                        .addCssText("filter: blur(200px);")
-                        .addCssText("opacity: 0.9;")
-                }, 40)
-                .startAnimation()
+                .addCssText("display: block; position: absolute; width: 80%; height: 4%;")
+                .addCssText("left: " + (i * 20) + "%;")
         );
         rootView.add(blocks[i]);
     }
 
     rootView
+        .initAnimationSettings(true)
+        .addAnimationFrame(function (obj) {
+            for (let i = 0; i < 4; i++) {
+                let block = blocks[i];
+                let l = -1 + (Math.random() * 2);
+                let t = -1 + (Math.random() * 2);
+                let w = 0.95 + (Math.random() * 0.1);
+                let h = 0.5 + (Math.random() * 1);
+                let d = -2 + Math.random() * 4;
+
+                //console.log(l, t, w, h, d);
+                block
+                    .addCssText("transform: translate(" + l + "px," + t + "px) scale(" + w + "," + h + ") skew(" + d + "deg);")
+                    .addCssText("background: radial-gradient(circle at center, " + colors[i] + ", white);")
+                    .addCssText("filter: blur(200px);")
+                    .addCssText("opacity: 0.6;")
+            }
+        }, 100)
+        .startAnimation()
 
 
 
