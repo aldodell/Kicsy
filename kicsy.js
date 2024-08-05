@@ -592,6 +592,7 @@ class KicsyVisualComponent extends KicsyComponent {
         // Increase the z-index of the component's DOM element.
         // This will make the component appear "above" other components on the page.
         this.dom.style.zIndex++;
+        return this;
     }
 
     /**
@@ -603,6 +604,7 @@ class KicsyVisualComponent extends KicsyComponent {
         // Decrease the z-index of the component's DOM element.
         // This will make the component appear "below" other components on the page.
         this.dom.style.zIndex--;
+        return this;
     }
 
     center() {
@@ -1402,35 +1404,105 @@ function KDateTimeLocal(...args) {
 }
 
 function KSuperCombobox(...args) {
-    let obj = KText();
+    let obj = KLayer()
+        .addCssText("height: 20px;");
+    obj.text = KText()
+        .addCssText("display: block; position: relative; top: 0px; left: 0px; width: fit-content; height: 1rem;");
     obj.optionsFrame = KRow()
-    .addCssText("position: relative; top: 8px; left: 0px; width: fit-content;border: 1px solid #ccc; border-radius: 8px;");
+        .addCssText("display: block; position: relative; top: 4px; left: 0px; width: fit-content; height:200px; overflow-y: scroll; background-color: white; border: 1px solid #ccc; padding: 8px;")
+        .climb();
 
     obj.setArrayData = function (arrayData) {
-        obj.optionsFrame.clear();
         obj.arrayData = arrayData;
-        for (let i = 0; i < arrayData.length; i++) {
-            let value = arrayData[i]["label"];
-            let label = KLabel(value)
-                .addEvent("click", (e) => {
-                    obj.setValue(value);
-                    obj.optionsFrame.hide();
-                })
-            obj.optionsFrame.add(label)
-        }
+        obj.fill(arrayData);
         return obj;
     }
 
+    obj.text.addEvent("blur", function () {
+        window.setTimeout(function () {
+            obj.optionsFrame.hide();
+        }, 200)
 
-    obj.dom.addEventListener("focus", (event) => {
+    })
+
+    obj.optionsFrame.addEvent("onmouseover", function () {
+        obj.optionsFrame.show();
+    })
+
+    obj.text.addEvent("click", function () {
+        obj.fill(obj.arrayData);
+    })
+
+    obj.text.addEvent("keyup", function (e) {
+        // dfdfdfs
+        let word = obj.text.getValue();
+        obj.fill(obj.arrayData.filter((x) => x["label"].indexOf(word) > -1));
+    })
+
+    // This function is used to fill the optionsFrame with labels based on the arrayData passed in
+    obj.fill = function (arrayData) {
+        // Clear the optionsFrame before adding new labels
+        obj.optionsFrame.clear();
+
+        // Loop through each element in the arrayData
+        for (let i = 0; i < arrayData.length; i++) {
+            // Get the values of the current element in the arrayData
+            let value = Object.values(arrayData[i])[0];
+
+            // If the value is undefined, set it to the entire element
+            if (value == undefined) {
+                value = arrayData[i];
+            }
+
+            // Create a new KLabel with the value as its text
+            let label = KLabel(value)
+                // Add a click event listener to the label
+                .addEvent("click", (e) => {
+                    // When the label is clicked, set the text of the text input to the value of the label
+                    obj.text.setValue(value);
+                    // Hide the optionsFrame
+                    obj.optionsFrame.hide();
+                })
+                // Add a CSS text that makes the label display as a block element
+                .addCssText("display: block;");
+
+            // Add the label to the optionsFrame
+            obj.optionsFrame.add(label)
+        }
+        // Return the obj (KSuperCombobox) so that it can be chained
+        return obj;
+    }
+
+    obj.setName = function (name) {
+        obj.text.setName(name);
+        return obj;
+    }
+
+    obj.setValue = function (value) {
+        obj.text.setValue(value);
+        return obj;
+    }
+
+    obj.getValue = function (callback) {
+        if (callback) {
+            callback(obj.text.getValue());
+            return obj;
+        } else {
+            return obj.text.getValue();
+        }
+    }
+
+    obj.text.dom.addEventListener("focus", (event) => {
         obj.optionsFrame.show();
     })
 
     obj.optionsFrame.hide();
 
-    obj.postPublishedCallback = function (obj) {
-        obj.dom.parentNode.appendChild(obj.optionsFrame.dom);
-    }
+    obj.add(obj.text, obj.optionsFrame);
+
+
+    //obj.postPublishedCallback = function (obj) { }
+
 
     return obj;
 
