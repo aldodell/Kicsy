@@ -348,6 +348,11 @@ class KicsyComponent extends KicsyObject {
         return this;
     }
 
+    setPlaceholder(placeholder) {
+        this.dom.placeholder = placeholder;
+        return this;
+    }
+
     postPublished() {
 
         if (this.dom.children != undefined) {
@@ -1396,6 +1401,41 @@ function KDateTimeLocal(...args) {
     return new KicsyVisualComponent("input", "datetime-local", ...args);
 }
 
+function KSuperCombobox(...args) {
+    let obj = KText();
+    obj.optionsFrame = KRow()
+    .addCssText("position: relative; top: 8px; left: 0px; width: fit-content;border: 1px solid #ccc; border-radius: 8px;");
+
+    obj.setArrayData = function (arrayData) {
+        obj.optionsFrame.clear();
+        obj.arrayData = arrayData;
+        for (let i = 0; i < arrayData.length; i++) {
+            let value = arrayData[i]["label"];
+            let label = KLabel(value)
+                .addEvent("click", (e) => {
+                    obj.setValue(value);
+                    obj.optionsFrame.hide();
+                })
+            obj.optionsFrame.add(label)
+        }
+        return obj;
+    }
+
+
+    obj.dom.addEventListener("focus", (event) => {
+        obj.optionsFrame.show();
+    })
+
+    obj.optionsFrame.hide();
+
+    obj.postPublishedCallback = function (obj) {
+        obj.dom.parentNode.appendChild(obj.optionsFrame.dom);
+    }
+
+    return obj;
+
+}
+
 /**
  * Creates a new instance of the KCanvas class, which is a visual component that represents a canvas element.
  * Must be implement a draw function that will be called after the canvas is rendered.
@@ -1579,6 +1619,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
     captionAdjustment = 8;
 
 
+
     addRowCssText(cssText) {
         this.rowCssText = cssText;
         return this;
@@ -1600,7 +1641,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
     }
 
     clear() {
-        this.captions.clear();
+
         this.body.clear();
         this.rowIndex = 0;
         return this;
@@ -1649,20 +1690,45 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
 
         this.rowIndex++;
         this.body.add(row);
-        row.dom.scrollIntoView();
+
 
     }
 
     configureCaptions() {
+        this.captions.clear();
+        this.buttonsBar.clear();
+
         let x = 0;
         for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
             let col = this.columns[colIndex];
             let w = col.width + this.captionAdjustment;
+            x = x + w;
             let component = KLayer().setValue(col.description).setSize(w).addCssText("display: inline-block; text-align: center;margin:4px;");
             this.captions.add(component);
+            let buttonUp = KButton("▲")
+                .addCssText("position:absolute;display: inline-block;width:20px;height:20px;left:" + (x - 20) + "px;")
+                .addEvent("click", () => {
+                    this.clear();
+                    let t = this.arrayData.sort(function (a, b) { return a[col.name] > b[col.name] });;
+                    this.setArrayData(t);
+
+                })
+
+
+            let buttonDown = KButton("▼")
+                .addCssText("position:absolute;display: inline-block;width:20px;height:20px;left:" + x + "px;")
+                .addEvent("click", () => {
+                    this.clear();
+                    let t = this.arrayData.sort(function (a, b) { return a[col.name] < b[col.name] });;
+                    this.setArrayData(t);
+                })
+
+            this.buttonsBar.add(buttonUp, buttonDown);
         }
         return this;
     }
+
+
 
     setArrayData(arrayData) {
         this.rowIndex = 0;
@@ -1670,7 +1736,10 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
         for (let rowIndex = 0; rowIndex < this.arrayData.length; rowIndex++) {
             this.newRow();
         }
-        this.configureCaptions();
+
+        if (this.captions.dom.childNodes.length == 0) {
+            this.configureCaptions();
+        }
 
         return this;
     }
@@ -1738,12 +1807,14 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
         super();
 
         this.captions = KRow();
+        this.buttonsBar = KRow();
         this.body = KRow();
 
         this.addCssText("display: block; position: absolute; background-color: silver; border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px; left: 0px; top: 0px;");
         this.captions.addCssText("display: block; position: relative; margin: 4px; padding: 0px; height: 20px; width: fit-content;");
-        this.body.addCssText("display: block; position: relative;  margin: 4px; padding: 0px; height: calc(100% - 48px); overflow-y: scroll;");
-        this.add(this.captions, this.body);
+        this.buttonsBar.addCssText("display: block; position: relative; margin: 4px; padding: 0px; height: 20px; width: fit-content;");
+        this.body.addCssText("display: block; position: relative;  margin: 4px; padding: 0px; height: calc(100% - 68px); overflow-y: scroll;");
+        this.add(this.captions, this.buttonsBar, this.body);
 
 
     }
@@ -1786,7 +1857,7 @@ class KWindowClass extends KicsyVisualContainerComponent {
         //Initialze styles
         this.addCssText("position: absolute;border: 4px solid white; border-radius: 8px; margin: 0px; padding: 0px;");
         this.header.addCssText("display: block; position: relative; width: 100%; height: 30px;margin: 0px;text-align: center;line-height: 30px;font-weight: bold;color:white; text-shadow: black 1px 0px 4px;");
-        this.body.addCssText("display: block; position: relative; width: 100%;height: calc(100% - 60px);margin: 0px");
+        this.body.addCssText("display: block; position: relative; width: 100%;height: calc(100% - 60px);margin: 0px; overflow: scroll;");
         this.footer.addCssText("display: block; position: relative; width: 100%;height: 30px;margin: 0px;");
         this.superHeader.addCssText("display: block; position: relative; margin: 0px;width: 120%; left: -10%; height: 60px; top: calc(-100% - 20px)");
         this.controlButton.addCssText("display: block; position: absolute; margin: 0px;width: 20px; height: 20px; right: 0px; top: 5px; border : 1px solid gray; border-radius: 30px; background-color: red;");
@@ -2131,6 +2202,10 @@ class KApplicationClass extends KicsyObject {
                 // Return the help property of the application.
                 return this.help;
                 // Break out of the switch statement.
+                break;
+
+            case "hide":
+                this.rootView.hide();
                 break;
         }
     }
