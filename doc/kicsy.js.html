@@ -148,6 +148,19 @@ class KicsyObject {
 
 }
 
+
+class KAnimationFrame extends KicsyObject {
+    cssText;
+    time;
+
+    constructor(cssText, time) {
+        super();
+        this.cssText = cssText;
+        this.time = time;
+    }
+}
+
+
 /**
  * Kicsy component base
  * @extends KicsyObject
@@ -434,7 +447,7 @@ class KicsyComponent extends KicsyObject {
  * @extends {KicsyComponent}
  */
 class KicsyVisualComponent extends KicsyComponent {
-
+    animationSettings;
     /**
      * Constructor for KicsyVisualComponent class.
      *
@@ -615,6 +628,10 @@ class KicsyVisualComponent extends KicsyComponent {
         this.dom.style.zIndex--;
     }
 
+    center() {
+        this.addCssText("position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);");
+    }
+
     /**
      * Creates a clone of the current component.
      *
@@ -623,6 +640,47 @@ class KicsyVisualComponent extends KicsyComponent {
      */
     clone(className = KicsyVisualComponent) {
         return super.clone(className);
+    }
+
+
+    initAnimationSettings(loop = true) {
+        this.animationSettings = { "loop": loop, "frames": [], "index": 0, timer: null };
+        return this;
+    }
+    addAnimationFrame(callback, time) {
+        this.animationSettings.frames.push({ "callback": callback, "time": time });
+        return this;
+    }
+
+    nextAnimationFrame(obj) {
+        if (obj.animationSettings.index == obj.animationSettings.frames.length) {
+            if (obj.animationSettings.loop) {
+                obj.startAnimation();
+            }
+        } else {
+
+            let frame = obj.animationSettings.frames[obj.animationSettings.index];
+
+            if (frame != undefined) {
+                frame.callback(obj);
+                obj.animationSettings.timer = setTimeout(obj.nextAnimationFrame, frame.time, obj);
+                obj.animationSettings.index++;
+            }
+        }
+    }
+
+    startAnimation() {
+        this.animationSettings.index = 0;
+        this.animationSettings.timer = null;
+        this.nextAnimationFrame(this);
+        return this;
+    }
+
+    stopAnimation() {
+        clearTimeout(this.animationSettings.timer);
+        this.animationSettings.index = 0;
+        this.animationSettings.timer = null;
+        return this;
     }
 }
 
@@ -1367,47 +1425,76 @@ function KDateTimeLocal(...args) {
 }
 
 /**
- * Creates a new instance of KCanvas.
- *
+ * Creates a new instance of the KCanvas class, which is a visual component that represents a canvas element.
+ * Must be implement a draw function that will be called after the canvas is rendered.
+ * This function callback will be passed through  {@link KicsyVisualComponent#setValue} method.
+ * Must use {@link KicsyVisualComponent#setReferenceSize} method before setting the drawCallback.
+ * 
  * @param {...any} args - Additional arguments to pass to the constructor.
  * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
  */
 function KCanvas(...args) {
-    // Create a new KicsyVisualComponent instance with the "canvas" HTML tag and the provided arguments
+    // Create a new instance of the KicsyVisualComponent class with the "canvas" HTML tag and the provided arguments.
     let obj = new KicsyVisualComponent("canvas", ...args);
 
-    // Define the setValue method to set the drawCallback property of the KicsyVisualComponent instance
+    /**
+     * Sets the value of the drawCallback property of the KicsyVisualComponent instance.
+     * The drawCallback is a function that will be called after the canvas is rendered.
+     * It is mandatory to call  method to setReferenceSize mothod before setting the drawCallback.
+     * x
+     *
+     * @param {Function} value - The function to be set as the drawCallback.
+     * @return {Object} The current instance of the KicsyVisualComponent.
+     */
     obj.setValue = function (value) {
-        // Set the drawCallback property of the KicsyVisualComponent instance to the provided value
+        // Set the drawCallback property of the KicsyVisualComponent instance to the provided value.
         obj.drawCallback = value;
-        // Return the current instance of the KicsyVisualComponent
+        // Return the current instance of the KicsyVisualComponent.
         return this;
     }
 
-    // Define the getValue method to get the drawCallback property of the KicsyVisualComponent instance
+    /**
+     * Get the value of the drawCallback property of the KicsyVisualComponent instance.
+     *
+     * @returns {Function} The drawCallback function.
+     */
     obj.getValue = function () {
-        // Return the drawCallback property of the KicsyVisualComponent instance
+        // Return the drawCallback property of the KicsyVisualComponent instance.
         return obj.drawCallback;
     }
 
+    /**
+     * Sets the reference size of the canvas DOM element.
+     * The reference size is the size that the canvas will be rendered at.
+     *
+     * @param {number|string} width - The width of the canvas. If a number is provided, it is converted to a string and appended with "px".
+     * @param {number|string} height - The height of the canvas. If a number is provided, it is converted to a string and appended with "px".
+     * @return {KicsyVisualComponent} - The current instance of the KicsyVisualComponent class.
+     */
     obj.setReferenceSize = function (width, height) {
-        obj.dom.width = width.toString().match(/\d+/)[0];
-        obj.dom.height = height.toString().match(/\d+/)[0];
+        // Convert the width and height to strings and remove any non-digit characters.
+        let widthStr = width.toString().match(/\d+/)[0];
+        let heightStr = height.toString().match(/\d+/)[0];
+
+        // Set the width and height of the canvas DOM element.
+        obj.dom.width = widthStr;
+        obj.dom.height = heightStr;
+
+        // Return the current instance of the KicsyVisualComponent class.
         return this;
     }
 
-    // Define the postPublished method to be called after the component is published
+    // Define the postPublished method to be called after the component is published.
     obj.postPublishedCallback = function (obj) {
-
-        // Get the 2D rendering context of the DOM element's canvas
+        // Get the 2D rendering context of the DOM element's canvas.
         let ctx = obj.dom.getContext("2d");
-        // Get the drawCallback property of the KicsyVisualComponent instance
+        // Get the drawCallback property of the KicsyVisualComponent instance.
         let callback = obj.drawCallback;
-        // Call the drawCallback function with the 2D rendering context as the argument
+        // Call the drawCallback function with the 2D rendering context as the argument.
         callback(ctx);
     }
 
-    // Return the newly created KicsyVisualComponent instance
+    // Return the newly created KicsyVisualComponent instance.
     return obj;
 }
 
@@ -1726,8 +1813,8 @@ class KWindowClass extends KicsyVisualContainerComponent {
 
 
         //Initialze styles
-        this.addCssText("position: absolute;border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px;");
-        this.header.addCssText("display: block; position: relative; width: 100%; height: 30px;margin: 0px;text-align: center;line-height: 30px;font-weight: bold;");
+        this.addCssText("position: absolute;border: 4px solid white; border-radius: 8px; margin: 0px; padding: 0px;");
+        this.header.addCssText("display: block; position: relative; width: 100%; height: 30px;margin: 0px;text-align: center;line-height: 30px;font-weight: bold;color:white; text-shadow: black 1px 0px 4px;");
         this.body.addCssText("display: block; position: relative; width: 100%;height: calc(100% - 60px);margin: 0px");
         this.footer.addCssText("display: block; position: relative; width: 100%;height: 30px;margin: 0px;");
         this.superHeader.addCssText("display: block; position: relative; margin: 0px;width: 120%; left: -10%; height: 60px; top: calc(-100% - 20px)");
@@ -1737,9 +1824,9 @@ class KWindowClass extends KicsyVisualContainerComponent {
         this.addCssText("box-shadow: 5px 5px 5px gray;");
 
         //Background styles
-        this.header.addCssText("background: lightblue;")
+        this.header.addCssText("background: linear-gradient(to right,navy 0%, white 90%);")
         this.body.addCssText("background-color: white;");
-        this.footer.addCssText("background: lightblue;");
+        this.footer.addCssText("background: linear-gradient(to right,navy 0%, white 90%);");
 
         //Make window draggable
         this.makeDraggable(this.superHeader, this);
@@ -1751,6 +1838,8 @@ class KWindowClass extends KicsyVisualContainerComponent {
 
         //pointers
         this.add = function (...args) { this.body.add(...args); return this; };
+
+        this.center();
 
     }
 
@@ -1856,6 +1945,7 @@ class KMessageClass extends KicsyObject {
         for (let app of Kicsy.applications) {
             if (app.name === this.target) {
                 r = app.processMessage(this);
+                return r;
                 break;
             }
         }
@@ -1911,11 +2001,16 @@ class KMessageClass extends KicsyObject {
      * @return {void} This function does not return anything.
      */
     broadcast() {
+        let result = [];
         // Iterate over the applications in the Kicsy.applications array
         Kicsy.applications.forEach(app => {
             // Call the processMessage method of the application with the current instance of the KMessageClass as an argument
-            app.processMessage(this);
+            let r = app.processMessage(this);
+            if (r != undefined) {
+                result.push(r);
+            }
         });
+        return result;
     }
 
 }
@@ -2055,6 +2150,10 @@ class KApplicationClass extends KicsyObject {
                 // Break out of the switch statement.
                 break;
 
+            case "getMe_rootView":
+                return this.rootView;
+                break;
+
             // If the action is "help", return the help property of the application.
             case "help":
                 // Return the help property of the application.
@@ -2074,12 +2173,77 @@ class KApplicationClass extends KicsyObject {
         // Call the preProcessMessage method and pass the message object as a parameter.
         // The preProcessMessage method processes the message and returns the result.
         let r = this.preProcessMessage(message);
-        
+
         // Return the processed message object.
         return r;
     }
 
 }
+
+/**
+ * Function to create a Wallpaper application.
+ * 
+ * @return {Object} - The Wallpaper application object.
+ */
+(function KWallPaperApp() {
+    // Create a new instance of the KLayer class to serve as the root view of the application.
+    let rootView = KLayer()
+        .addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
+        .addCssText("overflow: hidden;")
+
+    let mode = "night";
+
+    switch (mode) {
+
+        case "night":
+            rootView
+                .addCssText("background-color: black;")
+               .add(
+                KCanvas()
+                
+
+               )
+
+
+
+
+
+
+            break;
+    }
+
+
+
+
+
+    // Create a new instance of the KApplicationClass with the specified properties.
+    let app = new KApplicationClass("wallpaper", "Wallpaper App", ["base"], rootView);
+
+    /**
+     * Function to process messages for the Wallpaper application.
+     * 
+     * @param {Object} message - The message object.
+     * @return {Object} - The processed message object.
+     */
+    app.processMessage = function (message) {
+        // Call the preProcessMessage method of the application to process the message.
+        app.preProcessMessage(message);
+
+        // Switch on the action property of the message object.
+        switch (message.action) {
+            // If the action is "get_wallpaper", return the root view of the application.
+            case "get_wallpaper":
+                return app.rootView;
+                break;
+        }
+    }
+
+    // Register the Wallpaper application.
+    app.register();
+
+    // Return the Wallpaper application object.
+    return app;
+})();
 
 
 
@@ -2089,22 +2253,32 @@ class KApplicationClass extends KicsyObject {
  * @return {Object} - The desktop application object.
  */
 function KDesktopApp() {
-    // Create a root view layer for the desktop application.
-    let rootView = KLayer();
+
+    // Send a message to get the wallpaper for the desktop application and broadcast it to all applications.
+    let rootView = KMessage("desktop", "wallpaper", "kicsy", "kicsy", "get_wallpaper").broadcast();
+
+    // Check if the rootView array has any elements. If it does, assign the last element to rootView. If not, create a new KLayer object and set its CSS styles.
+    if (rootView.length > 0) {
+        rootView = rootView[rootView.length - 1];
+    } else {
+        rootView = KLayer();
+        rootView.addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
+            .addCssText(" background-image: radial-gradient(at bottom,white 0%,rgb(0 0 128 / 99%) 30%);");
+    }
+
     // Create a menu layer for the desktop application.
     let menu = KLayer();
 
-    // Add CSS styles to the root view layer.
-    rootView.addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
-        .addCssText("background-image: radial-gradient(at bottom, coral 10%, rgb(0 0 128 / 50%) 40%, rgb(127 127 127 / 90%));");
-    // Add CSS styles to the menu layer.
-    menu.addCssText("display: block; position: absolute; width: 100%; height: 128px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;");
-    menu.addCssText("background-image: linear-gradient(navy, navy, white);");
+    // Set the CSS styles for the menu layer.
+    menu.addCssText("display: block; position: absolute; width: 100%; height: 128px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;")
+        .addCssText("background-image: linear-gradient(navy, navy, white);");
+
     // Add the menu layer to the root view layer.
     rootView.add(menu);
 
     // Create a new instance of the KApplicationClass with the specified properties.
     let app = new KApplicationClass("desktop", "Desktop App", ["base"], rootView);
+
     // Set the menu layer of the desktop application.
     app.menu = menu;
 
@@ -2114,14 +2288,19 @@ function KDesktopApp() {
      * @param {Object} message - The message object.
      */
     app.processMessage = function (message) {
-        // Process the message using the preProcessMessage function.
+        // Process the message using the preProcessMessage method.
         app.preProcessMessage(message);
 
         // Switch on the action property of the message object.
         switch (message.action) {
-            // If the action is "update", update the menu of the desktop application.
+            // If the action is "update", call the update method to update the menu of the desktop application.
             case "update":
                 app.update();
+                break;
+
+            // If the action is "get_rootView", return the rootView of the desktop application.
+            case "get_rootView":
+                return app.rootView;
                 break;
         }
     }
@@ -2148,6 +2327,9 @@ function KDesktopApp() {
             })
         })
     }
+
+
+
     // Register the desktop application.
     app.register();
     // Return the desktop application object.
@@ -2193,8 +2375,8 @@ function KTerminalApp() {
             target = target.trim(); // Trim the target.
             if (payload.length == 0 &amp;&amp; result != undefined) { payload = result; } // Set the payload to the result if it is empty.
 
-            if (payload.trim().startsWith("--")) {
-                action = payload.trim().substring(2);
+            if (payload.toString().trim().startsWith("--")) {
+                action = payload.toString().trim().substring(2);
             } else {
                 action = "run";
             }
@@ -2209,7 +2391,7 @@ function KTerminalApp() {
                 if (tokensLength == i + 1) {
 
                     if (result != undefined) {
-                        if (result.length > 0) {
+                        if (result.toString().length > 0) {
                             app.newAnswer(result); // Display the result.
                             result = undefined;
                         }
@@ -2357,6 +2539,9 @@ function KEval() {
      * @param {KMessageClass} message - The message to evaluate. The payload of the message is evaluated using the eval function.
      * @return {any} The result of evaluating the payload of the message.
      */
+
+    app.help = "&lt;b>eval&lt;/b> &lt;i>parameters&lt;/i>&lt;br/>Evaluates the payload of a message and returns the result.&lt;br/>Example:&lt;br/>&lt;code>eval 2+2&lt;/code>";
+
     app.run = function (message) {
         return eval(message.payload); // Evaluate the payload of the message using the eval function
     }
@@ -2392,7 +2577,7 @@ KMessage("system", "desktop", "Kicsy", "system", "update").send();
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Sat Aug 03 2024 01:04:22 GMT-0400 (hora de Venezuela)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Sun Aug 04 2024 19:55:05 GMT-0400 (hora de Venezuela)
 </footer>
 
 <script> prettyPrint(); </script>

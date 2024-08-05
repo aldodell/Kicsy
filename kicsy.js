@@ -1397,47 +1397,76 @@ function KDateTimeLocal(...args) {
 }
 
 /**
- * Creates a new instance of KCanvas.
- *
+ * Creates a new instance of the KCanvas class, which is a visual component that represents a canvas element.
+ * Must be implement a draw function that will be called after the canvas is rendered.
+ * This function callback will be passed through  {@link KicsyVisualComponent#setValue} method.
+ * Must use setReferenceSize}
+ * 
  * @param {...any} args - Additional arguments to pass to the constructor.
  * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
  */
 function KCanvas(...args) {
-    // Create a new KicsyVisualComponent instance with the "canvas" HTML tag and the provided arguments
+    // Create a new instance of the KicsyVisualComponent class with the "canvas" HTML tag and the provided arguments.
     let obj = new KicsyVisualComponent("canvas", ...args);
 
-    // Define the setValue method to set the drawCallback property of the KicsyVisualComponent instance
+    /**
+     * Sets the value of the drawCallback property of the KicsyVisualComponent instance.
+     * The drawCallback is a function that will be called after the canvas is rendered.
+     * It is mandatory to call  method to setReferenceSize mothod before setting the drawCallback.
+     * x
+     *
+     * @param {Function} value - The function to be set as the drawCallback.
+     * @return {Object} The current instance of the KicsyVisualComponent.
+     */
     obj.setValue = function (value) {
-        // Set the drawCallback property of the KicsyVisualComponent instance to the provided value
+        // Set the drawCallback property of the KicsyVisualComponent instance to the provided value.
         obj.drawCallback = value;
-        // Return the current instance of the KicsyVisualComponent
+        // Return the current instance of the KicsyVisualComponent.
         return this;
     }
 
-    // Define the getValue method to get the drawCallback property of the KicsyVisualComponent instance
+    /**
+     * Get the value of the drawCallback property of the KicsyVisualComponent instance.
+     *
+     * @returns {Function} The drawCallback function.
+     */
     obj.getValue = function () {
-        // Return the drawCallback property of the KicsyVisualComponent instance
+        // Return the drawCallback property of the KicsyVisualComponent instance.
         return obj.drawCallback;
     }
 
+    /**
+     * Sets the reference size of the canvas DOM element.
+     * The reference size is the size that the canvas will be rendered at.
+     *
+     * @param {number|string} width - The width of the canvas. If a number is provided, it is converted to a string and appended with "px".
+     * @param {number|string} height - The height of the canvas. If a number is provided, it is converted to a string and appended with "px".
+     * @return {KicsyVisualComponent} - The current instance of the KicsyVisualComponent class.
+     */
     obj.setReferenceSize = function (width, height) {
-        obj.dom.width = width.toString().match(/\d+/)[0];
-        obj.dom.height = height.toString().match(/\d+/)[0];
+        // Convert the width and height to strings and remove any non-digit characters.
+        let widthStr = width.toString().match(/\d+/)[0];
+        let heightStr = height.toString().match(/\d+/)[0];
+
+        // Set the width and height of the canvas DOM element.
+        obj.dom.width = widthStr;
+        obj.dom.height = heightStr;
+
+        // Return the current instance of the KicsyVisualComponent class.
         return this;
     }
 
-    // Define the postPublished method to be called after the component is published
+    // Define the postPublished method to be called after the component is published.
     obj.postPublishedCallback = function (obj) {
-
-        // Get the 2D rendering context of the DOM element's canvas
+        // Get the 2D rendering context of the DOM element's canvas.
         let ctx = obj.dom.getContext("2d");
-        // Get the drawCallback property of the KicsyVisualComponent instance
+        // Get the drawCallback property of the KicsyVisualComponent instance.
         let callback = obj.drawCallback;
-        // Call the drawCallback function with the 2D rendering context as the argument
+        // Call the drawCallback function with the 2D rendering context as the argument.
         callback(ctx);
     }
 
-    // Return the newly created KicsyVisualComponent instance
+    // Return the newly created KicsyVisualComponent instance.
     return obj;
 }
 
@@ -2132,41 +2161,66 @@ class KApplicationClass extends KicsyObject {
     // Create a new instance of the KLayer class to serve as the root view of the application.
     let rootView = KLayer()
         .addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
-        .addCssText("background-color: black;")
         .addCssText("overflow: hidden;")
 
-    let blocks = [];
-    let colors = ["lime", "red", "green", "violet"];
+    let mode = "night";
 
-    for (let i = 0; i < 4; i++) {
-        blocks.push(
-            KLayer()
-                .addCssText("display: block; position: absolute; width: 80%; height: 4%;")
-                .addCssText("left: " + (i * 20) + "%;")
-        );
-        rootView.add(blocks[i]);
+    switch (mode) {
+
+        case "night":
+            let colors = ["white", "yellow", "orange"];
+
+            rootView
+                .addCssText("background-color: black;")
+                .addCssText("background-image: linear-gradient(to bottom, black 60%, rgb(64 0 128 / 99%) 99%);")
+                .add(
+                    KCanvas()
+                        .setReferenceSize(window.innerWidth, window.innerHeight)
+                        .setValue(function (ctx) {
+
+                            for (let i = 0; i < 1000; i++) {
+                                let x = Math.random() * window.innerWidth;
+                                let y = Math.random() * window.innerHeight;
+                                let o = Math.random();
+                                let indexColor = Math.floor(Math.random() * colors.length);
+                                let radius = 1; //Math.floor(1 + Math.random() * 2);
+                                ctx.beginPath();
+                                ctx.globalAlpha = o;
+                                ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                                ctx.fillStyle = colors[indexColor];
+                                ctx.fill();
+                            }
+
+
+                            for (let i = 0; i < 100; i++) {
+                                let x = Math.random() * window.innerWidth;
+                                let y = Math.random() * window.innerHeight;
+                                let indexColor = Math.floor(Math.random() * colors.length);
+                                let radius = 2;//Math.floor(1 + Math.random() * 2);
+                                ctx.beginPath();
+                                ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                                ctx.fillStyle = colors[indexColor];
+                                ctx.fill();
+                            }
+
+                            for (let i = 0; i < 10; i++) {
+                                let x = Math.random() * window.innerWidth;
+                                let y = Math.random() * window.innerHeight;
+                                let indexColor = Math.floor(Math.random() * colors.length);
+                                let radius = 3;//Math.floor(1 + Math.random() * 2);
+                                ctx.beginPath();
+                                ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                                ctx.fillStyle = colors[indexColor];
+                                ctx.fill();
+                            }
+                        }
+                        )
+                        
+                )
+            break;
     }
 
-    rootView
-        .initAnimationSettings(true)
-        .addAnimationFrame(function (obj) {
-            for (let i = 0; i < 4; i++) {
-                let block = blocks[i];
-                let l = -1 + (Math.random() * 2);
-                let t = -1 + (Math.random() * 2);
-                let w = 0.95 + (Math.random() * 0.1);
-                let h = 0.5 + (Math.random() * 1);
-                let d = -2 + Math.random() * 4;
 
-                //console.log(l, t, w, h, d);
-                block
-                    .addCssText("transform: translate(" + l + "px," + t + "px) scale(" + w + "," + h + ") skew(" + d + "deg);")
-                    .addCssText("background: radial-gradient(circle at center, " + colors[i] + ", white);")
-                    .addCssText("filter: blur(200px);")
-                    .addCssText("opacity: 0.6;")
-            }
-        }, 100)
-        .startAnimation()
 
 
 
