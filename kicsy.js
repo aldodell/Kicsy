@@ -2163,69 +2163,85 @@ class KApplicationClass extends KicsyObject {
         .addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
         .addCssText("overflow: hidden;")
 
-    let mode = "night";
-
-    switch (mode) {
-
-        case "night":
-            let colors = ["white", "yellow", "orange"];
-
-            rootView
-                .addCssText("background-color: black;")
-                .addCssText("background-image: linear-gradient(to bottom, black 60%, rgb(64 0 128 / 99%) 99%);")
-                .add(
-                    KCanvas()
-                        .setReferenceSize(window.innerWidth, window.innerHeight)
-                        .setValue(function (ctx) {
-
-                            for (let i = 0; i < 1000; i++) {
-                                let x = Math.random() * window.innerWidth;
-                                let y = Math.random() * window.innerHeight;
-                                let o = Math.random();
-                                let indexColor = Math.floor(Math.random() * colors.length);
-                                let radius = 1; //Math.floor(1 + Math.random() * 2);
-                                ctx.beginPath();
-                                ctx.globalAlpha = o;
-                                ctx.arc(x, y, radius, 0, 2 * Math.PI);
-                                ctx.fillStyle = colors[indexColor];
-                                ctx.fill();
-                            }
-
-
-                            for (let i = 0; i < 100; i++) {
-                                let x = Math.random() * window.innerWidth;
-                                let y = Math.random() * window.innerHeight;
-                                let indexColor = Math.floor(Math.random() * colors.length);
-                                let radius = 2;//Math.floor(1 + Math.random() * 2);
-                                ctx.beginPath();
-                                ctx.arc(x, y, radius, 0, 2 * Math.PI);
-                                ctx.fillStyle = colors[indexColor];
-                                ctx.fill();
-                            }
-
-                            for (let i = 0; i < 10; i++) {
-                                let x = Math.random() * window.innerWidth;
-                                let y = Math.random() * window.innerHeight;
-                                let indexColor = Math.floor(Math.random() * colors.length);
-                                let radius = 3;//Math.floor(1 + Math.random() * 2);
-                                ctx.beginPath();
-                                ctx.arc(x, y, radius, 0, 2 * Math.PI);
-                                ctx.fillStyle = colors[indexColor];
-                                ctx.fill();
-                            }
-                        }
-                        )
-                        
-                )
-            break;
-    }
-
-
-
-
 
     // Create a new instance of the KApplicationClass with the specified properties.
     let app = new KApplicationClass("wallpaper", "Wallpaper App", ["base"], rootView);
+
+    app.setTheme = function (theme) {
+
+        switch (theme) {
+
+            case "night_sky":
+                let colors = ["white", "yellow", "orange"];
+
+                app.rootView
+                    .addCssText("background-color: black;")
+                    .addCssText("background-image: linear-gradient(to bottom, black 60%, rgb(64 0 128 / 99%) 99%);")
+                    .add(
+                        KCanvas()
+                            .setReferenceSize(window.innerWidth, window.innerHeight)
+                            .setValue(function (ctx) {
+
+                                for (let i = 0; i < 1000; i++) {
+                                    let x = Math.random() * window.innerWidth;
+                                    let y = Math.random() * window.innerHeight;
+                                    let o = Math.random();
+                                    let indexColor = Math.floor(Math.random() * colors.length);
+                                    let radius = 1; //Math.floor(1 + Math.random() * 2);
+                                    ctx.beginPath();
+                                    ctx.globalAlpha = o;
+                                    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                                    ctx.fillStyle = colors[indexColor];
+                                    ctx.fill();
+                                }
+
+
+                                for (let i = 0; i < 100; i++) {
+                                    let x = Math.random() * window.innerWidth;
+                                    let y = Math.random() * window.innerHeight;
+                                    let indexColor = Math.floor(Math.random() * colors.length);
+                                    let radius = 2;//Math.floor(1 + Math.random() * 2);
+                                    ctx.beginPath();
+                                    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                                    ctx.fillStyle = colors[indexColor];
+                                    ctx.fill();
+                                }
+
+                                for (let i = 0; i < 10; i++) {
+                                    let x = Math.random() * window.innerWidth;
+                                    let y = Math.random() * window.innerHeight;
+                                    let indexColor = Math.floor(Math.random() * colors.length);
+                                    let radius = 3;//Math.floor(1 + Math.random() * 2);
+                                    ctx.beginPath();
+                                    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                                    ctx.fillStyle = colors[indexColor];
+                                    ctx.fill();
+                                }
+                            }
+                            )
+
+                    )
+                break;
+
+            case "black":
+                app.rootView.dom.firstChild.kicsy
+                    .addCssText("background-color: black;")
+                break;
+
+            case "white":
+                app.rootView.dom.firstChild.kicsy
+                    .addCssText("background-color: white;")
+                break;
+
+
+
+
+        }
+    }
+
+
+    app.setTheme("night_sky");
+
 
     /**
      * Function to process messages for the Wallpaper application.
@@ -2239,10 +2255,14 @@ class KApplicationClass extends KicsyObject {
 
         // Switch on the action property of the message object.
         switch (message.action) {
+
             // If the action is "get_wallpaper", return the root view of the application.
             case "get_wallpaper":
                 return app.rootView;
                 break;
+
+            case "set_theme":
+                app.setTheme(message.payload);
         }
     }
 
@@ -2279,7 +2299,7 @@ function KDesktopApp() {
 
     // Set the CSS styles for the menu layer.
     menu.addCssText("display: block; position: absolute; width: 100%; height: 128px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;")
-        .addCssText("background-image: linear-gradient(navy, navy, white);");
+        .addCssText("background-image: linear-gradient(navy, navy, white); box-shadow: 0px -5px 35px black;");
 
     // Add the menu layer to the root view layer.
     rootView.add(menu);
@@ -2383,8 +2403,11 @@ function KTerminalApp() {
             target = target.trim(); // Trim the target.
             if (payload.length == 0 && result != undefined) { payload = result; } // Set the payload to the result if it is empty.
 
-            if (payload.toString().trim().startsWith("--")) {
-                action = payload.toString().trim().substring(2);
+            payload = payload.toString().trim();
+
+            if (payload.startsWith("--")) {
+                action = payload.toString().trim().substring(2, payload.indexOf(" "));
+                payload = payload.substring(payload.indexOf(" ") + 1).trim();
             } else {
                 action = "run";
             }
