@@ -1480,10 +1480,9 @@ function KAppIcon(title, drawerCallback = KDefaultImages("TERMINAL"), clickEvent
             .addCssText("display: block; position: relative; left:32px; top: 4px;"),
         KLabel()
             .setValue(title)
-            .addCssText("display: block; position: relative; margin-left:4px; margin-right:4px; margin-top:16px; text-align: center; line-height: 16px;"),
+            .addCssText("display: block; position: relative; margin-left:4px; margin-right:4px; margin-top:8px; text-align: center; line-height: 16px;  background-color: white;"),
     )
-        .setSize(128, 128)
-        .addCssText("display: inline-block; position: relative; width: 128px; height: 128px; border: 1px solid black; border-radius: 8px; margin: 0px; padding: 0px; box-shadow: 5px 5px 5px gray; background-color: white;");
+        .addCssText("display: inline-block; position: relative;  width: 128px; height: 128px; border: 1px solid black; border-radius: 8px; margin: 8px; padding: 0px; box-shadow: 5px 5px 5px gray; background-color: white; overflow: hidden;");
 
 
     if (clickEventListener != null && clickEventListener != undefined) {
@@ -1796,7 +1795,7 @@ class KWindowClass extends KicsyVisualContainerComponent {
         this.addCssText("box-shadow: 5px 5px 5px gray;");
 
         //Background styles
-        this.header.addCssText("background: linear-gradient(to right,navy 0%, white 90%);")
+        this.header.addCssText("background: linear-gradient(to right,navy 0%, aqua 90%);")
         this.body.addCssText("background-color: white;");
         this.footer.addCssText("background: linear-gradient(to right,navy 0%, white 90%);");
 
@@ -2081,6 +2080,7 @@ class KApplicationClass extends KicsyObject {
             if (this.rootView.dom.parentNode == null) {
                 this.rootView.publish(Kicsy.mainSurface);
             }
+            this.rootView.hide();
         }
         // Add the current instance of the KApplicationClass to the applications array of the Kicsy class.
         Kicsy.applications.push(this);
@@ -2298,7 +2298,7 @@ function KDesktopApp() {
     let menu = KLayer();
 
     // Set the CSS styles for the menu layer.
-    menu.addCssText("display: block; position: absolute; width: 100%; height: 128px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;")
+    menu.addCssText("display: block; position: absolute; vertical-align: top; width: 100%; height: 200px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;")
         .addCssText("background-image: linear-gradient(navy, navy, white); box-shadow: 0px -5px 35px black;");
 
     // Add the menu layer to the root view layer.
@@ -2348,7 +2348,7 @@ function KDesktopApp() {
                 // Check if the application's environments include the current environment and if the application has a root view.
                 if (application.environments.includes(environment) && application.rootView != undefined) {
                     // Create an application icon for the application and add it to the menu of the desktop application.
-                    let appIcon = KAppIcon(application.name, application.iconDrawer, function () { KMessage(app.name, application.name, Kicsy.currentUser.name, Kicsy.currentUser.name, "run").send(); });
+                    let appIcon = KAppIcon(application.description, application.iconDrawer, function () { KMessage(app.name, application.name, Kicsy.currentUser.name, Kicsy.currentUser.name, "run").send(); });
                     app.menu.add(appIcon);
                 }
 
@@ -2360,6 +2360,9 @@ function KDesktopApp() {
 
     // Register the desktop application.
     app.register();
+
+    app.rootView.show();
+
     // Return the desktop application object.
     return app;
 }
