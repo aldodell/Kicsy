@@ -194,6 +194,11 @@ class KicsyComponent extends KicsyObject {
         KicsyComponent.id++;
         this.dom.setAttribute("id", "K" + KicsyComponent.id);
 
+        //catch change event
+        this.dom.addEventListener("change", (e) => {
+            this.changed = true;
+        });
+
     }
 
     /**
@@ -243,6 +248,7 @@ class KicsyComponent extends KicsyObject {
     setValue(value) {
         // Set the value of the DOM element to the provided value
         this.dom.value = value;
+        this.changed = false;
         return this;
     }
 
@@ -425,6 +431,7 @@ class KicsyComponent extends KicsyObject {
  */
 class KicsyVisualComponent extends KicsyComponent {
     animationSettings;
+    changed;
     /**
      * Constructor for KicsyVisualComponent class.
      *
@@ -435,6 +442,7 @@ class KicsyVisualComponent extends KicsyComponent {
     constructor(html, type, ...args) {
         // Call the constructor of the parent class with the provided arguments
         super(html, type, ...args);
+        this.changed = false;
     }
 
     /**
@@ -609,6 +617,21 @@ class KicsyVisualComponent extends KicsyComponent {
 
     center() {
         this.addCssText("position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);");
+        return this;
+    }
+
+    centerHorizontally() {
+        this.addCssText("position: absolute; left: 50%; transform: translateX(-50%);");
+        return this;
+    }
+
+    enable() {
+        this.dom.disabled = false;
+        return this;
+    }
+
+    disable() {
+        this.dom.disabled = true;
         return this;
     }
 
@@ -1142,6 +1165,7 @@ function KCheckbox(...args) {
         } else {
             obj.dom.checked = false;
         }
+        obj.changed = false;
         return this;
 
     }
@@ -1512,6 +1536,7 @@ function KSuperCombobox(...args) {
 
     obj.setValue = function (value) {
         obj.text.setValue(value);
+        obj.changed = false;
         return obj;
     }
 
@@ -1864,7 +1889,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
         }
     }
 
-    getStructuredData(callback) {
+    getStructuredArrayData(callback) {
         let source = this.arrayData;
         let target = this.getArrayData();
         let columnsNames = this.columns.map((col) => col.name);
@@ -1885,8 +1910,6 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
                 result.push({ "status": "delete", "data": row.getData() });
                 continue;
             }
-
-
 
             //detect changed rows
             let j1 = JSON.stringify(Object.values(target[iRow]).map((p) => p.toString()))
