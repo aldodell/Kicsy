@@ -194,10 +194,7 @@ class KicsyComponent extends KicsyObject {
         KicsyComponent.id++;
         this.dom.setAttribute("id", "K" + KicsyComponent.id);
 
-        //catch change event
-        this.dom.addEventListener("change", (e) => {
-            this.changed = true;
-        });
+       
 
     }
 
@@ -248,7 +245,7 @@ class KicsyComponent extends KicsyObject {
     setValue(value) {
         // Set the value of the DOM element to the provided value
         this.dom.value = value;
-        this.changed = false;
+       
         return this;
     }
 
@@ -431,7 +428,7 @@ class KicsyComponent extends KicsyObject {
  */
 class KicsyVisualComponent extends KicsyComponent {
     animationSettings;
-    changed;
+   
     /**
      * Constructor for KicsyVisualComponent class.
      *
@@ -442,7 +439,7 @@ class KicsyVisualComponent extends KicsyComponent {
     constructor(html, type, ...args) {
         // Call the constructor of the parent class with the provided arguments
         super(html, type, ...args);
-        this.changed = false;
+       
     }
 
     /**
@@ -1165,7 +1162,7 @@ function KCheckbox(...args) {
         } else {
             obj.dom.checked = false;
         }
-        obj.changed = false;
+       
         return this;
 
     }
@@ -1536,7 +1533,7 @@ function KSuperCombobox(...args) {
 
     obj.setValue = function (value) {
         obj.text.setValue(value);
-        obj.changed = false;
+      
         return obj;
     }
 
