@@ -609,6 +609,7 @@ class KicsyVisualComponent extends KicsyComponent {
 
     center() {
         this.addCssText("position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);");
+        return this;
     }
 
     /**
@@ -1134,8 +1135,35 @@ function KTextarea(...args) {
  * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
  */
 function KCheckbox(...args) {
+    let obj = new KicsyVisualComponent("input", "checkbox", ...args);
+    obj.setValue = function (value) {
+        if (value == 1 || value == "1" || value == true) {
+            obj.dom.checked = true;
+        } else {
+            obj.dom.checked = false;
+        }
+        return this;
+
+    }
+
+    obj.getValue = function (callback) {
+        let v;
+        if (obj.dom.checked) {
+            v = "1";
+        } else {
+            v = "0";
+        }
+
+        if (callback) {
+            callback(v);
+            return this;
+        } else {
+            return v;
+        }
+
+    }
     // Create a new KicsyVisualComponent instance with the "input" HTML tag, "checkbox" type, and the provided arguments
-    return new KicsyVisualComponent("input", "checkbox", ...args);
+    return obj;
 }
 
 
@@ -1401,6 +1429,10 @@ function KDateTimeLocal(...args) {
 
     // Return the newly created KicsyVisualComponent instance
     return new KicsyVisualComponent("input", "datetime-local", ...args);
+}
+
+function KHorizontalRule(...args) {
+    return new KicsyVisualComponent("hr", undefined, ...args);
 }
 
 function KSuperCombobox(...args) {
@@ -2080,7 +2112,7 @@ class KMessageClass extends KicsyObject {
         // myHeaders.append("Accept", "application/json");
         // myHeaders.append("Access-Control-Allow-Origin", "*");
 
-        console.log(JSON.stringify(this));
+
 
         let form = new FormData();
         form.append("message", JSON.stringify(this));
