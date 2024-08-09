@@ -1258,11 +1258,15 @@ function KHidden(...args) {
  * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
  */
 function KImage(...args) {
-    // Create a new KicsyVisualComponent instance with the "input" HTML tag, "image" type, and the provided arguments
-    // The second argument is set to undefined to allow the constructor to determine the correct type
 
-    // Return the newly created KicsyVisualComponent instance
-    return new KicsyVisualComponent("input", "image", ...args);
+    let obj = new KicsyVisualComponent("img", "", ...args);
+
+    obj.setValue = function (value) {
+        obj.dom.src = value;
+        return this;
+    }
+
+    return obj;
 }
 
 
@@ -1979,7 +1983,7 @@ class KWindowClass extends KicsyVisualContainerComponent {
 
 
         //Initialze styles
-        this.addCssText("position: absolute;border: 4px solid white; border-radius: 8px; margin: 0px; padding: 0px;");
+        this.addCssText("position: absolute;border: 4px solid #aaaaaa; border-radius: 8px; margin: 0px; padding: 0px;");
         this.header.addCssText("display: block; position: relative; width: 100%; height: 30px;margin: 0px;text-align: center;line-height: 30px;font-weight: bold;color:white; text-shadow: black 1px 0px 4px;");
         this.body.addCssText("display: block; position: relative; width: 100%;height: calc(100% - 60px);margin: 0px; overflow: scroll;");
         this.footer.addCssText("display: block; position: relative; width: 100%;height: 30px;margin: 0px;");
@@ -2529,6 +2533,9 @@ function KDesktopApp() {
             case "get_rootView":
                 return app.rootView;
                 break;
+
+
+
         }
     }
 
