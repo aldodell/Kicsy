@@ -194,7 +194,7 @@ class KicsyComponent extends KicsyObject {
         KicsyComponent.id++;
         this.dom.setAttribute("id", "K" + KicsyComponent.id);
 
-       
+
 
     }
 
@@ -245,7 +245,7 @@ class KicsyComponent extends KicsyObject {
     setValue(value) {
         // Set the value of the DOM element to the provided value
         this.dom.value = value;
-       
+
         return this;
     }
 
@@ -428,7 +428,7 @@ class KicsyComponent extends KicsyObject {
  */
 class KicsyVisualComponent extends KicsyComponent {
     animationSettings;
-   
+
     /**
      * Constructor for KicsyVisualComponent class.
      *
@@ -439,7 +439,7 @@ class KicsyVisualComponent extends KicsyComponent {
     constructor(html, type, ...args) {
         // Call the constructor of the parent class with the provided arguments
         super(html, type, ...args);
-       
+
     }
 
     /**
@@ -1142,7 +1142,7 @@ function KButton(...args) {
  * @param {...any} args - Additional arguments to pass to the constructor.
  * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
  */
-function KTextarea(...args) {
+function KTextArea(...args) {
     // Create a new KicsyVisualComponent instance with the "textarea" HTML tag and the provided arguments
     // The second argument is set to undefined to allow the constructor to determine the correct type
     return new KicsyVisualComponent("textarea", undefined, ...args);
@@ -1162,7 +1162,7 @@ function KCheckbox(...args) {
         } else {
             obj.dom.checked = false;
         }
-       
+
         return this;
 
     }
@@ -1533,7 +1533,7 @@ function KSuperCombobox(...args) {
 
     obj.setValue = function (value) {
         obj.text.setValue(value);
-      
+
         return obj;
     }
 
