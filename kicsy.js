@@ -19,6 +19,7 @@ class Kicsy {
     static mainSurface = document.body;
     static applications = [];
     static currentUser = null;
+    static serverURL = "../Kicsy/KicsyServer.php";
 
     /**
      * Load and include multiple JavaScript modules.
@@ -2127,7 +2128,7 @@ class KCryptoUtils extends KicsyObject {
 
         //Convert text to array of integers
         let textArray = text.split("").map(x => x.charCodeAt(0));
-      
+
 
         //Position's array
         let positions = Array(size).fill(0).map(x => x + i++);
@@ -2326,7 +2327,11 @@ class KMessageClass extends KicsyObject {
         // Check if the response is successful (status code 200-299).
         if (response.ok) {
             // Call the callback function with the JSON response.
-            callback(await response.text());
+            let text = await response.text();
+            if (callback != undefined) callback(text);
+            return text;
+        } else {
+            return response.status;
         }
     }
 
@@ -2965,6 +2970,42 @@ function KEval() {
     return app;
 }
 KEval();
+
+function KUserApp() {
+    let app = new KApplicationClass("user", "User App", ["system"]);
+    app.help = "Manage users.";
+    app.run = function (message) {
+        return Kicsy.user;
+    }
+
+    app.processMessage = function (message) {
+        app.preProcessMessage(message);
+
+        switch (message.action) {
+            case "create":
+
+                let tokens = message.payload.split(/\s+/g);
+                let name = tokens[0];
+                let password = tokens[1];
+                let environments = [...tokens.slice(2)];
+                let payload = {};
+                payload.name = name;
+                payload.password = password;
+                payload.environments = environments;
+
+                KMessage("system", "user", "Kicsy", "system", "user_create", payload)
+                    .remoteSend(Kicsy.serverURL)
+                    .then((response) => {
+                        console.log(response)
+                    })
+        }
+    }
+
+
+    app.register();
+    return app;
+}
+KUserApp();
 
 
 KMessage("system", "desktop", "Kicsy", "system", "update").send();

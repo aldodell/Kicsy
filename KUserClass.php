@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This class represents a user in the Kicsy system.
  * 
@@ -22,23 +23,25 @@ class KUserClass
     public $fingerprint;
     public $environments = [];
 
-    public function __construct($name = "anonymous", $environments = ["base"])
+    public function __construct($name = "anonymous", $password = null, $environments = ["base"])
     {
         $this->name = $name;
         $this->environments = $environments;
-        $this->fingerprint = $name . "-" . implode("-", $environments); // TODO: generate fingerprint
+        $this->fingerprint = KCryptoTools::hashToString(KCryptoTools::hash($password));
+        //$name . "-" . implode("-", $environments); // TODO: generate fingerprint
     }
 
     public static function createFromCredentials($name, $password)
     {
         $concatenated = $name . $password;
-        $hash = KCryptoUtils::hash($concatenated);
-        $fingerprint = KCryptoUtils::hashToString($hash);
+        $hash = KCryptoTools::hash($concatenated);
+        $fingerprint = KCryptoTools::hashToString($hash);
         return new self($name, ["base"], $fingerprint);
     }
 
-    public function saveToLocalDrive()
+    public function save()
     {
+        //die( getcwd());
         $userData = [
             'name' => $this->name,
             'fingerprint' => $this->fingerprint,
@@ -54,6 +57,8 @@ class KUserClass
         }
 
         file_put_contents($filePath, $userDataJson);
+
+        return $this;
     }
 
 
@@ -63,7 +68,7 @@ class KUserClass
      * @param string $name The name of the user.
      * @return KUserClass|null The KUserClass instance if the user exists, null otherwise.
      */
-    public static function createFromLocalDrive($name)
+    public static function load($name)
     {
         // Construct the file path for the user data.
         $filePath = 'users/' . $name . '.json';
@@ -91,15 +96,15 @@ class KUserClass
      */
     public static function createFromMessage(KMessageClass $message)
     {
-        if ($message->action != "createUser") {
+        if ($message->action != "user_create") {
             return null;
         }
 
-        if (!isset($message->payload['name']) || !isset($message->payload['environments'])) {
+        if (!isset($message->payload->name) || !isset($message->payload->environments) || !isset($message->payload->password)) {
             return null;
         }
 
-        return new self($message->payload['name'], $message->payload['environments']);
+        return new self($message->payload->name, $message->payload->password, $message->payload->environments);
     }
 
 
@@ -124,5 +129,42 @@ class KUserClass
         $userDataJson = json_encode($userData);
         file_put_contents('users/' . $this->name . '.json', $userDataJson);
     }
-}
 
+
+    /**
+     * This static method checks if a user with the given name and password exists.
+     * It does this by constructing the file path for the user data, checking if the file exists,
+     * reading the user data from the file, creating a fingerprint using the user's name and password,
+     * and finally comparing the fingerprint with the fingerprint stored in the user data.
+     *
+     * @param string $name The name of the user.
+     * @param string $password The password of the user.
+     * @return bool True if the user exists and the password matches, false otherwise.
+     */
+    public static function authenticate($name, $password)
+    {
+        // Construct the file path for the user data.
+        $filePath = 'users/' . $name . '.json';
+
+        // Check if the file exists.
+        if (file_exists($filePath)) {
+            // Read the user data from the file.
+            $userDataJson = file_get_contents($filePath);
+            $userData = json_decode($userDataJson, true);
+
+            // Create a fingerprint using the user's name and password.
+            // The hash function used here is a simple concatenation of the name and password.
+            // In a real-world application, you would use a more secure hashing algorithm like bcrypt or PBKDF2.
+            $fingerprint = KCryptoTools::hash($name . $password);
+
+            // Check if the fingerprint stored in the user data matches the newly created fingerprint.
+            if ($userData['fingerprint'] === $fingerprint) {
+                // If the fingerprints match, return true to indicate that the user exists and the password is correct.
+                return true;
+            }
+        }
+
+        // If the file does not exist or the fingerprints do not match, return false to indicate that the user does not exist or the password is incorrect.
+        return false;
+    }
+}

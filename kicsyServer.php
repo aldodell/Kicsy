@@ -1,34 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>KICSY</title>
-</head>
-
 <?php
+
 /**
  * INCLUDE CLASSES AND INITIAL VALUES
  */
+
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, GET");
+header("Access-Control-Allow-Headers: *");
+header("Content-Type: application/json; charset=UTF-8");
+
 include("kicsyINI.php");
 include("KCryptoTools.php");
 include("KMessageClass.php");
 include("KUserClass.php");
 
 
+$message =  KMessageClass::fromPostRequest(null); //KICSY_MASTER_KEY
 
-$message =  KMessageClass::fromPostRequest(KICSY_MASTER_KEY);
 if ($message == null) {
     die("NOT_MESSAGE");
 }
 
+
 switch ($message->action) {
-    case "login":
+    case "user_login":
+        echo $message->payload;
         break;
 
-    case "createUser":
+    case "user_create":
         $user = KUserClass::createFromMessage($message);
+        $user->save();
         break;
 }
