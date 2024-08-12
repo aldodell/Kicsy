@@ -2048,6 +2048,178 @@ class KDataUtils extends KicsyObject {
 }
 
 /************************************************************************************ */
+/*                           CRYPTO AREA FUNCTIONS                                    */
+/************************************************************************************ */
+
+class KCryptoUtils extends KicsyObject {
+    constructor() {
+        super();
+    }
+    // This function generates a hash of the input text using a given size.
+    // The hash is an array of integers that represents the input text.
+    // The size parameter determines the length of the hash array.
+    static hash(text, size = 8) {
+        // Initialize an empty array to hold the hash.
+        let result = [];
+
+        // Initialize an array of prime numbers.
+        let primes = [2];
+
+        // Load primes
+        // Start from 3 and increment by 2 until we reach 1000.
+        for (let i = 3; i < 1000; i += 2) {
+            // Check if the current number is divisible by any of the primes in the array.
+            // If it is not divisible by any of the primes, add it to the primes array.
+            if (primes.find(x => i % x == 0) === undefined) {
+                primes.push(i);
+            }
+        }
+
+        // Initialize the hash array with zeros.
+        // The length of the hash array is determined by the size parameter.
+        for (let j = 0; j < size; j++) {
+            result.push(0);
+        }
+
+        // Initialize variables for the loop.
+        let k = 0;  // index for the primes array
+        let t = 0;  // temporary variable for calculations
+
+        // Loop through each character in the input text.
+        for (let i = 0; i < text.length; i++) {
+
+            // Loop through each element in the hash array.
+            for (let j = 0; j < size; j++) {
+                // Calculate the new value for the current element in the hash array.
+                // Multiply the current element by the prime number at the current index in the primes array.
+                // Add the code point of the current character in the text.
+                // Take the remainder when dividing by 255.
+                // Assign the result to the current element in the hash array.
+                t = (result[j] + t + (primes[k] * text.codePointAt(i))) % 255;
+                result[j] = t;
+            }
+
+            // Increment the index for the primes array.
+            // If the index is equal to the length of the primes array, reset it to 0.
+            k++;
+            if (k == primes.length) {
+                k = 0;
+            }
+        }
+
+        // Return the hash array.
+        return result;
+    }
+
+    static hashToString(hash) {
+        return hash.map(x => x.toString(16).padStart(2, "0")).join("");
+    }
+
+
+
+
+    static encrypt(text, hash) {
+
+        let i = 0;
+
+        //Size of output encrypted
+        let size = hash.length * (1 + parseInt(text.length / hash.length));
+
+        //Convert text to array of integers
+        let textArray = text.split("").map(x => x.charCodeAt(0));
+      
+
+        //Position's array
+        let positions = Array(size).fill(0).map(x => x + i++);
+
+        //Initialize vector repiting hash values
+        let vector = Object.assign([], positions);
+
+        //Convert poisition indexes to hash on hash arguent
+        vector = vector.map(x => hash[x % hash.length]);
+
+        //Sort positions array using vector hashes
+        positions.sort(function (a, b) {
+            return vector[a] - vector[b];
+        })
+
+        //Fill encrypted array with text integers 
+        positions.forEach(function (c, index) {
+            if (index < textArray.length) {
+                vector[c] = textArray[index] ^ vector[c];
+            }
+        })
+
+        return vector.map(x => x.toString(16).padStart(2, "0")).join("");
+    }
+
+
+    // This function decrypts a given ciphertext using a given hash.
+    // It takes in two parameters:
+    // - data: the ciphertext to be decrypted, as a string of hexadecimal characters.
+    // - hash: the hash to be used for decryption, as an array of integers.
+    // It returns the decrypted plaintext, as a string.
+    static decrypt(data, hash) {
+
+        // Convert the ciphertext from a string of hexadecimal characters to an array of integers.
+        let textArray = data.match(/\w{2}/g).map(x => parseInt(x, 16));
+
+        // Get the length of the ciphertext array.
+        let size = textArray.length;
+
+        // Create an empty vector array.
+        let vector = [];
+
+        // Repeat the hash values to fill the vector array.
+        // The number of repetitions is determined by the size of the vector divided by the size of the hash.
+        for (let i = 0; i < size / hash.length; i++) {
+            vector = vector.concat(hash);
+        }
+
+        // Create an array of position indexes.
+        // The length of the positions array is equal to the length of the ciphertext array.
+        let i = 0;
+        let positions = Array(size).fill(0).map(x => x + i++);
+
+        // Sort the positions array using the values in the vector array as the sorting criteria.
+        positions.sort(function (a, b) {
+            return vector[a] - vector[b];
+        });
+
+        // Reverse the order of the positions array.
+        positions = positions.reverse();
+
+        // Create an empty result array.
+        let result = [];
+
+        // Fill the result array with the decrypted values.
+        // The decrypted value is obtained by XORing the value in the ciphertext array with the corresponding value in the vector array.
+        // The values are obtained by accessing the ciphertext array using the positions array.
+        positions.forEach(function (c, index) {
+            result[index] = textArray[c] ^ vector[c];
+        })
+
+        // Reverse the order of the result array.
+        result = result.reverse();
+
+        // Convert the decrypted values from integers to characters and join them into a string.
+        result = result.map(x => String.fromCharCode(x).split(/\u0000*$/g)[0]).join("");
+
+        // Return the decrypted plaintext.
+        return result;
+    }
+
+
+
+
+}
+
+
+
+
+
+
+/************************************************************************************ */
 /*                           Messages FUNCTIONS                                        */
 /************************************************************************************ */
 class KMessageClass extends KicsyObject {
