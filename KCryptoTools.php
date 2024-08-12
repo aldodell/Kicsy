@@ -1,62 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-</head>
-
 <?php
 
-class KCryptoUtils
+/**
+ *  This class provides utility functions for encrypting and decrypting text using
+ *   cryptographic algorithms.
+ *  @author KICSY
+ *  @version 1.0
+ *  @since 1.0
+ *  @access public
+ *  @package KCryptoUtils
+ */
+class KCryptoTools
 {
 
-
+    /**
+     * This function generates a hash of the input text using a given size.
+     * The hash is an array of integers that represents the input text.
+     * The size parameter determines the length of the hash array.
+     *
+     * @param string $text The input text to be hashed.
+     * @param int $size The size of the hash array. Default is 8.
+     * @return array The hash array.
+     */
     static function hash($text, $size = 8)
     {
+        // Initialize the hash array with zeros.
         $result = array_fill(0, $size, 0);
-        $primes = array(2);
 
+        // Initialize an array of prime numbers.
+        $primes = [2];
+
+        // Find prime numbers from 3 to 1000.
         for ($i = 3; $i < 1000; $i += 2) {
+            // Check if the current number is divisible by any of the primes in the array.
+            // If it is not divisible by any of the primes, add it to the primes array.
             if (!self::isDivisibleByPrimes($i, $primes)) {
                 $primes[] = $i;
             }
         }
 
-        $k = 0;
-        $t = 0;
+        // Initialize variables for the loop.
+        $k = 0;  // index for the primes array
+        $t = 0;  // temporary variable for calculations
 
+        // Loop through each character in the input text.
         for ($i = 0; $i < strlen($text); $i++) {
+            // Loop through each element in the hash array.
             for ($j = 0; $j < $size; $j++) {
+                // Calculate the new value for the current element in the hash array.
+                // Multiply the current element by the prime number at the current index in the primes array.
+                // Add the ASCII value of the current character.
+                // Take the remainder when dividing by 255.
                 $t = ($result[$j] + $t + ($primes[$k] * ord($text[$i]))) % 255;
                 $result[$j] = $t;
             }
 
+            // Increment the index for the primes array.
+            // If the index is equal to the length of the primes array, reset it to 0.
             $k = ($k + 1) % count($primes);
         }
 
         return $result;
     }
 
+    /**
+     * Checks if a number is divisible by any of the prime numbers in the array.
+     *
+     * @param int $number The number to check.
+     * @param array $primes The array of prime numbers.
+     * @return bool Returns true if the number is divisible by any of the prime numbers, false otherwise.
+     */
     private static function isDivisibleByPrimes($number, $primes)
     {
+        // Iterate through each prime number in the array.
         foreach ($primes as $prime) {
+            // Check if the number is divisible by the current prime number.
             if ($number % $prime === 0) {
+                // If it is divisible, return true.
                 return true;
             }
         }
 
+        // If none of the prime numbers divide the number, return false.
         return false;
     }
 
+    /**
+     * Converts an array of hash values to a string representation.
+     *
+     * @param array $hashArray The array of hash values to convert.
+     * @return string The string representation of the hash values.
+     */
     static function hashToString($hashArray)
     {
+        // Initialize an empty string to hold the hash string.
         $hashString = '';
+
+        // Iterate through each hash value in the array.
         foreach ($hashArray as $hashValue) {
+            // Convert the hash value to a hexadecimal string representation and pad it with leading zeros if necessary.
+            // The hexadecimal string is then appended to the hash string.
             $hashString .= str_pad(dechex($hashValue), 2, '0', STR_PAD_LEFT);
         }
+
+        // Return the hash string.
         return $hashString;
     }
 
@@ -166,9 +212,3 @@ class KCryptoUtils
         return $decrypted;
     }
 }
-
-$k = new KCryptoUtils();
-$key = $k->hash("abc");
-$c = $k->encrypt("Jesús es El Señor. Vamos a Güigüe.", $key);
-$r = $k->decrypt($c, $key);
-echo $r;
