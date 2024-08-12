@@ -68,7 +68,7 @@ class KMessageClass
         $json = json_encode($this);
 
         // Create a new instance of the KCryptoUtils class.
-        $krypto = new KCryptoUtils();
+        $krypto = new KCryptoTools();
 
         // Generate a hash using the provided key.
         $hash = $krypto->hash($key);
@@ -117,7 +117,7 @@ class KMessageClass
     static function fromEncryptedString($encrypted, $key = "1234")
     {
         // Create a new instance of the KCryptoUtils class.
-        $krypto = new KCryptoUtils();
+        $krypto = new KCryptoTools();
 
         // Generate a hash using the provided key.
         $hash = $krypto->hash($key);
@@ -143,30 +143,43 @@ class KMessageClass
      */
     static function fromPostRequest($key = null)
     {
-        // Retrieve the encrypted message from the POST request.
-        $message = $_POST['message'];
+        // Check if the 'message' key is set in the $_POST array.
+        // If it is set, proceed with creating a new instance of KMessageClass.
+        // If it is not set, return null.
+        if(isset($_POST['message'])) {
 
-        // If a key is provided, decrypt the message using the key
-        if ($key != null) {
-            // Create a new instance of the KCryptoUtils class.
-            $krypto = new KCryptoUtils();
+            // Retrieve the encrypted message from the POST request.
+            $message = $_POST['message'];
 
-            // Generate a hash using the provided key.
-            $hash = $krypto->hash($key);
+            // Check if a key was provided.
+            // If a key was provided, decrypt the message using the key.
+            // If a key was not provided, the message is assumed to be plaintext.
+            if ($key != null) {
+                // Create a new instance of the KCryptoUtils class.
+                $krypto = new KCryptoTools();
 
-            // Decrypt the encrypted message using the hash.
-            $decryptedMessage = $krypto->decrypt($message, $hash);
+                // Generate a hash using the provided key.
+                $hash = $krypto->hash($key);
 
-            // Update the message with the decrypted version
-            $message = $decryptedMessage;
+                // Decrypt the encrypted message using the hash.
+                // The decrypted message is stored in the $decryptedMessage variable.
+                $decryptedMessage = $krypto->decrypt($message, $hash);
+
+                // Update the message with the decrypted version.
+                // The decrypted message will be used to create a new instance of KMessageClass.
+                $message = $decryptedMessage;
+            }
+
+            // Create a new instance of the KMessageClass class using the decrypted data.
+            // The decrypted data is passed as an argument to the fromJson method.
+            // The fromJson method returns a new instance of KMessageClass with the decrypted data.
+            $kMessage = self::fromJson($message);
+
+            // Return the new instance of the KMessageClass class.
+            return $kMessage;
+        } else {
+            // If the 'message' key is not set in the $_POST array, return null.
+            return null;
         }
-
-        // Create a new instance of the KMessageClass class using the decrypted data.
-        $kMessage = self::fromJson($message);
-
-        // Return the new instance of the KMessageClass class.
-        return $kMessage;
     }
 }
-
-

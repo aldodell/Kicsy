@@ -19,10 +19,16 @@ include("KUserClass.php");
 
 
 
+$message =  KMessageClass::fromPostRequest(KICSY_MASTER_KEY);
+if ($message == null) {
+    die("NOT_MESSAGE");
+}
 
+switch ($message->action) {
+    case "login":
+        break;
 
-
-
-
-
-$message =  KMessageClass::fromPostRequest("1234");
+    case "createUser":
+        $user = KUserClass::createFromMessage($message);
+        break;
+}
