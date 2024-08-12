@@ -23,6 +23,7 @@ class KUserClass
     public $fingerprint;
     public $environments = [];
 
+
     public function __construct($name = "anonymous", $password = null, $environments = ["base"])
     {
         $this->name = $name;
@@ -79,13 +80,41 @@ class KUserClass
             $userDataJson = file_get_contents($filePath);
             $userData = json_decode($userDataJson, true);
 
+            $user = new self($name, null, null);
+
+            foreach ($userData as $key => $value) {
+                $user->{$key} = $value;
+            }
+
             // Create a new KUserClass instance with the user data and return it.
-            return new self($userData['name'], $userData['environments']);
+            return $user;
         }
 
         // Return null if the user does not exist.
         return null;
     }
+
+
+    /**
+     * Delete an user from its name.
+     *
+     * @param string $name The name of the user.
+     * @return bool True if the user was deleted, false otherwise.
+     */
+    public static function delete($name)
+    {
+        $filePath = 'users/' . $name . '.json';
+
+        if (file_exists($filePath)) {
+            return unlink($filePath);
+        }
+
+        return false;
+    }
+
+
+
+
 
 
     /**

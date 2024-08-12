@@ -30,5 +30,16 @@ switch ($message->action) {
     case "user_create":
         $user = KUserClass::createFromMessage($message);
         $user->save();
+        echo "User $user->name create successfully!";
+        break;
+
+    case "user_delete":
+        $name = $message->payload->name;
+        if (KUserClass::delete($name)) {
+            echo "User $name delete successfully!";
+        } else {
+            echo "User $name not found!";
+        }
+
         break;
 }

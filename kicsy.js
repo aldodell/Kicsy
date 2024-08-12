@@ -2302,14 +2302,12 @@ class KMessageClass extends KicsyObject {
      * @param {string} url - The URL to send the message to.
      * @param {function} callback - The callback function to call with the JSON response.
      */
-    async remoteSend(url, callback) {
+    remoteSend(url, callback) {
         // Create a new Headers object to set the Content-Type header.
         const myHeaders = new Headers();
         // myHeaders.append("Content-Type", "application/json");
         // myHeaders.append("Accept", "application/json");
         // myHeaders.append("Access-Control-Allow-Origin", "*");
-
-
 
         let form = new FormData();
         form.append("message", JSON.stringify(this));
@@ -2321,19 +2319,28 @@ class KMessageClass extends KicsyObject {
             //   headers: myHeaders, // Set the request headers to the previously created Headers object.
         });
 
-        // Send the request asynchronously using the fetch function.
-        const response = await fetch(myRequest);
+        async function get() {
+            // Send the request asynchronously using the fetch function.
+            const response = await fetch(myRequest);
 
-        // Check if the response is successful (status code 200-299).
-        if (response.ok) {
-            // Call the callback function with the JSON response.
-            let text = await response.text();
-            if (callback != undefined) callback(text);
-            return text;
-        } else {
-            return response.status;
+            // Check if the response is successful (status code 200-299).
+            if (response.ok) {
+                // Call the callback function with the JSON response.
+                let text = await response.text();
+                if (callback != undefined) callback(text);
+                return text;
+            } else {
+                return response.status;
+            }
         }
+
+        let result = get();
+
+        return result;
+
+
     }
+
 
 
     /**
@@ -2979,26 +2986,43 @@ function KUserApp() {
     }
 
     app.processMessage = function (message) {
-        app.preProcessMessage(message);
+        let tokens, name, password, environments, payload;
+
+        result = app.preProcessMessage(message);
 
         switch (message.action) {
             case "create":
 
-                let tokens = message.payload.split(/\s+/g);
-                let name = tokens[0];
-                let password = tokens[1];
-                let environments = [...tokens.slice(2)];
-                let payload = {};
+                tokens = message.payload.split(/\s+/g);
+                name = tokens[0];
+                password = tokens[1];
+                environments = [...tokens.slice(2)];
+                payload = {};
                 payload.name = name;
                 payload.password = password;
                 payload.environments = environments;
 
-                KMessage("system", "user", "Kicsy", "system", "user_create", payload)
-                    .remoteSend(Kicsy.serverURL)
-                    .then((response) => {
-                        console.log(response)
-                    })
+                return KMessage("system", "user", "Kicsy", "system", "user_create", payload)
+                    .remoteSend(Kicsy.serverURL);
+
+                break;
+
+
+
+            case "delete":
+                tokens = message.payload.split(/\s+/g);
+                name = tokens[0];
+                password = tokens[1];
+                payload = {};
+                payload.name = name;
+                payload.password = password;
+                return KMessage("system", "user", "Kicsy", "system", "user_delete", payload)
+                    .remoteSend(Kicsy.serverURL);
+
         }
+
+
+
     }
 
 
