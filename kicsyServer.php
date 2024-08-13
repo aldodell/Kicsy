@@ -42,4 +42,9 @@ switch ($message->action) {
         }
 
         break;
+
+    case "user_list":
+        $users = KUserClass::getUsers();
+        echo json_encode($users);
+        break;
 }

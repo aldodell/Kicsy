@@ -196,4 +196,24 @@ class KUserClass
         // If the file does not exist or the fingerprints do not match, return false to indicate that the user does not exist or the password is incorrect.
         return false;
     }
+
+
+    /**
+     * This static method returns a list of users.
+     *
+     * @return array An array of user names.
+     */
+    public static function getUsers()
+    {
+        $usersPath = 'users/';
+        $dir = new \DirectoryIterator($usersPath);
+        $users = [];
+        foreach ($dir as $fileinfo) {
+            if (!$fileinfo->isDot()) {
+                $users[] = $fileinfo->getBasename(".json");
+            }
+        }
+        return $users;
+    }
+
 }

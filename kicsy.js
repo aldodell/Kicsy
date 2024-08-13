@@ -2785,8 +2785,13 @@ function KTerminalApp() {
             payload = payload.toString().trim();
 
             if (payload.startsWith("--")) {
-                action = payload.toString().trim().substring(2, payload.indexOf(" "));
-                payload = payload.substring(payload.indexOf(" ") + 1).trim();
+                if (payload.indexOf(" ") > 0) {
+                    action = payload.toString().trim().substring(2, payload.indexOf(" "));
+                    payload = payload.substring(payload.indexOf(" ") + 1).trim();
+                } else {
+                    action = payload.toString().trim().substring(2);
+                    payload = "";
+                }
             } else {
                 action = "run";
             }
@@ -3025,6 +3030,18 @@ function KUserApp() {
                 KMessage("system", "user", "Kicsy", "system", "user_delete", payload)
                     .remoteSend(Kicsy.serverURL, function (response) {
                         Kicsy.print(response);
+                    });
+
+            case "list":
+                KMessage("system", "user", "Kicsy", "system", "user_list")
+                    .remoteSend(Kicsy.serverURL, async function (response) {
+                        let users = await JSON.parse(response);
+                        let result = "<b>Users</b><br/>";
+                        users.forEach(user => {
+                            result += user + "<br/>";
+                        })
+
+                        Kicsy.print(result);
                     });
 
 
