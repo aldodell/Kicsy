@@ -80,6 +80,12 @@ class KMessageClass
         return $encrypted;
     }
 
+    function __toString()
+    {
+        // Convert the KMessageClass object to a JSON string and return it.
+        return json_encode($this);
+    }
+
     /**
      * This function creates a new instance of the KMessageClass class using the
      * provided JSON string.
@@ -146,7 +152,7 @@ class KMessageClass
         // Check if the 'message' key is set in the $_POST array.
         // If it is set, proceed with creating a new instance of KMessageClass.
         // If it is not set, return null.
-        if(isset($_POST['message'])) {
+        if (isset($_POST['message'])) {
 
             // Retrieve the encrypted message from the POST request.
             $message = $_POST['message'];

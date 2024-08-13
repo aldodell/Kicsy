@@ -28,17 +28,13 @@ class KUserClass
     {
         $this->name = $name;
         $this->environments = $environments;
-        $this->fingerprint = KCryptoTools::hashToString(KCryptoTools::hash($password));
-        //$name . "-" . implode("-", $environments); // TODO: generate fingerprint
+        if (isset($password)) {
+            $this->fingerprint = KCryptoTools::hashToString(KCryptoTools::hash($password));
+        } else {
+            $this->fingerprint = $name . "-" . $environments;
+        }
     }
 
-    public static function createFromCredentials($name, $password)
-    {
-        $concatenated = $name . $password;
-        $hash = KCryptoTools::hash($concatenated);
-        $fingerprint = KCryptoTools::hashToString($hash);
-        return new self($name, ["base"], $fingerprint);
-    }
 
     public function save()
     {
@@ -79,7 +75,6 @@ class KUserClass
             // Read the user data from the file.
             $userDataJson = file_get_contents($filePath);
             $userData = json_decode($userDataJson, true);
-
             $user = new self($name, null, null);
 
             foreach ($userData as $key => $value) {
@@ -113,8 +108,18 @@ class KUserClass
     }
 
 
-
-
+    /**
+     * Returns a string representation of the KUserClass object.
+     *
+     * The string representation is in JSON format.
+     *
+     * @return string The JSON string representation of the KUserClass object.
+     */
+    public function __toString()
+    {
+        // Convert the KUserClass object to a JSON string and return it.
+        return json_encode($this);
+    }
 
 
     /**
@@ -161,40 +166,32 @@ class KUserClass
 
 
     /**
-     * This static method checks if a user with the given name and password exists.
-     * It does this by constructing the file path for the user data, checking if the file exists,
-     * reading the user data from the file, creating a fingerprint using the user's name and password,
-     * and finally comparing the fingerprint with the fingerprint stored in the user data.
+     * Authenticates a user by checking if the provided name and password match the stored fingerprint.
      *
-     * @param string $name The name of the user.
+     * @param string $username The username of the user.
      * @param string $password The password of the user.
-     * @return bool True if the user exists and the password matches, false otherwise.
+     * @return KUserClass|bool The authenticated user instance if the credentials match, false otherwise.
      */
-    public static function authenticate($name, $password)
+    public static function authenticate($username, $password)
     {
-        // Construct the file path for the user data.
-        $filePath = 'users/' . $name . '.json';
+        $filePath = 'users/' . $username . '.json';
 
-        // Check if the file exists.
-        if (file_exists($filePath)) {
-            // Read the user data from the file.
-            $userDataJson = file_get_contents($filePath);
-            $userData = json_decode($userDataJson, true);
-
-            // Create a fingerprint using the user's name and password.
-            // The hash function used here is a simple concatenation of the name and password.
-            // In a real-world application, you would use a more secure hashing algorithm like bcrypt or PBKDF2.
-            $fingerprint = KCryptoTools::hash($name . $password);
-
-            // Check if the fingerprint stored in the user data matches the newly created fingerprint.
-            if ($userData['fingerprint'] === $fingerprint) {
-                // If the fingerprints match, return true to indicate that the user exists and the password is correct.
-                return true;
-            }
+        if (!file_exists($filePath)) {
+            return new KMessageClass("system", "system", "system", "system", "user_not_found",  $username);
         }
 
-        // If the file does not exist or the fingerprints do not match, return false to indicate that the user does not exist or the password is incorrect.
-        return false;
+        $hash = KCryptoTools::hash($password);
+
+        $fingerprint = KCryptoTools::hashToString($hash);
+
+
+
+        $user = KUserClass::load($username);
+        if ($user->fingerprint == $fingerprint) {
+            return new KMessageClass("system", "system", "system", "system", "user_authenticated", $user->__toString());
+        } else {
+            return new KMessageClass("system", "system", "system", "system", "user_authentication_failed",  $username);
+        }
     }
 
 
@@ -215,5 +212,4 @@ class KUserClass
         }
         return $users;
     }
-
 }

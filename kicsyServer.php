@@ -21,10 +21,12 @@ if ($message == null) {
     die("NOT_MESSAGE");
 }
 
-
 switch ($message->action) {
+
     case "user_login":
-        echo $message->payload;
+        $credentials = $message->payload;
+        $user = KUserClass::authenticate($credentials->name, $credentials->password);
+        if($user) { echo $user->__toString(); } else  { echo "ERROR: User not found"; }
         break;
 
     case "user_create":

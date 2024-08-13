@@ -2307,8 +2307,9 @@ class KMessageClass extends KicsyObject {
      * @param {function} callback - The callback function to call with the JSON response.
      * @returns {Promise} A promise that resolves with the JSON response or rejects with the HTTP status code.
      */
-    async remoteSend(url, callback) {
+    remoteSend(url, callback) {
         const formData = new FormData();
+
         formData.append("message", JSON.stringify(this));
 
         const requestOptions = {
@@ -2316,15 +2317,16 @@ class KMessageClass extends KicsyObject {
             body: formData
         };
 
-        const response = await fetch(url, requestOptions);
+        return async function processResponse(url, requestOptions) {
+            const response = await fetch(url, requestOptions);
+            if (response.ok) {
+                const responseText = await response.text();
+                if (callback) { callback(responseText) } else { return responseText; }
 
-        if (response.ok) {
-            const responseText = await response.text();
-            if (callback) { callback(responseText) } else { return responseText; }
-
-        } else {
-            return Promise.reject(response.status);
-        }
+            } else {
+                return Promise.reject(response.status);
+            }
+        }(url, requestOptions);
     }
 
 
@@ -3000,6 +3002,7 @@ function KUserApp() {
         let tokens, name, password, environments, payload;
 
         result = app.preProcessMessage(message);
+        if (result) { return result; }
 
         switch (message.action) {
             case "create":
@@ -3031,6 +3034,7 @@ function KUserApp() {
                     .remoteSend(Kicsy.serverURL, function (response) {
                         Kicsy.print(response);
                     });
+                break;
 
             case "list":
                 KMessage("system", "user", "Kicsy", "system", "user_list")
@@ -3043,6 +3047,41 @@ function KUserApp() {
 
                         Kicsy.print(result);
                     });
+                break;
+
+            case "login":
+                tokens = message.payload.split(/\s+/g);
+                name = tokens[0];
+                password = tokens[1];
+                payload = {};
+                payload.name = name;
+                payload.password = password;
+                KMessage("system", "user", "Kicsy", "system", "user_login", payload)
+                    .remoteSend(Kicsy.serverURL, function (response) {
+
+                        let message = JSON.parse(response);
+
+                        switch (message.action) {
+                            case "user_authenticated":
+                                let data = JSON.parse(message.payload);
+                                let user = new KUserClass(data.name, data.environments);
+                                user.fingerprint = data.fingerprint;
+                                Kicsy.currentUser = user;
+                                KMessage("system", "desktop", "Selva", "Selva", "update").send();
+                                Kicsy.print("Welcome " + data.name);
+                                break;
+
+                            case "user_authentication_failed":
+                                Kicsy.print(message.payload);
+                                break;
+
+                            case "user_not_found":
+                                Kicsy.print(message.payload);
+                                break;
+                        }
+
+                    });
+                break;
 
 
         }
@@ -3059,5 +3098,9 @@ KMessage("system", "desktop", "Kicsy", "system", "update").send();
 
 
 
+/*
 
+let data = JSON.parse(message.payload);
+                       
+*/
 
