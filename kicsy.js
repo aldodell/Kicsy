@@ -42,6 +42,10 @@ class Kicsy {
 
     }
 
+    static print(text) {
+        console.log(text);
+    }
+
 
 }
 
@@ -2301,44 +2305,26 @@ class KMessageClass extends KicsyObject {
      * 
      * @param {string} url - The URL to send the message to.
      * @param {function} callback - The callback function to call with the JSON response.
+     * @returns {Promise} A promise that resolves with the JSON response or rejects with the HTTP status code.
      */
-    remoteSend(url, callback) {
-        // Create a new Headers object to set the Content-Type header.
-        const myHeaders = new Headers();
-        // myHeaders.append("Content-Type", "application/json");
-        // myHeaders.append("Accept", "application/json");
-        // myHeaders.append("Access-Control-Allow-Origin", "*");
+    async remoteSend(url, callback) {
+        const formData = new FormData();
+        formData.append("message", JSON.stringify(this));
 
-        let form = new FormData();
-        form.append("message", JSON.stringify(this));
+        const requestOptions = {
+            method: "POST",
+            body: formData
+        };
 
-        // Create a new Request object with the specified URL, method, body, and headers.
-        const myRequest = new Request(url, {
-            method: "POST", // Set the request method to POST.
-            body: form, // Convert the KMessageClass instance to a JSON string and set it as the request body.
-            //   headers: myHeaders, // Set the request headers to the previously created Headers object.
-        });
+        const response = await fetch(url, requestOptions);
 
-        async function get() {
-            // Send the request asynchronously using the fetch function.
-            const response = await fetch(myRequest);
+        if (response.ok) {
+            const responseText = await response.text();
+            if (callback) { callback(responseText) } else { return responseText; }
 
-            // Check if the response is successful (status code 200-299).
-            if (response.ok) {
-                // Call the callback function with the JSON response.
-                let text = await response.text();
-                if (callback != undefined) callback(text);
-                return text;
-            } else {
-                return response.status;
-            }
+        } else {
+            return Promise.reject(response.status);
         }
-
-        let result = get();
-
-        return result;
-
-
     }
 
 
@@ -2820,7 +2806,8 @@ function KTerminalApp() {
                             result = undefined;
                         }
                     } else {
-                        app.newLine(); // Create a new line.
+                        if (result != null) app.newLine(); // Create a new line.
+
                     }
 
                 }
@@ -2869,11 +2856,30 @@ function KTerminalApp() {
         app.newLine(); // Create a new line.
     }
 
+    app.processMessage = function (msg) {
+        app.preProcessMessage(msg);
+
+        switch (msg.action) {
+            case "print":
+                app.newAnswer(msg.payload);
+                break;
+        }
+    }
+
     app.rootView = rootView; // Set the root view of the terminal application.
     app.register(); // Register the terminal application.
     app.newLine(""); // Create a new line in the terminal.
     app.help = "<b>Terminal App</b><br/>"; // Set the help text of the terminal application.
     app.rootView.hide(); // Hide the root view of the terminal application.
+
+
+    //redirect stdout
+
+    Kicsy.print = function (text) {
+        KMessage("terminal", "terminal", "system", "system", "print", text).send();
+    }
+
+
     return app; // Return the terminal application object.
 }
 KTerminalApp();
@@ -3002,12 +3008,12 @@ function KUserApp() {
                 payload.password = password;
                 payload.environments = environments;
 
-                return KMessage("system", "user", "Kicsy", "system", "user_create", payload)
-                    .remoteSend(Kicsy.serverURL);
+                KMessage("system", "user", "Kicsy", "system", "user_create", payload)
+                    .remoteSend(Kicsy.serverURL, function (response) {
+                        Kicsy.print(response);
+                    });
 
                 break;
-
-
 
             case "delete":
                 tokens = message.payload.split(/\s+/g);
@@ -3016,15 +3022,15 @@ function KUserApp() {
                 payload = {};
                 payload.name = name;
                 payload.password = password;
-                return KMessage("system", "user", "Kicsy", "system", "user_delete", payload)
-                    .remoteSend(Kicsy.serverURL);
+                KMessage("system", "user", "Kicsy", "system", "user_delete", payload)
+                    .remoteSend(Kicsy.serverURL, function (response) {
+                        Kicsy.print(response);
+                    });
+
 
         }
-
-
-
+        return null;
     }
-
 
     app.register();
     return app;
