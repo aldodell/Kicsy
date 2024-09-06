@@ -1465,63 +1465,103 @@ function KHorizontalRule(...args) {
     return new KicsyVisualComponent("hr", undefined, ...args);
 }
 
+/**
+ * Wigdget for a super combobox. Must be feeded with a list of options with fill method.
+ * This options goes on json format with two properties
+ * by option: label and value.
+ * "label" property shows on the combobox. "value" property is the value of the option.
+ * @param  {...any} args 
+ * @returns A KSuperCombobox
+ */
 function KSuperCombobox(...args) {
+    // Create a new KLayer instance
     let obj = KLayer()
+        // Set the height of the KLayer to 20px
         .addCssText("height: 20px;");
+
+    // Create a new KText instance
     obj.text = KText()
+        // Set the CSS text of the KText to make it display as a block element
         .addCssText("display: block; position: relative; top: 0px; left: 0px; width: fit-content; height: 1rem;");
+
+    // Create a new KRow instance
     obj.optionsFrame = KRow()
+        // Set the CSS text of the KRow to make it display as a block element, set its position to relative, set its top and left to 0px, set its width to fit-content, set its height to 200px, set its overflow-y to scroll, set its background-color to white, set its border to 1px solid #ccc, and set its padding to 8px
         .addCssText("display: block; position: relative; top: 4px; left: 0px; width: fit-content; height:200px; overflow-y: scroll; background-color: white; border: 1px solid #ccc; padding: 8px;")
+        // Move the optionsFrame to the front of the Z-index
         .climb();
 
+    // This function is used to set the arrayData property of the KSuperCombobox instance
     obj.setArrayData = function (arrayData) {
+        // Set the arrayData property of the KSuperCombobox instance to the provided arrayData
         obj.arrayData = arrayData;
+        // Call the fill method of the KSuperCombobox instance with the provided arrayData
         obj.fill(arrayData);
+        // Return the KSuperCombobox instance so that it can be chained
         return obj;
     }
 
+    // Add an event listener to the KText instance
     obj.text.addEvent("blur", function () {
+        // When the KText instance loses focus, hide the optionsFrame after 200 milliseconds
         window.setTimeout(function () {
             obj.optionsFrame.hide();
         }, 200)
 
     })
 
+    // Add an event listener to the optionsFrame
     obj.optionsFrame.addEvent("onmouseover", function () {
+        // When the optionsFrame is hovered over, show it
         obj.optionsFrame.show();
     })
 
+    // Add an event listener to the KText instance
     obj.text.addEvent("click", function () {
+        // When the KText instance is clicked, fill the optionsFrame with the arrayData
         obj.fill(obj.arrayData);
     })
 
+    // Add an event listener to the KText instance
     obj.text.addEvent("keyup", function (e) {
-        // dfdfdfs
+        // When the KText instance is typed in, filter the arrayData based on the value of the KText instance
         let word = obj.text.getValue();
         obj.fill(obj.arrayData.filter((x) => x["label"].indexOf(word) > -1));
     })
 
-    // This function is used to fill the optionsFrame with labels based on the arrayData passed in
+    /**
+     *   This function is used to fill the optionsFrame with labels based on the arrayData passed in.
+     *   @param {array} arrayData - The array of objects to be displayed in the optionsFrame. Each
+     *  elment of the arrayData should be an object with a "label" property and a "value" property.
+     *  "label" property shows on the combobox. "value" property is the value of the option.
+     *  @param {function} callback - The callback function to be called when the user selects an option.
+     *  @returns {Object} The KSuperCombobox instance.
+     */
+
     obj.fill = function (arrayData) {
+        // Store the arrayData in the optionsFrame
+        obj.arrayData = arrayData;
+
         // Clear the optionsFrame before adding new labels
         obj.optionsFrame.clear();
 
         // Loop through each element in the arrayData
         for (let i = 0; i < arrayData.length; i++) {
+
             // Get the values of the current element in the arrayData
-            let value = Object.values(arrayData[i])[0];
+            let caption = arrayData[i]["label"]; //Object.values(arrayData[i])[0];
 
             // If the value is undefined, set it to the entire element
-            if (value == undefined) {
-                value = arrayData[i];
+            if (caption == undefined) {
+                caption = arrayData[i];
             }
 
             // Create a new KLabel with the value as its text
-            let label = KLabel(value)
+            let label = KLabel(caption)
                 // Add a click event listener to the label
                 .addEvent("click", (e) => {
                     // When the label is clicked, set the text of the text input to the value of the label
-                    obj.text.setValue(value);
+                    obj.text.setValue(caption);
                     // Hide the optionsFrame
                     obj.optionsFrame.hide();
                 })
@@ -1535,41 +1575,123 @@ function KSuperCombobox(...args) {
         return obj;
     }
 
+    // This function is used to set the name of the KSuperCombobox instance
     obj.setName = function (name) {
+        // Set the name property of the KText instance to the provided name
         obj.text.setName(name);
+        // Return the KSuperCombobox instance so that it can be chained
+        return obj;
+    }
+
+    // This function is used to set the value of the KSuperCombobox instance
+    obj.setValue = function (value) {
+        // Set the value of the KText instance to the provided value
+        obj.text.setValue(value);
+        // Return the KSuperCombobox instance so that it can be chained
+        return obj;
+    }
+
+    // This function is used to get the value of the KSuperCombobox instance
+    obj.getValue = function (callback) {
+
+        let value = obj.text.getValue();
+        let t = obj.arrayData.filter((x) => x["label"] === value);
+        if (t == undefined) { t = value; }
+        t = t["value"];
+
+        if (callback) {
+            callback(t);
+            // Return the KSuperCombobox instance so that it can be chained
+            return obj;
+        } else {
+            // Return the value
+            return t;
+        }
+    }
+
+    // Add an event listener to the KText instance
+    obj.text.dom.addEventListener("focus", (event) => {
+        // When the KText instance is focused, show the optionsFrame
+        obj.optionsFrame.show();
+    })
+
+    // Hide the optionsFrame
+    obj.optionsFrame.hide();
+
+    // Add the KText instance and the optionsFrame to the KSuperCombobox instance
+    obj.add(obj.text, obj.optionsFrame);
+
+    // Return the KSuperCombobox instance
+    return obj;
+
+}
+
+
+
+function KSelect(...args) {
+    let obj = new KicsyVisualComponent("select", undefined, ...args);
+    obj.addOption = function (value, label = value, selected = false, disabled = false) {
+        let option = new KicsyVisualComponent("option", undefined);
+        option.dom.value = value;
+        option.dom.label = label;
+        option.dom.selected = selected;
+        option.dom.disabled = disabled;
+        obj.dom.add(option.dom);
         return obj;
     }
 
     obj.setValue = function (value) {
-        obj.text.setValue(value);
-
+        for (let option of obj.dom.childNodes) {
+            if (option.value == value) {
+                option.selected = true;
+            }
+        }
         return obj;
     }
 
+
     obj.getValue = function (callback) {
+        let value;
+        for (let option of obj.dom.childNodes) {
+            if (option.selected) {
+                value = option.value;
+                break;
+            }
+        }
         if (callback) {
-            callback(obj.text.getValue());
+            callback(value);
             return obj;
         } else {
-            return obj.text.getValue();
+            return value;
         }
     }
 
-    obj.text.dom.addEventListener("focus", (event) => {
-        obj.optionsFrame.show();
-    })
+    obj.setArrayData = function (arrayData) {
+        for (let row of arrayData) {
+            let value = Object.values(row)[0];
+            let label = Object.values(row)[1];
+            let selected = Object.values(row)[2];
+            let disabled = Object.values(row)[3];
 
-    obj.optionsFrame.hide();
+            if (label == undefined) {
+                label = value;
+            }
 
-    obj.add(obj.text, obj.optionsFrame);
+            if (selected == undefined) {
+                selected = false;
+            }
 
+            if (disabled == undefined) {
+                disabled = false;
+            }
 
-    //obj.postPublishedCallback = function (obj) { }
-
+            obj.addOption(value, label, selected, disabled);
+        }
+    }
 
     return obj;
-
 }
+
 
 /**
  * Creates a new instance of the KCanvas class, which is a visual component that represents a canvas element.
@@ -1805,6 +1927,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
                     }
                 })
         )
+            .addCssText(this.rowCssText);
 
         //Add other columns
         for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
@@ -1814,6 +1937,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
             component
                 .setName(col.name)
                 .addCssText("width: " + col.width + "px;");
+
 
             if (this.rowIndex < this.arrayData.length) {
                 component.setValue(this.arrayData[this.rowIndex][col.name]);
@@ -1905,7 +2029,15 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
 
             //detect new rows
             if (iRow >= source.length) {
-                result.push({ "status": "insert", "data": target[iRow] });
+
+                for (let columnName of columnsNames) {
+                    let r0 = target[iRow][columnName].toString().trim();
+                    if (r0 != "") {
+                        result.push({ "status": "insert", "data": target[iRow] });
+                        break;
+                    }
+                }
+
                 continue;
             }
 
@@ -1918,12 +2050,17 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
             }
 
             //detect changed rows
-            let j1 = JSON.stringify(Object.values(target[iRow]).map((p) => p.toString()))
-            let j2 = JSON.stringify(Object.values(source[iRow]).map((p) => p.toString()))
-            if (j1 != j2) {
-                result.push({ "status": "update", "data": target[iRow] });
-                continue;
+            for (let columnName of columnsNames) {
+                let r0 = target[iRow][columnName].toString().trim();
+                let r1 = source[iRow][columnName].toString().trim();
+
+                if (r0 != r1) {
+                    result.push({ "status": "update", "data": target[iRow] });
+                    continue;
+                }
             }
+
+
         }
 
         if (callback != undefined) {

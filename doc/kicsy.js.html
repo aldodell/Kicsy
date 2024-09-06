@@ -47,6 +47,7 @@ class Kicsy {
     static mainSurface = document.body;
     static applications = [];
     static currentUser = null;
+    static serverURL = "../Kicsy/KicsyServer.php";
 
     /**
      * Load and include multiple JavaScript modules.
@@ -67,6 +68,10 @@ class Kicsy {
             document.body.appendChild(script);
         }
 
+    }
+
+    static print(text) {
+        console.log(text);
     }
 
 
@@ -222,6 +227,8 @@ class KicsyComponent extends KicsyObject {
         KicsyComponent.id++;
         this.dom.setAttribute("id", "K" + KicsyComponent.id);
 
+
+
     }
 
     /**
@@ -271,6 +278,7 @@ class KicsyComponent extends KicsyObject {
     setValue(value) {
         // Set the value of the DOM element to the provided value
         this.dom.value = value;
+
         return this;
     }
 
@@ -376,6 +384,11 @@ class KicsyComponent extends KicsyObject {
         return this;
     }
 
+    setPlaceholder(placeholder) {
+        this.dom.placeholder = placeholder;
+        return this;
+    }
+
     postPublished() {
 
         if (this.dom.children != undefined) {
@@ -448,6 +461,7 @@ class KicsyComponent extends KicsyObject {
  */
 class KicsyVisualComponent extends KicsyComponent {
     animationSettings;
+
     /**
      * Constructor for KicsyVisualComponent class.
      *
@@ -458,6 +472,7 @@ class KicsyVisualComponent extends KicsyComponent {
     constructor(html, type, ...args) {
         // Call the constructor of the parent class with the provided arguments
         super(html, type, ...args);
+
     }
 
     /**
@@ -615,6 +630,7 @@ class KicsyVisualComponent extends KicsyComponent {
         // Increase the z-index of the component's DOM element.
         // This will make the component appear "above" other components on the page.
         this.dom.style.zIndex++;
+        return this;
     }
 
     /**
@@ -626,10 +642,27 @@ class KicsyVisualComponent extends KicsyComponent {
         // Decrease the z-index of the component's DOM element.
         // This will make the component appear "below" other components on the page.
         this.dom.style.zIndex--;
+        return this;
     }
 
     center() {
         this.addCssText("position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);");
+        return this;
+    }
+
+    centerHorizontally() {
+        this.addCssText("position: absolute; left: 50%; transform: translateX(-50%);");
+        return this;
+    }
+
+    enable() {
+        this.dom.disabled = false;
+        return this;
+    }
+
+    disable() {
+        this.dom.disabled = true;
+        return this;
     }
 
     /**
@@ -1142,7 +1175,7 @@ function KButton(...args) {
  * @param {...any} args - Additional arguments to pass to the constructor.
  * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
  */
-function KTextarea(...args) {
+function KTextArea(...args) {
     // Create a new KicsyVisualComponent instance with the "textarea" HTML tag and the provided arguments
     // The second argument is set to undefined to allow the constructor to determine the correct type
     return new KicsyVisualComponent("textarea", undefined, ...args);
@@ -1155,8 +1188,36 @@ function KTextarea(...args) {
  * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
  */
 function KCheckbox(...args) {
+    let obj = new KicsyVisualComponent("input", "checkbox", ...args);
+    obj.setValue = function (value) {
+        if (value == 1 || value == "1" || value == true) {
+            obj.dom.checked = true;
+        } else {
+            obj.dom.checked = false;
+        }
+
+        return this;
+
+    }
+
+    obj.getValue = function (callback) {
+        let v;
+        if (obj.dom.checked) {
+            v = "1";
+        } else {
+            v = "0";
+        }
+
+        if (callback) {
+            callback(v);
+            return this;
+        } else {
+            return v;
+        }
+
+    }
     // Create a new KicsyVisualComponent instance with the "input" HTML tag, "checkbox" type, and the provided arguments
-    return new KicsyVisualComponent("input", "checkbox", ...args);
+    return obj;
 }
 
 
@@ -1230,11 +1291,15 @@ function KHidden(...args) {
  * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
  */
 function KImage(...args) {
-    // Create a new KicsyVisualComponent instance with the "input" HTML tag, "image" type, and the provided arguments
-    // The second argument is set to undefined to allow the constructor to determine the correct type
 
-    // Return the newly created KicsyVisualComponent instance
-    return new KicsyVisualComponent("input", "image", ...args);
+    let obj = new KicsyVisualComponent("img", "", ...args);
+
+    obj.setValue = function (value) {
+        obj.dom.src = value;
+        return this;
+    }
+
+    return obj;
 }
 
 
@@ -1424,11 +1489,242 @@ function KDateTimeLocal(...args) {
     return new KicsyVisualComponent("input", "datetime-local", ...args);
 }
 
+function KHorizontalRule(...args) {
+    return new KicsyVisualComponent("hr", undefined, ...args);
+}
+
+/**
+ * Wigdget for a super combobox. Must be feeded with a list of options. This options goes on json format with two properties
+ * by option: label and value.
+ * "label" property shows on the combobox. "value" property is the value of the option.
+ * @param  {...any} args 
+ * @returns A KSuperCombobox
+ */
+function KSuperCombobox(...args) {
+    // Create a new KLayer instance
+    let obj = KLayer()
+        // Set the height of the KLayer to 20px
+        .addCssText("height: 20px;");
+
+    // Create a new KText instance
+    obj.text = KText()
+        // Set the CSS text of the KText to make it display as a block element
+        .addCssText("display: block; position: relative; top: 0px; left: 0px; width: fit-content; height: 1rem;");
+
+    // Create a new KRow instance
+    obj.optionsFrame = KRow()
+        // Set the CSS text of the KRow to make it display as a block element, set its position to relative, set its top and left to 0px, set its width to fit-content, set its height to 200px, set its overflow-y to scroll, set its background-color to white, set its border to 1px solid #ccc, and set its padding to 8px
+        .addCssText("display: block; position: relative; top: 4px; left: 0px; width: fit-content; height:200px; overflow-y: scroll; background-color: white; border: 1px solid #ccc; padding: 8px;")
+        // Move the optionsFrame to the front of the Z-index
+        .climb();
+
+    // This function is used to set the arrayData property of the KSuperCombobox instance
+    obj.setArrayData = function (arrayData) {
+        // Set the arrayData property of the KSuperCombobox instance to the provided arrayData
+        obj.arrayData = arrayData;
+        // Call the fill method of the KSuperCombobox instance with the provided arrayData
+        obj.fill(arrayData);
+        // Return the KSuperCombobox instance so that it can be chained
+        return obj;
+    }
+
+    // Add an event listener to the KText instance
+    obj.text.addEvent("blur", function () {
+        // When the KText instance loses focus, hide the optionsFrame after 200 milliseconds
+        window.setTimeout(function () {
+            obj.optionsFrame.hide();
+        }, 200)
+
+    })
+
+    // Add an event listener to the optionsFrame
+    obj.optionsFrame.addEvent("onmouseover", function () {
+        // When the optionsFrame is hovered over, show it
+        obj.optionsFrame.show();
+    })
+
+    // Add an event listener to the KText instance
+    obj.text.addEvent("click", function () {
+        // When the KText instance is clicked, fill the optionsFrame with the arrayData
+        obj.fill(obj.arrayData);
+    })
+
+    // Add an event listener to the KText instance
+    obj.text.addEvent("keyup", function (e) {
+        // When the KText instance is typed in, filter the arrayData based on the value of the KText instance
+        let word = obj.text.getValue();
+        obj.fill(obj.arrayData.filter((x) => x["label"].indexOf(word) > -1));
+    })
+
+    /**
+     *   This function is used to fill the optionsFrame with labels based on the arrayData passed in.
+     *   @param {array} arrayData - The array of objects to be displayed in the optionsFrame. Each
+     * elment of the arrayData should be an object with a "label" property and a "value" property.
+     * "label" property shows on the combobox. "value" property is the value of the option.
+     * @param {function} callback - The callback function to be called when the user selects an option.
+     * @returns {Object} The KSuperCombobox instance.
+     */
+
+    obj.fill = function (arrayData) {
+        // Store the arrayData in the optionsFrame
+        obj.arrayData = arrayData;
+
+        // Clear the optionsFrame before adding new labels
+        obj.optionsFrame.clear();
+
+        // Loop through each element in the arrayData
+        for (let i = 0; i &lt; arrayData.length; i++) {
+
+            // Get the values of the current element in the arrayData
+            let caption = Object.values(arrayData[i])[0];
+
+            // If the value is undefined, set it to the entire element
+            if (caption == undefined) {
+                caption = arrayData[i];
+            }
+
+            // Create a new KLabel with the value as its text
+            let label = KLabel(caption)
+                // Add a click event listener to the label
+                .addEvent("click", (e) => {
+                    // When the label is clicked, set the text of the text input to the value of the label
+                    obj.text.setValue(caption);
+                    // Hide the optionsFrame
+                    obj.optionsFrame.hide();
+                })
+                // Add a CSS text that makes the label display as a block element
+                .addCssText("display: block;");
+
+            // Add the label to the optionsFrame
+            obj.optionsFrame.add(label)
+        }
+        // Return the obj (KSuperCombobox) so that it can be chained
+        return obj;
+    }
+
+    // This function is used to set the name of the KSuperCombobox instance
+    obj.setName = function (name) {
+        // Set the name property of the KText instance to the provided name
+        obj.text.setName(name);
+        // Return the KSuperCombobox instance so that it can be chained
+        return obj;
+    }
+
+    // This function is used to set the value of the KSuperCombobox instance
+    obj.setValue = function (value) {
+        // Set the value of the KText instance to the provided value
+        obj.text.setValue(value);
+        // Return the KSuperCombobox instance so that it can be chained
+        return obj;
+    }
+
+    // This function is used to get the value of the KSuperCombobox instance
+    obj.getValue = function (callback) {
+
+        let value = obj.text.getValue();
+        let t = obj.arrayData.filter((x) => x["label"] === value);
+        if (t == undefined) { t = value; }
+        t = t["value"];
+
+        if (callback) {
+            callback(t);
+            // Return the KSuperCombobox instance so that it can be chained
+            return obj;
+        } else {
+            // Return the value
+            return t;
+        }
+    }
+
+    // Add an event listener to the KText instance
+    obj.text.dom.addEventListener("focus", (event) => {
+        // When the KText instance is focused, show the optionsFrame
+        obj.optionsFrame.show();
+    })
+
+    // Hide the optionsFrame
+    obj.optionsFrame.hide();
+
+    // Add the KText instance and the optionsFrame to the KSuperCombobox instance
+    obj.add(obj.text, obj.optionsFrame);
+
+    // Return the KSuperCombobox instance
+    return obj;
+
+}
+
+
+
+function KSelect(...args) {
+    let obj = new KicsyVisualComponent("select", undefined, ...args);
+    obj.addOption = function (value, label = value, selected = false, disabled = false) {
+        let option = new KicsyVisualComponent("option", undefined);
+        option.dom.value = value;
+        option.dom.label = label;
+        option.dom.selected = selected;
+        option.dom.disabled = disabled;
+        obj.dom.add(option.dom);
+        return obj;
+    }
+
+    obj.setValue = function (value) {
+        for (let option of obj.dom.childNodes) {
+            if (option.value == value) {
+                option.selected = true;
+            }
+        }
+        return obj;
+    }
+
+
+    obj.getValue = function (callback) {
+        let value;
+        for (let option of obj.dom.childNodes) {
+            if (option.selected) {
+                value = option.value;
+                break;
+            }
+        }
+        if (callback) {
+            callback(value);
+            return obj;
+        } else {
+            return value;
+        }
+    }
+
+    obj.setArrayData = function (arrayData) {
+        for (let row of arrayData) {
+            let value = Object.values(row)[0];
+            let label = Object.values(row)[1];
+            let selected = Object.values(row)[2];
+            let disabled = Object.values(row)[3];
+
+            if (label == undefined) {
+                label = value;
+            }
+
+            if (selected == undefined) {
+                selected = false;
+            }
+
+            if (disabled == undefined) {
+                disabled = false;
+            }
+
+            obj.addOption(value, label, selected, disabled);
+        }
+    }
+
+    return obj;
+}
+
+
 /**
  * Creates a new instance of the KCanvas class, which is a visual component that represents a canvas element.
  * Must be implement a draw function that will be called after the canvas is rendered.
  * This function callback will be passed through  {@link KicsyVisualComponent#setValue} method.
- * Must use {@link KicsyVisualComponent#setReferenceSize} method before setting the drawCallback.
+ * Must use setReferenceSize}
  * 
  * @param {...any} args - Additional arguments to pass to the constructor.
  * @returns {KicsyVisualComponent} - The newly created KicsyVisualComponent instance.
@@ -1508,10 +1804,9 @@ function KAppIcon(title, drawerCallback = KDefaultImages("TERMINAL"), clickEvent
             .addCssText("display: block; position: relative; left:32px; top: 4px;"),
         KLabel()
             .setValue(title)
-            .addCssText("display: block; position: relative; margin-left:4px; margin-right:4px; margin-top:16px; text-align: center; line-height: 16px;"),
+            .addCssText("display: block; position: relative; margin-left:4px; margin-right:4px; margin-top:8px; text-align: center; line-height: 16px;  background-color: white;"),
     )
-        .setSize(128, 128)
-        .addCssText("display: inline-block; position: relative; width: 128px; height: 128px; border: 1px solid black; border-radius: 8px; margin: 0px; padding: 0px; box-shadow: 5px 5px 5px gray; background-color: white;");
+        .addCssText("display: inline-block; position: relative;  width: 128px; height: 128px; border: 1px solid black; border-radius: 8px; margin: 8px; padding: 0px; box-shadow: 5px 5px 5px gray; background-color: white; overflow: hidden;");
 
 
     if (clickEventListener != null &amp;&amp; clickEventListener != undefined) {
@@ -1608,6 +1903,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
     captionAdjustment = 8;
 
 
+
     addRowCssText(cssText) {
         this.rowCssText = cssText;
         return this;
@@ -1629,7 +1925,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
     }
 
     clear() {
-        this.captions.clear();
+
         this.body.clear();
         this.rowIndex = 0;
         return this;
@@ -1658,6 +1954,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
                     }
                 })
         )
+            .addCssText(this.rowCssText);
 
         //Add other columns
         for (let colIndex = 0; colIndex &lt; this.columns.length; colIndex++) {
@@ -1667,6 +1964,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
             component
                 .setName(col.name)
                 .addCssText("width: " + col.width + "px;");
+
 
             if (this.rowIndex &lt; this.arrayData.length) {
                 component.setValue(this.arrayData[this.rowIndex][col.name]);
@@ -1678,20 +1976,45 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
 
         this.rowIndex++;
         this.body.add(row);
-        row.dom.scrollIntoView();
+
 
     }
 
     configureCaptions() {
+        this.captions.clear();
+        this.buttonsBar.clear();
+
         let x = 0;
         for (let colIndex = 0; colIndex &lt; this.columns.length; colIndex++) {
             let col = this.columns[colIndex];
             let w = col.width + this.captionAdjustment;
+            x = x + w;
             let component = KLayer().setValue(col.description).setSize(w).addCssText("display: inline-block; text-align: center;margin:4px;");
             this.captions.add(component);
+            let buttonUp = KButton("▲")
+                .addCssText("position:absolute;display: inline-block;width:20px;height:20px;left:" + (x - 20) + "px;")
+                .addEvent("click", () => {
+                    this.clear();
+                    let t = this.arrayData.sort(function (a, b) { return a[col.name] > b[col.name] });;
+                    this.setArrayData(t);
+
+                })
+
+
+            let buttonDown = KButton("▼")
+                .addCssText("position:absolute;display: inline-block;width:20px;height:20px;left:" + x + "px;")
+                .addEvent("click", () => {
+                    this.clear();
+                    let t = this.arrayData.sort(function (a, b) { return a[col.name] &lt; b[col.name] });;
+                    this.setArrayData(t);
+                })
+
+            this.buttonsBar.add(buttonUp, buttonDown);
         }
         return this;
     }
+
+
 
     setArrayData(arrayData) {
         this.rowIndex = 0;
@@ -1699,7 +2022,10 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
         for (let rowIndex = 0; rowIndex &lt; this.arrayData.length; rowIndex++) {
             this.newRow();
         }
-        this.configureCaptions();
+
+        if (this.captions.dom.childNodes.length == 0) {
+            this.configureCaptions();
+        }
 
         return this;
     }
@@ -1720,7 +2046,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
         }
     }
 
-    getStructuredData(callback) {
+    getStructuredArrayData(callback) {
         let source = this.arrayData;
         let target = this.getArrayData();
         let columnsNames = this.columns.map((col) => col.name);
@@ -1730,7 +2056,15 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
 
             //detect new rows
             if (iRow >= source.length) {
-                result.push({ "status": "insert", "data": target[iRow] });
+
+                for (let columnName of columnsNames) {
+                    let r0 = target[iRow][columnName].toString().trim();
+                    if (r0 != "") {
+                        result.push({ "status": "insert", "data": target[iRow] });
+                        break;
+                    }
+                }
+
                 continue;
             }
 
@@ -1742,15 +2076,18 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
                 continue;
             }
 
-
-
             //detect changed rows
-            let j1 = JSON.stringify(Object.values(target[iRow]).map((p) => p.toString()))
-            let j2 = JSON.stringify(Object.values(source[iRow]).map((p) => p.toString()))
-            if (j1 != j2) {
-                result.push({ "status": "update", "data": target[iRow] });
-                continue;
+            for (let columnName of columnsNames) {
+                let r0 = target[iRow][columnName].toString().trim();
+                let r1 = source[iRow][columnName].toString().trim();
+
+                if (r0 != r1) {
+                    result.push({ "status": "update", "data": target[iRow] });
+                    continue;
+                }
             }
+
+
         }
 
         if (callback != undefined) {
@@ -1767,12 +2104,14 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
         super();
 
         this.captions = KRow();
+        this.buttonsBar = KRow();
         this.body = KRow();
 
         this.addCssText("display: block; position: absolute; background-color: silver; border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px; left: 0px; top: 0px;");
         this.captions.addCssText("display: block; position: relative; margin: 4px; padding: 0px; height: 20px; width: fit-content;");
-        this.body.addCssText("display: block; position: relative;  margin: 4px; padding: 0px; height: calc(100% - 48px); overflow-y: scroll;");
-        this.add(this.captions, this.body);
+        this.buttonsBar.addCssText("display: block; position: relative; margin: 4px; padding: 0px; height: 20px; width: fit-content;");
+        this.body.addCssText("display: block; position: relative;  margin: 4px; padding: 0px; height: calc(100% - 68px); overflow-y: scroll;");
+        this.add(this.captions, this.buttonsBar, this.body);
 
 
     }
@@ -1813,9 +2152,9 @@ class KWindowClass extends KicsyVisualContainerComponent {
 
 
         //Initialze styles
-        this.addCssText("position: absolute;border: 4px solid white; border-radius: 8px; margin: 0px; padding: 0px;");
+        this.addCssText("position: absolute;border: 4px solid #aaaaaa; border-radius: 8px; margin: 0px; padding: 0px;");
         this.header.addCssText("display: block; position: relative; width: 100%; height: 30px;margin: 0px;text-align: center;line-height: 30px;font-weight: bold;color:white; text-shadow: black 1px 0px 4px;");
-        this.body.addCssText("display: block; position: relative; width: 100%;height: calc(100% - 60px);margin: 0px");
+        this.body.addCssText("display: block; position: relative; width: 100%;height: calc(100% - 60px);margin: 0px; overflow: scroll;");
         this.footer.addCssText("display: block; position: relative; width: 100%;height: 30px;margin: 0px;");
         this.superHeader.addCssText("display: block; position: relative; margin: 0px;width: 120%; left: -10%; height: 60px; top: calc(-100% - 20px)");
         this.controlButton.addCssText("display: block; position: absolute; margin: 0px;width: 20px; height: 20px; right: 0px; top: 5px; border : 1px solid gray; border-radius: 30px; background-color: red;");
@@ -1824,7 +2163,7 @@ class KWindowClass extends KicsyVisualContainerComponent {
         this.addCssText("box-shadow: 5px 5px 5px gray;");
 
         //Background styles
-        this.header.addCssText("background: linear-gradient(to right,navy 0%, white 90%);")
+        this.header.addCssText("background: linear-gradient(to right,navy 0%, aqua 90%);")
         this.body.addCssText("background-color: white;");
         this.footer.addCssText("background: linear-gradient(to right,navy 0%, white 90%);");
 
@@ -1876,6 +2215,178 @@ class KDataUtils extends KicsyObject {
         return differences;
     }
 }
+
+/************************************************************************************ */
+/*                           CRYPTO AREA FUNCTIONS                                    */
+/************************************************************************************ */
+
+class KCryptoUtils extends KicsyObject {
+    constructor() {
+        super();
+    }
+    // This function generates a hash of the input text using a given size.
+    // The hash is an array of integers that represents the input text.
+    // The size parameter determines the length of the hash array.
+    static hash(text, size = 8) {
+        // Initialize an empty array to hold the hash.
+        let result = [];
+
+        // Initialize an array of prime numbers.
+        let primes = [2];
+
+        // Load primes
+        // Start from 3 and increment by 2 until we reach 1000.
+        for (let i = 3; i &lt; 1000; i += 2) {
+            // Check if the current number is divisible by any of the primes in the array.
+            // If it is not divisible by any of the primes, add it to the primes array.
+            if (primes.find(x => i % x == 0) === undefined) {
+                primes.push(i);
+            }
+        }
+
+        // Initialize the hash array with zeros.
+        // The length of the hash array is determined by the size parameter.
+        for (let j = 0; j &lt; size; j++) {
+            result.push(0);
+        }
+
+        // Initialize variables for the loop.
+        let k = 0;  // index for the primes array
+        let t = 0;  // temporary variable for calculations
+
+        // Loop through each character in the input text.
+        for (let i = 0; i &lt; text.length; i++) {
+
+            // Loop through each element in the hash array.
+            for (let j = 0; j &lt; size; j++) {
+                // Calculate the new value for the current element in the hash array.
+                // Multiply the current element by the prime number at the current index in the primes array.
+                // Add the code point of the current character in the text.
+                // Take the remainder when dividing by 255.
+                // Assign the result to the current element in the hash array.
+                t = (result[j] + t + (primes[k] * text.codePointAt(i))) % 255;
+                result[j] = t;
+            }
+
+            // Increment the index for the primes array.
+            // If the index is equal to the length of the primes array, reset it to 0.
+            k++;
+            if (k == primes.length) {
+                k = 0;
+            }
+        }
+
+        // Return the hash array.
+        return result;
+    }
+
+    static hashToString(hash) {
+        return hash.map(x => x.toString(16).padStart(2, "0")).join("");
+    }
+
+
+
+
+    static encrypt(text, hash) {
+
+        let i = 0;
+
+        //Size of output encrypted
+        let size = hash.length * (1 + parseInt(text.length / hash.length));
+
+        //Convert text to array of integers
+        let textArray = text.split("").map(x => x.charCodeAt(0));
+
+
+        //Position's array
+        let positions = Array(size).fill(0).map(x => x + i++);
+
+        //Initialize vector repiting hash values
+        let vector = Object.assign([], positions);
+
+        //Convert poisition indexes to hash on hash arguent
+        vector = vector.map(x => hash[x % hash.length]);
+
+        //Sort positions array using vector hashes
+        positions.sort(function (a, b) {
+            return vector[a] - vector[b];
+        })
+
+        //Fill encrypted array with text integers 
+        positions.forEach(function (c, index) {
+            if (index &lt; textArray.length) {
+                vector[c] = textArray[index] ^ vector[c];
+            }
+        })
+
+        return vector.map(x => x.toString(16).padStart(2, "0")).join("");
+    }
+
+
+    // This function decrypts a given ciphertext using a given hash.
+    // It takes in two parameters:
+    // - data: the ciphertext to be decrypted, as a string of hexadecimal characters.
+    // - hash: the hash to be used for decryption, as an array of integers.
+    // It returns the decrypted plaintext, as a string.
+    static decrypt(data, hash) {
+
+        // Convert the ciphertext from a string of hexadecimal characters to an array of integers.
+        let textArray = data.match(/\w{2}/g).map(x => parseInt(x, 16));
+
+        // Get the length of the ciphertext array.
+        let size = textArray.length;
+
+        // Create an empty vector array.
+        let vector = [];
+
+        // Repeat the hash values to fill the vector array.
+        // The number of repetitions is determined by the size of the vector divided by the size of the hash.
+        for (let i = 0; i &lt; size / hash.length; i++) {
+            vector = vector.concat(hash);
+        }
+
+        // Create an array of position indexes.
+        // The length of the positions array is equal to the length of the ciphertext array.
+        let i = 0;
+        let positions = Array(size).fill(0).map(x => x + i++);
+
+        // Sort the positions array using the values in the vector array as the sorting criteria.
+        positions.sort(function (a, b) {
+            return vector[a] - vector[b];
+        });
+
+        // Reverse the order of the positions array.
+        positions = positions.reverse();
+
+        // Create an empty result array.
+        let result = [];
+
+        // Fill the result array with the decrypted values.
+        // The decrypted value is obtained by XORing the value in the ciphertext array with the corresponding value in the vector array.
+        // The values are obtained by accessing the ciphertext array using the positions array.
+        positions.forEach(function (c, index) {
+            result[index] = textArray[c] ^ vector[c];
+        })
+
+        // Reverse the order of the result array.
+        result = result.reverse();
+
+        // Convert the decrypted values from integers to characters and join them into a string.
+        result = result.map(x => String.fromCharCode(x).split(/\u0000*$/g)[0]).join("");
+
+        // Return the decrypted plaintext.
+        return result;
+    }
+
+
+
+
+}
+
+
+
+
+
 
 /************************************************************************************ */
 /*                           Messages FUNCTIONS                                        */
@@ -1958,35 +2469,30 @@ class KMessageClass extends KicsyObject {
      * 
      * @param {string} url - The URL to send the message to.
      * @param {function} callback - The callback function to call with the JSON response.
+     * @returns {Promise} A promise that resolves with the JSON response or rejects with the HTTP status code.
      */
-    async remoteSend(url, callback) {
-        // Create a new Headers object to set the Content-Type header.
-        const myHeaders = new Headers();
-        // myHeaders.append("Content-Type", "application/json");
-        // myHeaders.append("Accept", "application/json");
-        // myHeaders.append("Access-Control-Allow-Origin", "*");
+    remoteSend(url, callback) {
+        const formData = new FormData();
 
-        console.log(JSON.stringify(this));
+        formData.append("message", JSON.stringify(this));
 
-        let form = new FormData();
-        form.append("message", JSON.stringify(this));
+        const requestOptions = {
+            method: "POST",
+            body: formData
+        };
 
-        // Create a new Request object with the specified URL, method, body, and headers.
-        const myRequest = new Request(url, {
-            method: "POST", // Set the request method to POST.
-            body: form, // Convert the KMessageClass instance to a JSON string and set it as the request body.
-            //   headers: myHeaders, // Set the request headers to the previously created Headers object.
-        });
+        return async function processResponse(url, requestOptions) {
+            const response = await fetch(url, requestOptions);
+            if (response.ok) {
+                const responseText = await response.text();
+                if (callback) { callback(responseText) } else { return responseText; }
 
-        // Send the request asynchronously using the fetch function.
-        const response = await fetch(myRequest);
-
-        // Check if the response is successful (status code 200-299).
-        if (response.ok) {
-            // Call the callback function with the JSON response.
-            callback(await response.text());
-        }
+            } else {
+                return Promise.reject(response.status);
+            }
+        }(url, requestOptions);
     }
+
 
 
     /**
@@ -2109,6 +2615,7 @@ class KApplicationClass extends KicsyObject {
             if (this.rootView.dom.parentNode == null) {
                 this.rootView.publish(Kicsy.mainSurface);
             }
+            this.rootView.hide();
         }
         // Add the current instance of the KApplicationClass to the applications array of the Kicsy class.
         Kicsy.applications.push(this);
@@ -2160,6 +2667,10 @@ class KApplicationClass extends KicsyObject {
                 return this.help;
                 // Break out of the switch statement.
                 break;
+
+            case "hide":
+                this.rootView.hide();
+                break;
         }
     }
 
@@ -2191,33 +2702,85 @@ class KApplicationClass extends KicsyObject {
         .addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
         .addCssText("overflow: hidden;")
 
-    let mode = "night";
-
-    switch (mode) {
-
-        case "night":
-            rootView
-                .addCssText("background-color: black;")
-               .add(
-                KCanvas()
-                
-
-               )
-
-
-
-
-
-
-            break;
-    }
-
-
-
-
 
     // Create a new instance of the KApplicationClass with the specified properties.
     let app = new KApplicationClass("wallpaper", "Wallpaper App", ["base"], rootView);
+
+    app.setTheme = function (theme) {
+
+        switch (theme) {
+
+            case "night_sky":
+                let colors = ["white", "yellow", "orange"];
+
+                app.rootView
+                    .addCssText("background-color: black;")
+                    .addCssText("background-image: linear-gradient(to bottom, black 60%, rgb(64 0 128 / 99%) 99%);")
+                    .add(
+                        KCanvas()
+                            .setReferenceSize(window.innerWidth, window.innerHeight)
+                            .setValue(function (ctx) {
+
+                                for (let i = 0; i &lt; 1000; i++) {
+                                    let x = Math.random() * window.innerWidth;
+                                    let y = Math.random() * window.innerHeight;
+                                    let o = Math.random();
+                                    let indexColor = Math.floor(Math.random() * colors.length);
+                                    let radius = 1; //Math.floor(1 + Math.random() * 2);
+                                    ctx.beginPath();
+                                    ctx.globalAlpha = o;
+                                    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                                    ctx.fillStyle = colors[indexColor];
+                                    ctx.fill();
+                                }
+
+
+                                for (let i = 0; i &lt; 100; i++) {
+                                    let x = Math.random() * window.innerWidth;
+                                    let y = Math.random() * window.innerHeight;
+                                    let indexColor = Math.floor(Math.random() * colors.length);
+                                    let radius = 2;//Math.floor(1 + Math.random() * 2);
+                                    ctx.beginPath();
+                                    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                                    ctx.fillStyle = colors[indexColor];
+                                    ctx.fill();
+                                }
+
+                                for (let i = 0; i &lt; 10; i++) {
+                                    let x = Math.random() * window.innerWidth;
+                                    let y = Math.random() * window.innerHeight;
+                                    let indexColor = Math.floor(Math.random() * colors.length);
+                                    let radius = 3;//Math.floor(1 + Math.random() * 2);
+                                    ctx.beginPath();
+                                    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                                    ctx.fillStyle = colors[indexColor];
+                                    ctx.fill();
+                                }
+                            }
+                            )
+
+                    )
+                break;
+
+            case "black":
+                app.rootView.dom.firstChild.kicsy
+                    .addCssText("background-color: black;")
+                break;
+
+            case "white":
+                app.rootView.dom.firstChild.kicsy
+                    .addCssText("background-color: white;")
+                break;
+
+
+
+
+        }
+    }
+
+
+    app.setTheme("night_sky");
+
 
     /**
      * Function to process messages for the Wallpaper application.
@@ -2231,10 +2794,14 @@ class KApplicationClass extends KicsyObject {
 
         // Switch on the action property of the message object.
         switch (message.action) {
+
             // If the action is "get_wallpaper", return the root view of the application.
             case "get_wallpaper":
                 return app.rootView;
                 break;
+
+            case "set_theme":
+                app.setTheme(message.payload);
         }
     }
 
@@ -2270,8 +2837,8 @@ function KDesktopApp() {
     let menu = KLayer();
 
     // Set the CSS styles for the menu layer.
-    menu.addCssText("display: block; position: absolute; width: 100%; height: 128px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;")
-        .addCssText("background-image: linear-gradient(navy, navy, white);");
+    menu.addCssText("display: block; position: absolute; vertical-align: top; width: 100%; height: 200px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;")
+        .addCssText("background-image: linear-gradient(navy, navy, white); box-shadow: 0px -5px 35px black;");
 
     // Add the menu layer to the root view layer.
     rootView.add(menu);
@@ -2302,6 +2869,9 @@ function KDesktopApp() {
             case "get_rootView":
                 return app.rootView;
                 break;
+
+
+
         }
     }
 
@@ -2320,7 +2890,7 @@ function KDesktopApp() {
                 // Check if the application's environments include the current environment and if the application has a root view.
                 if (application.environments.includes(environment) &amp;&amp; application.rootView != undefined) {
                     // Create an application icon for the application and add it to the menu of the desktop application.
-                    let appIcon = KAppIcon(application.name, application.iconDrawer, function () { KMessage(app.name, application.name, Kicsy.currentUser.name, Kicsy.currentUser.name, "run").send(); });
+                    let appIcon = KAppIcon(application.description, application.iconDrawer, function () { KMessage(app.name, application.name, Kicsy.currentUser.name, Kicsy.currentUser.name, "run").send(); });
                     app.menu.add(appIcon);
                 }
 
@@ -2332,6 +2902,9 @@ function KDesktopApp() {
 
     // Register the desktop application.
     app.register();
+
+    app.rootView.show();
+
     // Return the desktop application object.
     return app;
 }
@@ -2375,8 +2948,16 @@ function KTerminalApp() {
             target = target.trim(); // Trim the target.
             if (payload.length == 0 &amp;&amp; result != undefined) { payload = result; } // Set the payload to the result if it is empty.
 
-            if (payload.toString().trim().startsWith("--")) {
-                action = payload.toString().trim().substring(2);
+            payload = payload.toString().trim();
+
+            if (payload.startsWith("--")) {
+                if (payload.indexOf(" ") > 0) {
+                    action = payload.toString().trim().substring(2, payload.indexOf(" "));
+                    payload = payload.substring(payload.indexOf(" ") + 1).trim();
+                } else {
+                    action = payload.toString().trim().substring(2);
+                    payload = "";
+                }
             } else {
                 action = "run";
             }
@@ -2396,7 +2977,8 @@ function KTerminalApp() {
                             result = undefined;
                         }
                     } else {
-                        app.newLine(); // Create a new line.
+                        if (result != null) app.newLine(); // Create a new line.
+
                     }
 
                 }
@@ -2445,11 +3027,30 @@ function KTerminalApp() {
         app.newLine(); // Create a new line.
     }
 
+    app.processMessage = function (msg) {
+        app.preProcessMessage(msg);
+
+        switch (msg.action) {
+            case "print":
+                app.newAnswer(msg.payload);
+                break;
+        }
+    }
+
     app.rootView = rootView; // Set the root view of the terminal application.
     app.register(); // Register the terminal application.
     app.newLine(""); // Create a new line in the terminal.
     app.help = "&lt;b>Terminal App&lt;/b>&lt;br/>"; // Set the help text of the terminal application.
     app.rootView.hide(); // Hide the root view of the terminal application.
+
+
+    //redirect stdout
+
+    Kicsy.print = function (text) {
+        KMessage("terminal", "terminal", "system", "system", "print", text).send();
+    }
+
+
     return app; // Return the terminal application object.
 }
 KTerminalApp();
@@ -2554,12 +3155,118 @@ function KEval() {
 }
 KEval();
 
+function KUserApp() {
+    let app = new KApplicationClass("user", "User App", ["system"]);
+    app.help = "Manage users.";
+    app.run = function (message) {
+        return Kicsy.user;
+    }
+
+    app.processMessage = function (message) {
+        let tokens, name, password, environments, payload;
+
+        result = app.preProcessMessage(message);
+        if (result) { return result; }
+
+        switch (message.action) {
+            case "create":
+
+                tokens = message.payload.split(/\s+/g);
+                name = tokens[0];
+                password = tokens[1];
+                environments = [...tokens.slice(2)];
+                payload = {};
+                payload.name = name;
+                payload.password = password;
+                payload.environments = environments;
+
+                KMessage("system", "user", "Kicsy", "system", "user_create", payload)
+                    .remoteSend(Kicsy.serverURL, function (response) {
+                        Kicsy.print(response);
+                    });
+
+                break;
+
+            case "delete":
+                tokens = message.payload.split(/\s+/g);
+                name = tokens[0];
+                password = tokens[1];
+                payload = {};
+                payload.name = name;
+                payload.password = password;
+                KMessage("system", "user", "Kicsy", "system", "user_delete", payload)
+                    .remoteSend(Kicsy.serverURL, function (response) {
+                        Kicsy.print(response);
+                    });
+                break;
+
+            case "list":
+                KMessage("system", "user", "Kicsy", "system", "user_list")
+                    .remoteSend(Kicsy.serverURL, async function (response) {
+                        let users = await JSON.parse(response);
+                        let result = "&lt;b>Users&lt;/b>&lt;br/>";
+                        users.forEach(user => {
+                            result += user + "&lt;br/>";
+                        })
+
+                        Kicsy.print(result);
+                    });
+                break;
+
+            case "login":
+                tokens = message.payload.split(/\s+/g);
+                name = tokens[0];
+                password = tokens[1];
+                payload = {};
+                payload.name = name;
+                payload.password = password;
+                KMessage("system", "user", "Kicsy", "system", "user_login", payload)
+                    .remoteSend(Kicsy.serverURL, function (response) {
+
+                        let message = JSON.parse(response);
+
+                        switch (message.action) {
+                            case "user_authenticated":
+                                let data = JSON.parse(message.payload);
+                                let user = new KUserClass(data.name, data.environments);
+                                user.fingerprint = data.fingerprint;
+                                Kicsy.currentUser = user;
+                                KMessage("system", "desktop", "Selva", "Selva", "update").send();
+                                Kicsy.print("Welcome " + data.name);
+                                break;
+
+                            case "user_authentication_failed":
+                                Kicsy.print(message.payload);
+                                break;
+
+                            case "user_not_found":
+                                Kicsy.print(message.payload);
+                                break;
+                        }
+
+                    });
+                break;
+
+
+        }
+        return null;
+    }
+
+    app.register();
+    return app;
+}
+KUserApp();
+
 
 KMessage("system", "desktop", "Kicsy", "system", "update").send();
 
 
 
+/*
 
+let data = JSON.parse(message.payload);
+                       
+*/
 
 </code></pre>
         </article>
@@ -2571,13 +3278,13 @@ KMessage("system", "desktop", "Kicsy", "system", "update").send();
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KApplicationClass.html">KApplicationClass</a></li><li><a href="KColumnClass.html">KColumnClass</a></li><li><a href="KDataViewerClass.html">KDataViewerClass</a></li><li><a href="Kicsy.html">Kicsy</a></li><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li><li><a href="KMessageClass.html">KMessageClass</a></li><li><a href="KRowClass.html">KRowClass</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KAlert">KAlert</a></li><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KCanvas">KCanvas</a></li><li><a href="global.html#KCheckbox">KCheckbox</a></li><li><a href="global.html#KColorPicker">KColorPicker</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataViewer">KDataViewer</a></li><li><a href="global.html#KDate">KDate</a></li><li><a href="global.html#KDateTimeLocal">KDateTimeLocal</a></li><li><a href="global.html#KDesktopApp">KDesktopApp</a></li><li><a href="global.html#KEmail">KEmail</a></li><li><a href="global.html#KEval">KEval</a></li><li><a href="global.html#KFile">KFile</a></li><li><a href="global.html#KHidden">KHidden</a></li><li><a href="global.html#KImage">KImage</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KLayer">KLayer</a></li><li><a href="global.html#KMessage">KMessage</a></li><li><a href="global.html#KMonth">KMonth</a></li><li><a href="global.html#KNumber">KNumber</a></li><li><a href="global.html#KPassword">KPassword</a></li><li><a href="global.html#KRadio">KRadio</a></li><li><a href="global.html#KRange">KRange</a></li><li><a href="global.html#KReset">KReset</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KSearch">KSearch</a></li><li><a href="global.html#KSubmit">KSubmit</a></li><li><a href="global.html#KTel">KTel</a></li><li><a href="global.html#KTerminalApp">KTerminalApp</a></li><li><a href="global.html#KText">KText</a></li><li><a href="global.html#KTextarea">KTextarea</a></li><li><a href="global.html#KTime">KTime</a></li><li><a href="global.html#KUrl">KUrl</a></li><li><a href="global.html#KVersionApp">KVersionApp</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KApplicationClass.html">KApplicationClass</a></li><li><a href="KColumnClass.html">KColumnClass</a></li><li><a href="KDataViewerClass.html">KDataViewerClass</a></li><li><a href="Kicsy.html">Kicsy</a></li><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li><li><a href="KMessageClass.html">KMessageClass</a></li><li><a href="KRowClass.html">KRowClass</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KAlert">KAlert</a></li><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KCanvas">KCanvas</a></li><li><a href="global.html#KCheckbox">KCheckbox</a></li><li><a href="global.html#KColorPicker">KColorPicker</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataViewer">KDataViewer</a></li><li><a href="global.html#KDate">KDate</a></li><li><a href="global.html#KDateTimeLocal">KDateTimeLocal</a></li><li><a href="global.html#KDesktopApp">KDesktopApp</a></li><li><a href="global.html#KEmail">KEmail</a></li><li><a href="global.html#KEval">KEval</a></li><li><a href="global.html#KFile">KFile</a></li><li><a href="global.html#KHidden">KHidden</a></li><li><a href="global.html#KImage">KImage</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KLayer">KLayer</a></li><li><a href="global.html#KMessage">KMessage</a></li><li><a href="global.html#KMonth">KMonth</a></li><li><a href="global.html#KNumber">KNumber</a></li><li><a href="global.html#KPassword">KPassword</a></li><li><a href="global.html#KRadio">KRadio</a></li><li><a href="global.html#KRange">KRange</a></li><li><a href="global.html#KReset">KReset</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KSearch">KSearch</a></li><li><a href="global.html#KSubmit">KSubmit</a></li><li><a href="global.html#KSuperCombobox">KSuperCombobox</a></li><li><a href="global.html#KTel">KTel</a></li><li><a href="global.html#KTerminalApp">KTerminalApp</a></li><li><a href="global.html#KText">KText</a></li><li><a href="global.html#KTextArea">KTextArea</a></li><li><a href="global.html#KTime">KTime</a></li><li><a href="global.html#KUrl">KUrl</a></li><li><a href="global.html#KVersionApp">KVersionApp</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Sun Aug 04 2024 19:55:05 GMT-0400 (hora de Venezuela)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Fri Sep 06 2024 18:50:10 GMT-0400 (hora de Venezuela)
 </footer>
 
 <script> prettyPrint(); </script>

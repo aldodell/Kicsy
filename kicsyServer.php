@@ -13,6 +13,7 @@ include("kicsyINI.php");
 include("KCryptoTools.php");
 include("KMessageClass.php");
 include("KUserClass.php");
+include("KMySQL.php");
 
 
 $message =  KMessageClass::fromPostRequest(null); //KICSY_MASTER_KEY
