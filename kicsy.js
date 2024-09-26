@@ -2802,7 +2802,7 @@ function KDesktopApp() {
         rootView = rootView[rootView.length - 1];
     } else {
         rootView = KLayer();
-        rootView.addCssText("display: block; position: absolute; width: 100%; height: 100%;left: 0px; top: 0px; margin: 0px; padding: 0px;")
+        rootView.addCssText("display: block; position: absolute; width: auto; height: auto;left: 0px; top: 0px; margin: 0px; padding: 0px;")
             .addCssText(" background-image: radial-gradient(at bottom,white 0%,rgb(0 0 128 / 99%) 30%);");
     }
 
@@ -2810,7 +2810,7 @@ function KDesktopApp() {
     let menu = KLayer();
 
     // Set the CSS styles for the menu layer.
-    menu.addCssText("display: block; position: absolute; vertical-align: top; width: 100%; height: 200px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;")
+    menu.addCssText("display: block; position: absolute; vertical-align: top; width: 100%; height: 200px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; overflow-y: hidden; background-color: gray;")
         .addCssText("background-image: linear-gradient(navy, navy, white); box-shadow: 0px -5px 35px black;");
 
     // Add the menu layer to the root view layer.

@@ -47,6 +47,13 @@ class KMySQL
         return $data;
     }
 
+    function loadBySql($sql) {
+        $data =  $this->database->query($sql);
+        $data = $data->fetchAll(PDO::FETCH_ASSOC);
+        $data = json_encode($data);
+        return $data;   
+    }
+
 
     function save($message, $fieldsExcluded = null)
     {
