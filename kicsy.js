@@ -580,6 +580,7 @@ class KicsyVisualComponent extends KicsyComponent {
     hide() {
         // Set the visibility style of the component's DOM element to "hidden".
         this.dom.style.visibility = "hidden";
+        return this;
     }
 
     /**
@@ -591,6 +592,7 @@ class KicsyVisualComponent extends KicsyComponent {
         // Set the visibility style of the component's DOM element to "visible".
         // This will make the component visible on the page.
         this.dom.style.visibility = "visible";
+        return this;
     }
 
     /**
@@ -1465,6 +1467,122 @@ function KHorizontalRule(...args) {
     return new KicsyVisualComponent("hr", undefined, ...args);
 }
 
+function KSuperCombobox(...args) {
+    let obj = KText(...args);
+    let layer;
+
+    obj.arrayDataCallback = function (callback) {
+        return [{ label: "aircraft", value: "test" }, { label: "vehicle", value: "test2" }, { label: "bike", value: "test3" }, { label: "car", value: "test4" }, { label: "motorcycle", value: "test5" }, { label: "boat", value: "test6" }, { label: "train", value: "test7" }];
+    }
+
+    obj.setArrayDataCallback = function (callback) {
+        obj.arrayDataCallback = callback;
+        return this;
+    }
+
+
+    obj.fill = function (arrayData) {
+
+        if (layer != undefined) {
+            layer.dom.remove();
+        }
+
+        layer = KLayer();
+
+        layer.addCssText(`position: relative; top:0px; left: 0px; width: ${this.dom.offsetWidth * 2}px; height: 100px; z-index: 1; overflow-y: scroll; background-color: white; border: 1px solid #ccc; padding: 8px;`);
+
+        this.dom.after(layer.dom);
+
+        for (let i = 0; i < arrayData.length; i++) {
+
+            let row = arrayData[i];
+
+            if (typeof row == "string") {
+                label = row;
+                value = row;
+            } else if (typeof row == "number") {
+                label = row.toString();
+                value = row;
+
+            } else if (typeof row == "object") {
+                if (row.label != undefined) {
+                    label = row.label;
+                    value = row.value;
+                } else {
+                    if (Object.keys(row).length == 2) {
+                        label = Object.values(row)[0];
+                        value = Object.values(row)[1];
+                    } else if (Object.keys(row).length == 1) {
+                        label = Object.values(row)[0];
+                        value = Object.values(row)[0];
+                    } else {
+                        label = row;
+                        value = row;
+                    }
+                }
+
+            }
+
+            let option = KLayer().addCssText("display:block;padding: 2px; background-color: white;");
+            option.setValue(label);
+            option.dom.ktext = this;
+            option.dom.optionValue = value;
+
+            option.addEvent("click", function (e) {
+                e.preventDefault();
+                this.ktext.setValue(e.target.innerHTML);
+                this.ktext.optionValue = e.target.optionValue;
+                layer.dom.remove();
+            });
+            layer.add(option);
+        }
+
+    }
+
+    obj.addEvent("blur", function (e) {
+        window.setTimeout(function () {
+            layer.dom.remove();
+        }, 500);
+
+
+    })
+
+    obj.addEvent("focus", function (e) {
+        e.target.kicsy.fill(e.target.kicsy.arrayDataCallback());
+    });
+
+
+    obj.addEvent("click", function (e) {
+        e.target.kicsy.fill(e.target.kicsy.arrayDataCallback());
+    });
+
+
+    obj.addEvent("input", function (e) {
+        if (e.target.value.length > 0) {
+            let arrayData = e.target.kicsy.arrayDataCallback();
+            arrayData = arrayData.filter(element => element.label.toLowerCase().includes(e.target.value.toLowerCase()));
+            e.target.kicsy.fill(arrayData);
+        }
+
+    })
+
+    obj.setValue = function (value) {
+        this.optionValue = value;
+        this.dom.value = value;
+
+        return this;
+    }
+
+    obj.getValue = function () {
+        return this.optionValue;
+    }
+
+
+    return obj;
+}
+
+
+
 /**
  * Wigdget for a super combobox. Must be feeded with a list of options with fill method.
  * This options goes on json format with two properties
@@ -1473,7 +1591,7 @@ function KHorizontalRule(...args) {
  * @param  {...any} args 
  * @returns A KSuperCombobox
  */
-function KSuperCombobox(...args) {
+function KSuperCombobox2(...args) {
     // Create a new KLayer instance
     let obj = KLayer()
         // Set the height of the KLayer to 20px
@@ -1875,8 +1993,6 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
     body;
     captionAdjustment = 8;
 
-
-
     addRowCssText(cssText) {
         this.rowCssText = cssText;
         return this;
@@ -1936,7 +2052,8 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
 
             component
                 .setName(col.name)
-                .addCssText("width: " + col.width + "px;");
+                //.addCssText("width: " + col.width + "px;");
+                .setSize(col.width);
 
 
             if (this.rowIndex < this.arrayData.length) {
@@ -2842,8 +2959,6 @@ function KDesktopApp() {
             case "get_rootView":
                 return app.rootView;
                 break;
-
-
 
         }
     }
