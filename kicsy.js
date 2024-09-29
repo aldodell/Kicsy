@@ -2164,7 +2164,32 @@ function KDataTableView() {
 
 class KDataTableViewProRowClass extends KRowClass {
 
-    status = "normal";
+    status;
+    rowIndex = 0;
+    arrayData;
+    table;
+
+    getStructuredArrayData() {
+
+        let result = {};
+        result.data = {}
+        result.status = "";
+
+        for (let i = 1; i < this.dom.childNodes.length; i++) {
+            let value = this.dom.childNodes[i].kicsy.getValue();
+            let name = Object.keys(this.arrayData)[i - 1];
+            if (value != undefined) {
+                if (value != this.arrayData[i - 1]) {
+                    this.status = "update";
+                }
+            }
+            result.data[name] = value;
+        }
+
+        result.status = this.status;
+
+        return result;
+    }
 
     constructor(table, arrayData) {
         super();
@@ -2174,14 +2199,7 @@ class KDataTableViewProRowClass extends KRowClass {
 
         this.addCssText(this.table.rowCssText);
 
-        //Get total width
-        let totalWidth = 0;
-        for (let col of this.table.columns) {
-            totalWidth += col.width;
-        }
-        totalWidth += this.table.cursorWidth;
-        this.addCssText("width:" + totalWidth + "px;");
-
+        this.rowIndex = this.table.mainRowIndex++;
 
         //Add cursor
         let cursor = KButton("X")
@@ -2205,10 +2223,13 @@ class KDataTableViewProRowClass extends KRowClass {
         for (let col of this.table.columns) {
             let component = col.component.clone();
             component.setSize(col.width, this.height);
-            this.add(component);
+            component.setName(col.name);
+
             if (arrayData != undefined) {
                 component.setValue(arrayData[col.name]);
             }
+
+            this.add(component);
         }
     }
 }
@@ -2229,14 +2250,14 @@ class KDataTableViewProClass extends KDataTableViewClass {
 
     tableCssText = "display: block; position: absolute; background-color: silver; border: 1px solid magenta; border-radius: 8px; margin: 0px; padding: 0px; left: 0px; top: 0px;";
     captionsBarCssText = "display: block; position: absolute; margin: 0px; padding: 0px; height: 2rem; width: 100%; top:0px; left:0px; border: none;";
-    captionCssText = "display: inline-block; margin:0px; padding: 0px;border: none; text-align: center;";
+    captionCssText = "display: inline-block; margin:0px; padding: 4px;border: none; text-align: center;";
     bodyCssText = "display: block; position: absolute; left: 0px; top: 2rem;  margin: 0px; padding: 0px; height: calc(100% - 2rem); overflow-y: scroll;";
-    rowCssText = "display: block;  margin: 0px; padding: 0px; height: 20px; width: 100%;";
+    rowCssText = "display: block;  margin: 0px; padding: 2px; height: 20px; width: fit-content;";
 
     rowNormalCssText = "background-color: white;";
     rowDeletedCssText = "background-color: red;";
 
-    cursorCssText = "display: inline-block; margin:0px; padding: 0px;border: none; text-align: center; width: 20px; height: 20px;";
+    cursorCssText = "display: inline-block; margin:0px; padding: 0px;border: none; text-align: center; width: 20px; height: 20px; vertical-align: top;";
 
     cursorWidth = 20;
     captionsBarHeight = 20;
@@ -2245,6 +2266,8 @@ class KDataTableViewProClass extends KDataTableViewClass {
     buttonsBarWidth = 20;
     columns = [];
     body;
+
+    mainRowIndex = -1;
 
     constructor() {
         super();
@@ -2267,20 +2290,48 @@ class KDataTableViewProClass extends KDataTableViewClass {
         this.columns.push(new KDataTableViewProColumnClass(component, name, description, width));
 
         let caption = KLayer()
-            .setValue(name)
+            .setValue(description)
             .setSize(width - (this.buttonsBarWidth * 2), this.captionsBarHeight)
             .addCssText(this.captionCssText);
+
+        if (this.captionsBar.dom.children.length == 0) {
+            caption.addCssText("margin-left:" + this.buttonsBarWidth + "px;");
+        }
 
         this.captionsBar.add(caption);
         let buttonUp = KButton("▲").setSize(this.buttonsBarWidth, this.buttonsBarHeight);
         let buttonDown = KButton("▼").setSize(this.buttonsBarWidth, this.buttonsBarHeight);
+
+
+        buttonUp.addEvent("click", () => {
+            this.sortByColumn(name, false);
+        })
+
+        buttonDown.addEvent("click", () => {
+            this.sortByColumn(name, true);
+        })
 
         this.captionsBar.add(buttonUp, buttonDown);
 
         return this;
     }
 
+    sortByColumn(name, inverse = false) {
+        let t;
+
+        if (inverse) {
+            t = this.arrayData.sort(function (a, b) { return a[name] < b[name] });
+        } else {
+            t = this.arrayData.sort(function (a, b) { return a[name] > b[name] });
+        }
+
+        this.setArrayData(t);
+        return this;
+    }
+
     setArrayData(arrayData) {
+        this.mainRowIndex = -1;
+        this.arrayData = arrayData;
         this.body.clear();
         for (let r of arrayData) {
             this.newRow(r);
@@ -2290,9 +2341,36 @@ class KDataTableViewProClass extends KDataTableViewClass {
 
     newRow(data) {
         let row = new KDataTableViewProRowClass(this, data);
+        if (data == undefined) {
+            row.status = "insert";
+        }
         this.body.add(row);
         return this;
 
+    }
+
+    /**
+     * Retrieves an array of structured data objects from the data viewer's child components.
+     * The structured data object is a dictionary with the following keys:
+     * - status: the status of the row ("normal", "insert", "update", or "delete").
+     * - data: the data object for the row.
+     * If a callback function is provided, the array of structured data objects is passed to the callback function, and the current instance of the data viewer is also passed as the second argument to the callback function.
+     * @param {function} [callback] - An optional callback function to call with the array of structured data objects. If provided, the current instance of the data viewer is also passed as the second argument to the callback function.
+     * @return {Array|KDataViewerClass} - If a callback function is provided, the current instance of the data viewer is returned. Otherwise, an array of structured data objects is returned.
+     */
+    getStructuredArrayData(callback) {
+
+        let result = [];
+        for (let r of this.body.dom.children) {
+            result.push(r.kicsy.getStructuredArrayData());
+        }
+
+        if (callback != undefined) {
+            callback(result);
+            return this;
+        } else {
+            return
+        }
     }
 
 }
