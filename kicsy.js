@@ -2173,6 +2173,7 @@ class KDataTableProRow extends KRow {
     cursorCssText = "width:20px; vertical-align: top;";
     normalRowCssText = "border: none; background-color: transparent;";
     deletedRowCssText = "border: 1px dotted red; background-color: red;";
+
     status = "normal";
 
 
@@ -2237,16 +2238,35 @@ class KDataTableProColumn {
 class KDataTableViewProClass extends KicsyVisualContainerComponent {
 
     rowCssText = "";
+    buttonsCssText = "width: 20px; height: 20px; border : 1px solid gray;";
     tableCssText = "display: block; position: absolute; background-color: silver; border: 2px solid black; border-radius: 8px; margin: 0px; padding: 0px; left: 0px; top: 0px;";
     arrayData = [];
     columns = [];
     widthAjustment = 6;
+    body;
+    captionsBar;
 
 
     constructor() {
         super();
         this.addCssText(this.tableCssText);
+        this.body = KRow();
+        this.captionsBar = KRow();
+        this.add(this.captionsBar, this.body);
     }
+
+
+    configureCaptions() {
+
+        let upButton = KButton("▲").addCssText(this.buttonsCssText);
+        let downButton = KButton("▼").addCssText(this.buttonsCssText);
+        let widthButton = parseInt(upButton.dom.style.width.toString().match(/\d+/)[0]);
+        let caption = KLayer().setValue(description).setSize(width + this.widthAjustment - (widthButton * 2)).addCssText("display: inline-block; text-align: center;");
+        this.captionsBar.add(caption, upButton, downButton);
+
+
+    }
+
 
     /**
      * Set the width adjustment for the table. The width adjustment is used to fix the width of the table
@@ -2271,12 +2291,12 @@ class KDataTableViewProClass extends KicsyVisualContainerComponent {
     setArrayData(arrayData) {
         this.arrayData = arrayData;
 
-        this.clear();
+        //this.body.clear();
 
         for (let rowIndex = 0; rowIndex < this.arrayData.length; rowIndex++) {
             let row = new KDataTableProRow(this.columns, this.arrayData[rowIndex]);
             row.addCssText(this.rowCssText);
-            this.add(row);
+            this.body.add(row);
         }
 
         return this;
@@ -2296,13 +2316,14 @@ class KDataTableViewProClass extends KicsyVisualContainerComponent {
     newRow() {
         let row = new KDataTableProRow(this.columns, null);
         row.addCssText(this.rowCssText);
-        this.add(row);
+        this.body.add(row);
         return this;
     }
 
     addColumn(component, name, description = "", width = 80) {
         let column = new KDataTableProColumn(component, name, description, width);
         this.columns.push(column);
+
         return this;
     }
 
