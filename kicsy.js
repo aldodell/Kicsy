@@ -2145,10 +2145,10 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
         this.buttonsBar = KRow();
         this.body = KRow();
 
-        this.addCssText("display: block; position: absolute; background-color: silver; border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px; left: 0px; top: 0px;");
-        this.captions.addCssText("display: block; position: relative; margin: 4px; padding: 0px; height: 20px; width: fit-content;");
-        this.buttonsBar.addCssText("display: block; position: relative; margin: 4px; padding: 0px; height: 20px; width: fit-content;");
-        this.body.addCssText("display: block; position: relative;  margin: 4px; padding: 0px; height: calc(100% - 68px); overflow-y: scroll;");
+        this.addCssText("display: block;  background-color: silver; border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px; left: 0px; top: 0px;");
+        this.captions.addCssText("display: block;  margin: 4px; padding: 0px; height: 20px; width: fit-content;");
+        this.buttonsBar.addCssText("display: block; margin: 4px; padding: 0px; height: 20px; width: fit-content;");
+        this.body.addCssText("display: block;  margin: 4px; padding: 0px; height: calc(100% - 68px); overflow-y: scroll;");
         this.add(this.captions, this.buttonsBar, this.body);
 
 
@@ -2162,62 +2162,62 @@ function KDataTableView() {
 
 
 
-/**
- * KDataTableProRow class
- * 
- */
-class KDataTableProRow extends KRow {
-
-    widthAjustment = 6;
-    rowCssText = "";
-    cursorCssText = "width:20px; vertical-align: top;";
-    normalRowCssText = "border: none; background-color: transparent;";
-    deletedRowCssText = "border: 1px dotted red; background-color: red;";
+class KDataTableViewProRowClass extends KRowClass {
 
     status = "normal";
 
-
-    constructor(columns, arrayDataRow) {
+    constructor(table, arrayData) {
         super();
 
-        this.addCssText(this.rowCssText);
-        let cursor = KButton("X").addCssText(this.cursorCssText);
-        cursor.addEvent("click", () => {
-            switch (this.status) {
-                case "deleted":
-                    this.status = "normal";
-                    this.addCssText(this.normalRowCssText);
-                    break;
-                case "normal":
-                    this.status = "deleted";
-                    this.addCssText(this.deletedRowCssText);
-                    break;
-            }
+        this.table = table;
+        this.arrayData = arrayData;
 
-        })
+        this.addCssText(this.table.rowCssText);
+
+        //Get total width
+        let totalWidth = 0;
+        for (let col of this.table.columns) {
+            totalWidth += col.width;
+        }
+        totalWidth += this.table.cursorWidth;
+        this.addCssText("width:" + totalWidth + "px;");
+
+
+        //Add cursor
+        let cursor = KButton("X")
+            .addCssText(this.table.cursorCssText)
+            .addEvent("click", () => {
+                if (this.status == "normal") {
+                    this.status = "deleted";
+                    this.addCssTextToChildren(this.table.rowDeletedCssText);
+                    cursor.addCssText(this.table.rowDeletedCssText);
+                } else {
+                    this.status = "normal";
+                    this.addCssTextToChildren(this.table.rowNormalCssText);
+                    cursor.addCssText(this.table.rowNormalCssText);
+                }
+            })
+
         this.add(cursor);
 
-        let rowWidth = cursor.dom.offsetWidth;
-        for (let colIndex = 0; colIndex < columns.length; colIndex++) {
-            let col = columns[colIndex];
-            let component = col.component.clone();
-            component.addCssText("width:" + col.width + "px;");
-            if (arrayDataRow != undefined && arrayDataRow != null) { component.setValue(arrayDataRow[col.name]); }
-            this.add(component);
-            rowWidth = rowWidth + col.width
-        }
-        let cursorWidth = parseInt(cursor.dom.style.width.match(/\d+/)[0]);
-        rowWidth = rowWidth + cursorWidth + this.widthAjustment;
-        this.addCssText("width:" + rowWidth + "px;");
-    }
 
+        //Add each columns
+        for (let col of this.table.columns) {
+            let component = col.component.clone();
+            component.setSize(col.width, this.height);
+            this.add(component);
+            if (arrayData != undefined) {
+                component.setValue(arrayData[col.name]);
+            }
+        }
+    }
 }
 
-/**
- * KDataTableProColumn class
- */
-class KDataTableProColumn {
-    constructor(component, name, description, width) {
+
+
+
+class KDataTableViewProColumnClass {
+    constructor(component, name, description = "", width = 80) {
         this.component = component;
         this.name = name;
         this.description = description;
@@ -2225,109 +2225,78 @@ class KDataTableProColumn {
     }
 }
 
+class KDataTableViewProClass extends KDataTableViewClass {
 
+    tableCssText = "display: block; position: absolute; background-color: silver; border: 1px solid magenta; border-radius: 8px; margin: 0px; padding: 0px; left: 0px; top: 0px;";
+    captionsBarCssText = "display: block; position: absolute; margin: 0px; padding: 0px; height: 2rem; width: 100%; top:0px; left:0px; border: none;";
+    captionCssText = "display: inline-block; margin:0px; padding: 0px;border: none; text-align: center;";
+    bodyCssText = "display: block; position: absolute; left: 0px; top: 2rem;  margin: 0px; padding: 0px; height: calc(100% - 2rem); overflow-y: scroll;";
+    rowCssText = "display: block;  margin: 0px; padding: 0px; height: 20px; width: 100%;";
 
-/**
- * KDataTableViewPro class
- * This class is used to display data in a table. It is a subclass of KicsyVisualContainerComponent.
- * Usage:
- * 1. Create a new KDataTableViewPro
- * 2. Call addColumn to add each column.
- * 3. Call setArrayData
- */
-class KDataTableViewProClass extends KicsyVisualContainerComponent {
+    rowNormalCssText = "background-color: white;";
+    rowDeletedCssText = "background-color: red;";
 
-    rowCssText = "";
-    buttonsCssText = "width: 20px; height: 20px; border : 1px solid gray;";
-    tableCssText = "display: block; position: absolute; background-color: silver; border: 2px solid black; border-radius: 8px; margin: 0px; padding: 0px; left: 0px; top: 0px;";
-    arrayData = [];
-    columns = [];
-    widthAjustment = 6;
-    body;
+    cursorCssText = "display: inline-block; margin:0px; padding: 0px;border: none; text-align: center; width: 20px; height: 20px;";
+
+    cursorWidth = 20;
+    captionsBarHeight = 20;
     captionsBar;
-
+    buttonsBarHeight = 20;
+    buttonsBarWidth = 20;
+    columns = [];
+    body;
 
     constructor() {
         super();
         this.addCssText(this.tableCssText);
-        this.body = KRow();
-        this.captionsBar = KRow();
-        this.add(this.captionsBar, this.body);
-    }
 
+        //configure captions bar
+        this.captionsBar = KRow().addCssText(this.captionsBarCssText);
+        this.add(this.captionsBar);
 
-    configureCaptions() {
+        //configure body
+        this.body = KRow().addCssText(this.bodyCssText);
+        this.add(this.body);
 
-        let upButton = KButton("▲").addCssText(this.buttonsCssText);
-        let downButton = KButton("▼").addCssText(this.buttonsCssText);
-        let widthButton = parseInt(upButton.dom.style.width.toString().match(/\d+/)[0]);
-        let caption = KLayer().setValue(description).setSize(width + this.widthAjustment - (widthButton * 2)).addCssText("display: inline-block; text-align: center;");
-        this.captionsBar.add(caption, upButton, downButton);
-
-
-    }
-
-
-    /**
-     * Set the width adjustment for the table. The width adjustment is used to fix the width of the table
-     * when the columns are resized. The width adjustment is the number of pixels to add to the width of each
-     * column when resizing it.
-     *
-     * @param {number} widthAjustment - The width adjustment to apply.
-     * @returns {this} - The KDataTableViewProClass instance.
-     */
-    setWidthAjustment(widthAjustment) {
-        this.widthAjustment = widthAjustment;
-        return this;
-    }
-
-    /**
-     * Set the array of data objects to display in the table.
-     * The array of data objects should be an array of objects, where each object has the same properties as the columns
-     * added to the table.
-     * @param {Array} arrayData - The array of data objects to display in the table.
-     * @returns {this} - The KDataTableViewProClass instance.
-     */
-    setArrayData(arrayData) {
-        this.arrayData = arrayData;
-
-        //this.body.clear();
-
-        for (let rowIndex = 0; rowIndex < this.arrayData.length; rowIndex++) {
-            let row = new KDataTableProRow(this.columns, this.arrayData[rowIndex]);
-            row.addCssText(this.rowCssText);
-            this.body.add(row);
-        }
-
-        return this;
-    }
-
-    /**
-     * Adds the provided CSS text to the CSS style of all rows of the table.
-     * The provided CSS text is added to the existing CSS style of all rows.
-     * @param {string} cssText - The CSS text to add to the row CSS style.
-     * @returns {this} - The KDataTableViewProClass instance.
-     */
-    addRowCssText(cssText) {
-        this.rowCssText += cssText;
-        return this;
-    }
-
-    newRow() {
-        let row = new KDataTableProRow(this.columns, null);
-        row.addCssText(this.rowCssText);
-        this.body.add(row);
-        return this;
+        //Spacer
+        //this.captionsBar.add(KColumn().setSize(this.cursorWidth, this.captionsBarHeight).addCssText("background-color:  lime;"));
     }
 
     addColumn(component, name, description = "", width = 80) {
-        let column = new KDataTableProColumn(component, name, description, width);
-        this.columns.push(column);
+
+        this.columns.push(new KDataTableViewProColumnClass(component, name, description, width));
+
+        let caption = KLayer()
+            .setValue(name)
+            .setSize(width - (this.buttonsBarWidth * 2), this.captionsBarHeight)
+            .addCssText(this.captionCssText);
+
+        this.captionsBar.add(caption);
+        let buttonUp = KButton("▲").setSize(this.buttonsBarWidth, this.buttonsBarHeight);
+        let buttonDown = KButton("▼").setSize(this.buttonsBarWidth, this.buttonsBarHeight);
+
+        this.captionsBar.add(buttonUp, buttonDown);
 
         return this;
     }
 
+    setArrayData(arrayData) {
+        this.body.clear();
+        for (let r of arrayData) {
+            this.newRow(r);
+        }
+        return this;
+    }
+
+    newRow(data) {
+        let row = new KDataTableViewProRowClass(this, data);
+        this.body.add(row);
+        return this;
+
+    }
+
 }
+
 
 function KDataTableViewPro() {
     let obj = new KDataTableViewProClass();
