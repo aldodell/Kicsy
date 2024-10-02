@@ -219,10 +219,8 @@ class KicsyComponent extends KicsyObject {
         // Create a shallow copy of the DOM element for the new instance
         obj.dom = this.dom.cloneNode(false);
 
-
         // Set the "id" attribute of the new instance's DOM element to the current instance's ID + 1
         obj.dom.setAttribute("id", "K" + KicsyComponent.id);
-
 
         // Set the "kicsy" property of the new instance's DOM element to the current instance
         obj.dom.kicsy = obj;
@@ -434,18 +432,6 @@ class KicsyComponent extends KicsyObject {
 class KicsyVisualComponent extends KicsyComponent {
     animationSettings;
 
-    /**
-     * Constructor for KicsyVisualComponent class.
-     *
-     * @param {string} html - The HTML tag for the component.
-     * @param {string} [type] - The type attribute for the component.
-     * @param {...any} args - Additional arguments to pass to the KicsyComponent constructor.
-     */
-    constructor(html, type, ...args) {
-        // Call the constructor of the parent class with the provided arguments
-        super(html, type, ...args);
-
-    }
 
     /**
      * Creates a new instance of KicsyVisualComponent with the provided arguments.
@@ -689,6 +675,23 @@ class KicsyVisualComponent extends KicsyComponent {
         this.animationSettings.timer = null;
         return this;
     }
+
+
+
+    /**
+         * Constructor for KicsyVisualComponent class.
+         *
+         * @param {string} html - The HTML tag for the component.
+         * @param {string} [type] - The type attribute for the component.
+         * @param {...any} args - Additional arguments to pass to the KicsyComponent constructor.
+         */
+    constructor(html, type, ...args) {
+        // Call the constructor of the parent class with the provided arguments
+        super(html, type, ...args);
+
+    }
+
+
 }
 
 /**
@@ -1468,12 +1471,141 @@ function KHorizontalRule(...args) {
 }
 
 
-class KSuperComboboxClass extends KicsyVisualContainerComponent {
+class KSuperComboBoxClass extends KText {
 
-    ktext;
-    koptionsframe;
+    arrayDataCallback;
+    rect;
+    frameOptionsCssText = "";
+    frame;
 
-    arrayDataCallback = function () {
+    constructor(...args) {
+        super(...args);
+
+
+        this.conformData = function (arrayData) {
+
+            let result = [];
+
+            for (let row of arrayData) {
+
+                if (typeof row == "string" || typeof row == "number") {
+                    result.push({ label: row, value: row });
+                } else if (typeof row == "object") {
+
+                    if (row.label != undefined && row.value != undefined) {
+                        result.push(row);
+                    } else if (Object.keys(row).length == 2) {
+                        result.push({ label: Object.values(row)[0], value: Object.values(row)[1] });
+                    } else if (Object.keys(row).length == 1) {
+                        result.push({ label: Object.values(row)[0], value: Object.values(row)[0] });
+                    }
+                }
+
+            }
+            return result;
+        }
+
+
+        this.setArrayDataCallback = function (callback) {
+            this.arrayDataCallback = callback;
+            return this;
+        }
+
+        this.setValue = function (value) {
+            let options = this.conformData(this.arrayDataCallback());
+            let e = options.find(x => x.value == value);
+            if (e) {
+                this.dom.value = e.label;
+                this.value = e.value;
+            } else {
+                this.dom.value = value;
+                this.value = value;
+            }
+            return this;
+        }
+
+        this.getValue = function (callback) {
+            if (callback == undefined) {
+                callback(this.value);
+                return this;
+            } else {
+                return this.value;
+            }
+        }
+
+        this.showOptionsFrame = function () {
+            let rect = this.dom.getBoundingClientRect();
+            let w = rect.width;
+            let l = this.dom.offsetLeft;
+            let h = rect.height;
+            let b = parseInt(getComputedStyle(this.dom).borderBottomWidth.match(/\d+/g)[0]);
+            let options = this.conformData(this.arrayDataCallback());
+
+            this.frame = KLayer()
+                .addCssText(`display: block; position: absolute; width: fit-content; height: 200px; left: ${l}px; top: ${h + b}px; margin: 0px; padding: 4px; background-color: white;overflow-y: scroll; z-index: 100;` + this.frameOptionsCssText)
+                .publish(this.dom.parentNode);
+
+
+            for (let option of options) {
+                let o = KLayer();
+                o.comboBox = this;
+                o.option = option;
+                o.addCssText(`display: block; position: relative; width: 100%; height: 20px; margin: 0px; padding: 0px; background-color: white;`);
+                o.setValue(option.label);
+
+                o.addEvent("click", function (e) {
+                    let me = e.target.kicsy;
+                    me.comboBox.setValue(me.option.value);
+                    me.comboBox.hideFrameOptions();
+                })
+
+
+                this.frame.add(o);
+            }
+
+
+        }
+
+
+        this.hideFrameOptions = function () {
+            window.setTimeout(function (f) {
+                f.clear();
+                f.dom.remove();
+            }, 300, this.frame);
+        }
+
+
+        this.addEvent("focus", function (e) {
+            let me = e.target.kicsy;
+            me.showOptionsFrame();
+
+        })
+
+        this.addEvent("blur", function (e) {
+            let me = e.target.kicsy;
+            me.hideFrameOptions();
+        })
+
+
+    }
+
+    clone(className = KSuperComboBoxClass) {
+        let obj = super.clone(className);
+        obj.arrayDataCallback = this.arrayDataCallback;
+        return obj;
+    }
+
+
+}
+
+function KSuperComboBox(...args) {
+    let obj = new KSuperComboBoxClass(...args);
+    return obj;
+}
+
+
+/*
+  arrayDataCallback = function () {
         return [{ label: "aircraft", value: "test" }, { label: "vehicle", value: "test2" }, { label: "bike", value: "test3" }, { label: "car", value: "test4" }, { label: "motorcycle", value: "test5" }, { label: "boat", value: "test6" }, { label: "train", value: "test7" }];
     };
 
@@ -1506,24 +1638,7 @@ class KSuperComboboxClass extends KicsyVisualContainerComponent {
         return result;
     }
 
-    fillOptions(arrayData) {
-
-        let result = this.conformData(arrayData);
-        this.koptionsframe.clear();
-        for (let row of result) {
-            let koption = new KLayer();
-            koption.dom.innerHTML = row.label;
-            koption.optionValue = row.value;
-            this.koptionsframe.add(koption);
-        }
-
-        return this;
-
-    }
-
-
     clone() {
-
         let obj = super.clone();
         obj.fillOptions = this.fillOptions;
         obj.setArrayDataCallback = this.setArrayDataCallback;
@@ -1532,39 +1647,25 @@ class KSuperComboboxClass extends KicsyVisualContainerComponent {
     }
 
 
-
     constructor(...args) {
+       
         super(...args);
-        this.addCssText("display:inline-block; top:0px; left:0px; margin:0px; padding:0px; border: 1px solid black;");
 
-        this.ktext = new KText();
+        this.addCssText("display: inline-block; margin: 0px; padding: 0px; border: 1px solid black; overflow: overlay; ");
 
-        this.add(this.ktext);
-
-        this.koptionsframe = new KLayer()
-            .addCssText("position: block; height:20px; overflow-y: scroll;");
-        this.ktext.dom.after(this.koptionsframe.dom); //add(this.koptionsframe);
-
-        this.dom.kicsy = this;
-
-
-        this.ktext.addEvent("click", function (e) {
-            let me = e.target.parentNode.kicsy;
-            let arrayData = me.arrayDataCallback();
-            me.fillOptions(arrayData);
-        })
-
-
+        this.postPublishedCallback = function (obj) {
+            let r = this.dom.getBoundingClientRect();
+            console.log(r);
+        }
 
     }
 
-}
+*/
 
-function KSuperCombobox(...args) {
-    let obj = new KSuperComboboxClass(...args);
-    return obj;
-}
 
+
+
+/*
 function KSuperCombobox2(...args) {
     let obj = KText(...args);
     let layer;
@@ -1696,6 +1797,7 @@ function KSuperCombobox2(...args) {
     return obj;
 }
 
+*/
 
 
 
@@ -2161,32 +2263,103 @@ function KDataTableView() {
 }
 
 
+/**
+ * KDataTableViewProRowClass
 
+Sure, here's a succinct explanation of what each method does in the `KDataTableViewProRowClass`:
+
+- `getStructuredArrayData()`: This method returns an object containing the data from the row and its status. It loops through each child node of the row's DOM element and compares its value to the corresponding value in the `arrayData`. If the values are different, it sets the status to "update".
+
+- `constructor(table, arrayData)`: This is the constructor method for the `KDataTableViewProRowClass`. It sets the `table` and `arrayData` properties, adds the CSS text for the row, increments the `mainRowIndex` of the table, adds a cursor button, and adds each column to the row.
+
+Here's a list format for each method:
+
+- `getStructuredArrayData()`:
+  - Returns an object containing the data from the row and its status.
+
+- `constructor(table, arrayData)`:
+  - Sets the `table` and `arrayData` properties.
+  - Adds the CSS text for the row.
+  - Increments the `mainRowIndex` of the table.
+  - Adds a cursor button.
+  - Adds each column to the row.
+
+ */
 class KDataTableViewProRowClass extends KRowClass {
 
+    /** @type {string} 
+     * @description The status of the row. It can be "insert", "update" or "delete". Must be empty or "" when the row is created from data source
+     */
     status;
+    /**
+     * @type {number}
+     * @description The index of the row in the table.
+     */
     rowIndex = 0;
+
+    /**
+     * @type {object}
+     * @description The array data of the row.
+     */
     arrayData;
+
+    /**
+     * @type {KDataTableViewProClass}
+     * @description The table that the row belongs to.
+     */
     table;
+
+    /**
+     * Returns an object containing the data from the row and its status.
+     * 
+     * The returned object has the following properties:
+     * - `data`: The data from the row as an object where the keys are the names of the columns and the values are the values of the columns.
+     * - `status`: The status of the row. It can be "insert", "update",  "delete",  "source" or "discard".
+     * 
+     * @returns {object} - The object containing the data and status of the row.
+     */
+
+
+    newRowWasCreated = false;
 
     getStructuredArrayData() {
 
         let result = {};
-        result.data = {}
-        result.status = "";
+        result.data = this.arrayData;
+        result.status = this.status;
 
-        for (let i = 1; i < this.dom.childNodes.length; i++) {
-            let value = this.dom.childNodes[i].kicsy.getValue();
+        /*
+         let value = this.dom.childNodes[i].kicsy.getValue();
             let name = Object.keys(this.arrayData)[i - 1];
-            if (value != undefined) {
-                if (value != this.arrayData[i - 1]) {
-                    this.status = "update";
+            if (this.status == "source") {
+                if (value != undefined) {
+                    if (value != this.arrayData[name]) {
+                        this.status = "update";
+                    }
                 }
             }
-            result.data[name] = value;
+        */
+
+        for (let i = 1; i < this.dom.childNodes.length; i++) {
+            let comp = this.dom.childNodes[i];
+            let name = comp.kicsy.dom.name;
+            let value = comp.kicsy.getValue();
+
+            if (this.status == "source" || this.status == "update") {
+                if (value != this.arrayData[name]) {
+                    result.status = "update";
+
+                    if (!Number.isNaN(value)) {
+                        value = Number(value);
+                    }
+
+                    result.data[name] = value;
+                }
+            }
+
         }
 
-        result.status = this.status;
+        this.status = result.status;
 
         return result;
     }
@@ -2196,23 +2369,36 @@ class KDataTableViewProRowClass extends KRowClass {
 
         this.table = table;
         this.arrayData = arrayData;
-
         this.addCssText(this.table.rowCssText);
-
         this.rowIndex = this.table.mainRowIndex++;
 
         //Add cursor
         let cursor = KButton("X")
             .addCssText(this.table.cursorCssText)
             .addEvent("click", () => {
-                if (this.status == "normal") {
-                    this.status = "deleted";
-                    this.addCssTextToChildren(this.table.rowDeletedCssText);
-                    cursor.addCssText(this.table.rowDeletedCssText);
-                } else {
-                    this.status = "normal";
-                    this.addCssTextToChildren(this.table.rowNormalCssText);
-                    cursor.addCssText(this.table.rowNormalCssText);
+
+                switch (this.status) {
+                    case "source":
+                    case "update":
+                        this.status = "delete";
+                        this.addCssTextToChildren(this.table.rowDeletedCssText);
+                        break;
+
+                    case "delete":
+                        this.status = "source";
+                        this.addCssTextToChildren(this.table.rowSourceCssText);
+                        break;
+
+                    case "insert": //discard
+                        this.status = "discard";
+                        this.addCssTextToChildren(this.table.rowDeletedCssText);
+                        break;
+
+                    case "discard":
+                        this.status = "insert";
+                        this.addCssTextToChildren(this.table.rowSourceCssText);
+                        break;
+
                 }
             })
 
@@ -2224,19 +2410,41 @@ class KDataTableViewProRowClass extends KRowClass {
             let component = col.component.clone();
             component.setSize(col.width, this.height);
             component.setName(col.name);
+            component.dataTableProRow = this;
 
             if (arrayData != undefined) {
                 component.setValue(arrayData[col.name]);
             }
 
+            component.addEvent("focus", function (e) {
+                e.target.kicsy.dataTableProRow.newRow(e.target);
+            })
+
             this.add(component);
         }
+    }
+
+    newRow(component) {
+        let row = component.kicsy.dataTableProRow;
+
+        if (row.dom.parentNode.lastChild == row.dom) {
+            row.table.newRow();
+        }
+
     }
 }
 
 
 
+/**
+ * 
 
+This class definition is for `KDataTableViewProColumnClass`, which represents a column in a data table view. Here's a brief explanation of its methods:
+
+* `constructor(component, name, description = "", width = 80)`: Initializes a new column instance with the provided component, name, description, and width. The description and width have default values if not provided.
+
+Note that this class only has a constructor method, which sets up the initial state of the column instance. It does not have any other methods.
+ */
 class KDataTableViewProColumnClass {
     constructor(component, name, description = "", width = 80) {
         this.component = component;
@@ -2254,7 +2462,7 @@ class KDataTableViewProClass extends KDataTableViewClass {
     bodyCssText = "display: block; position: absolute; left: 0px; top: 2rem;  margin: 0px; padding: 0px; height: calc(100% - 2rem); overflow-y: scroll;";
     rowCssText = "display: block;  margin: 0px; padding: 2px; height: 20px; width: fit-content;";
 
-    rowNormalCssText = "background-color: white;";
+    rowSourceCssText = "background-color: white;";
     rowDeletedCssText = "background-color: red;";
 
     cursorCssText = "display: inline-block; margin:0px; padding: 0px;border: none; text-align: center; width: 20px; height: 20px; vertical-align: top;";
@@ -2269,6 +2477,7 @@ class KDataTableViewProClass extends KDataTableViewClass {
 
     mainRowIndex = -1;
 
+
     constructor() {
         super();
         this.addCssText(this.tableCssText);
@@ -2281,9 +2490,8 @@ class KDataTableViewProClass extends KDataTableViewClass {
         this.body = KRow().addCssText(this.bodyCssText);
         this.add(this.body);
 
-        //Spacer
-        //this.captionsBar.add(KColumn().setSize(this.cursorWidth, this.captionsBarHeight).addCssText("background-color:  lime;"));
     }
+
 
     addColumn(component, name, description = "", width = 80) {
 
@@ -2316,6 +2524,14 @@ class KDataTableViewProClass extends KDataTableViewClass {
         return this;
     }
 
+    /**
+     * Sorts the array data by the column with the given name. If inverse is true,
+     * the sort order is reversed.
+     *
+     * @param {string} name The name of the column to sort by.
+     * @param {boolean} [inverse=false] If true, the sort order is reversed.
+     * @returns {KDataTableView} The current object.
+     */
     sortByColumn(name, inverse = false) {
         let t;
 
@@ -2329,20 +2545,37 @@ class KDataTableViewProClass extends KDataTableViewClass {
         return this;
     }
 
+    /**
+     * Sets the array data to the given array of objects.
+     *
+     * @param {Array} arrayData The array of objects to set in the data table.
+     * @returns {KDataTableView} The current object.
+     */
     setArrayData(arrayData) {
         this.mainRowIndex = -1;
         this.arrayData = arrayData;
         this.body.clear();
-        for (let r of arrayData) {
+        let r;
+        for (r of arrayData) {
             this.newRow(r);
         }
         return this;
     }
 
+    /**
+     * Creates a new row with the given data.
+     * If the data is undefined, the row is created with the status set to "insert".
+     * Otherwise, the row is created with the status set to "source".
+     * The row is added to the body of the data table.
+     * @param {object} [data] - The data object to set for the new row.
+     * @return {KDataTableViewProClass} - The current instance of the data table.
+     */
     newRow(data) {
         let row = new KDataTableViewProRowClass(this, data);
         if (data == undefined) {
             row.status = "insert";
+        } else {
+            row.status = "source";
         }
         this.body.add(row);
         return this;
@@ -2362,16 +2595,69 @@ class KDataTableViewProClass extends KDataTableViewClass {
 
         let result = [];
         for (let r of this.body.dom.children) {
-            result.push(r.kicsy.getStructuredArrayData());
+            let row = r.kicsy.getStructuredArrayData();
+            if (row.status == "insert" || row.status == "update" || row.status == "delete") {
+                result.push(row);
+            }
+
         }
 
         if (callback != undefined) {
             callback(result);
             return this;
         } else {
-            return
+            return result;
         }
     }
+
+    /**
+     * Adds the provided CSS text to the CSS style of the captions bar.
+     * Style is added to the captions bar's DOM element.
+     * Must be used after the captions bar has been added to the data viewer.
+     * @param {string} cssText - The CSS text to add to the style of the captions bar.
+     * @return {KDataViewerClass} - The current instance of the KDataViewerClass class.
+     */
+    addCaptionCssText(cssText) {
+        this.captionCssText += ";" + cssText;
+    }
+
+
+    /**
+     * Adds the provided CSS text to the CSS style of all rows of the data viewer.
+     * Style is added to each row's DOM element.
+     * Must be used after the rows have been added to the data viewer.
+     * @param {string} cssText - The CSS text to add to the style of the rows.
+     * @return {KDataViewerClass} - The current instance of the KDataViewerClass class.
+     */
+    addRowCssText(cssText) {
+        this.rowCssText += ";" + cssText;
+    }
+
+    /**
+     * Adds the provided CSS text to the CSS style of the captions bar.
+     * Style is added to the captions bar's DOM element.
+     * Must be used after the captions bar has been added to the data viewer.
+     * @param {string} cssText - The CSS text to add to the style of the captions bar.
+     * @return {KDataViewerClass} - The current instance of the KDataViewerClass class.
+     */
+    addCaptionsBarCssText(cssText) {
+        this.captionsBar.addCssText(cssText);
+        return this;
+    }
+
+    /**
+     * Adds the provided CSS text to the CSS style of the body of the data viewer.
+     * Style is added to the body's DOM element.
+     * Must be used after the body has been added to the data viewer.
+     * @param {string} cssText - The CSS text to add to the style of the body.
+     * @return {KDataViewerClass} - The current instance of the KDataViewerClass class.
+     */
+    addBodyCssText(cssText) {
+        this.body.addCssText(cssText);
+        return this;
+    }
+
+
 
 }
 
