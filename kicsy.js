@@ -1525,7 +1525,7 @@ class KSuperComboBoxClass extends KText {
         }
 
         this.getValue = function (callback) {
-            if (callback == undefined) {
+            if (callback != undefined) {
                 callback(this.value);
                 return this;
             } else {
@@ -1804,13 +1804,22 @@ function KSuperCombobox2(...args) {
 
 function KSelect(...args) {
     let obj = new KicsyVisualComponent("select", undefined, ...args);
+
     obj.addOption = function (value, label = value, selected = false, disabled = false) {
         let option = new KicsyVisualComponent("option", undefined);
-        option.dom.value = value;
-        option.dom.label = label;
-        option.dom.selected = selected;
-        option.dom.disabled = disabled;
-        obj.dom.add(option.dom);
+        obj.dom.appendChild(option.dom);
+        option.dom.setAttribute("value", value);
+        option.dom.setAttribute("label", label);
+
+        if (selected) {
+            option.dom.setAttribute("selected", true);
+        }
+
+
+        if (disabled) {
+            option.dom.setAttribute("disabled", true);
+        }
+
         return obj;
     }
 
@@ -1840,27 +1849,80 @@ function KSelect(...args) {
         }
     }
 
+
+    obj.arrayDataCallback = function () {
+        return [{ "label": "Option 1", "value": 1 }, { "label": "Option 2", "value": 2 }, { "label": "Option 3", "value": 3 }];
+    }
+
+
+    obj.setArrayDataCallback = function (callback) {
+        obj.arrayDataCallback = callback;
+        return obj;
+    }
+
+    /**
+     * Sets the array data for the select.
+     * The array can be structured in different ways.
+     * The first way is to provide an array of objects where the key is the value and the value is the label.
+     * If the key is not provided, the value is used as the label.
+     * The second way is to provide an array of objects with the properties "value", "label", "selected", and "disabled".
+     * If any of these properties are not provided, they are set to default values.
+     * @param {Object[]} arrayData the array data for the select
+     * @returns {KSelect} this
+     */
     obj.setArrayData = function (arrayData) {
+
         for (let row of arrayData) {
-            let value = Object.values(row)[0];
-            let label = Object.values(row)[1];
-            let selected = Object.values(row)[2];
-            let disabled = Object.values(row)[3];
+            let value, label, selected, disabled;
 
-            if (label == undefined) {
-                label = value;
+            if (row["label"] == undefined) {
+                label = Object.values(row)[0];
+            } else {
+                label = row["label"];
             }
 
-            if (selected == undefined) {
-                selected = false;
+            if (row["value"] == undefined) {
+                value = Object.values(row)[1];
+                if (value == undefined) {
+                    value = label;
+                }
+            } else {
+                value = row["value"];
             }
 
-            if (disabled == undefined) {
-                disabled = false;
+            if (row["selected"] == undefined) {
+                selected = Object.values(row)[2];
+                if (selected == undefined) {
+                    selected = false;
+                }
             }
 
+            if (row["disabled"] == undefined) {
+                disabled = Object.values(row)[3];
+                if (disabled == undefined) {
+                    disabled = false;
+                }
+            }
             obj.addOption(value, label, selected, disabled);
         }
+    }
+
+
+    /**
+     * Called after the select object is published.
+     * Sets the array data of the select object from the array data callback.
+     * @param {KSelect} obj - The select object.
+     * @returns {KSelect} The select object.
+     */
+    obj.postPublishedCallback = function (obj) {
+        obj.setArrayData(obj.arrayDataCallback());
+        return obj;
+    }
+
+    obj.clone = function (className = KSelect) {
+        let obj2 = new className();
+        obj2.arrayDataCallback = this.arrayDataCallback;
+        return obj2;
     }
 
     return obj;
@@ -2328,25 +2390,13 @@ class KDataTableViewProRowClass extends KRowClass {
         result.data = this.arrayData;
         result.status = this.status;
 
-        /*
-         let value = this.dom.childNodes[i].kicsy.getValue();
-            let name = Object.keys(this.arrayData)[i - 1];
-            if (this.status == "source") {
-                if (value != undefined) {
-                    if (value != this.arrayData[name]) {
-                        this.status = "update";
-                    }
-                }
-            }
-        */
-
         for (let i = 1; i < this.dom.childNodes.length; i++) {
             let comp = this.dom.childNodes[i];
             let name = comp.kicsy.dom.name;
             let value = comp.kicsy.getValue();
 
             if (this.status == "source" || this.status == "update") {
-                if (value != this.arrayData[name]) {
+                if (value.toString() != this.arrayData[name].toString()) {
                     result.status = "update";
 
                     if (!Number.isNaN(value)) {
