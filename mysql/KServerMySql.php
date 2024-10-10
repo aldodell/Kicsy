@@ -1,11 +1,5 @@
 <?php
-include("KUserMySql.php");
-
-if (!isset($_POST["message"])) {
-    die("Data not found");
-}
-
-
+include "KUserMySql.php";
 
 
 /**
@@ -14,31 +8,41 @@ if (!isset($_POST["message"])) {
  * @var mixed $payload The payload of the message.
  * @var string $application The application wich the message belongs to.
  */
-$message = $_POST["message"];
-$message = json_decode($payload);
-$action = $message->action;
-$payload = $message->payload;
-$application = $message->application;
 
+
+$message = json_decode(file_get_contents('php://input'), true);
+
+$action = $message["action"];
+$payload = $message["payload"];
+$application = $message["application"];
+$login = $payload["login"];
+$password = $payload["password"];
+$name = $payload["name"];
+$surname = $payload["surname"];
+$cedula = $payload["cedula"];
+$cellphone = $payload["cellphone"];
+$email = $payload["email"];
+$birthDate = $payload["birthDate"];
 
 $database = new PDO('mysql:host=localhost;dbname=aasxwjte_selva', 'aasxwjte_selva', 'Selva2024.');
 
 
+$user = new KUserMySql($database, $login, $password, $application);
+
 switch ($action) {
     case "user_create":
-        $user = new KUserMySql($database, $payload->name, $payload->password, $application);
-        echo $user->create();
-        break;
-
-    case "user_update":
-        $user = new KUserMySql($database, $payload->name, $payload->password, $application);
-        echo $user->update($payload->password);
+        echo $user->create($database, $login, $password, $application, $name, $surname, $cedula, $cellphone, $email, $birthDate);
         break;
 
     case "user_verify":
-        $user = new KUserMySql($database, $payload->name, $payload->password, $application);
         echo $user->verify();
         break;
+
+
+    case "user_update":
+        echo $user->update($payload->password);
+        break;
+
 
 
 }

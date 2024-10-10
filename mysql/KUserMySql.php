@@ -1,16 +1,27 @@
 <?php
 
+include "KAnswer.php";
+
+
 class KUserMySql
 {
     public $db;
     public $login;
     public $password;
     public $application;
+    public $names;
+    public $surnames;
+    public $cedula;
+    public $cellphone;
+    public $email;
+    public $birthDate;
 
     const USER_ALREADY_EXISTS = "user_already_exists";
     const USER_NOT_EXISTS = "user_not_exists";
     const USER_ACCESS_GRANTED = "user_access_granted";
     const USER_NOT_ACCESS_GRANTED = "user_access_not_granted";
+
+
 
 
     public function __construct($db, $login, $password, $application)
@@ -21,29 +32,52 @@ class KUserMySql
         $this->application = $application;
     }
 
-    /**
-     * Method to create a user.
-     */
-    function create()
+
+    public static function create($database, $login = "", $password = "", $application = "", $name = "", $surname= "", $cedula = "", $cellphone = "", $email, $birthDate)
     {
 
+        $user = new KUserMySql($database, $login, $password, $application);
         $sql = "select count(*) from user where login = ? and application = ?";
-        $statement = $this->db->prepare($sql);
-        $data = $statement->execute(array($this->login, $this->application));
-        $data = $data->fetchColumn();
+        $statement = $database->prepare($sql);
+        $statement->execute(array($user->login, $user->application));
+        $data = $statement->fetchColumn(0);
 
         if ($data > 0) {
-            throw new Exception(self::USER_ALREADY_EXISTS, $this->login);
+            throw new Exception(self::USER_ALREADY_EXISTS, $user->login);
         }
 
-        $hashPassword = password_hash($this->password, PASSWORD_BCRYPT);
+        $hashPassword = password_hash($user->password, PASSWORD_BCRYPT);
 
-        $sql = "insert into user (login, password, application) values (?, ?, ?)";
-        $statement = $this->db->prepare($sql);
-        $data = $statement->execute(array($this->login, $hashPassword, $this->application));
-        return true;
+        $sql = "INSERT INTO user (login,password, application,name,surname,cedula,cellphone,email,birthDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+
+        try {
+            $statement = $database->prepare($sql);
+
+            $statement->bindValue(1, $login);
+            $statement->bindValue(2, $hashPassword);
+            $statement->bindValue(3, $application);
+            $statement->bindValue(4, $name);
+            $statement->bindValue(5, $surname);
+            $statement->bindValue(6, $cedula);
+            $statement->bindValue(7, $cellphone);
+            $statement->bindValue(8, $email);
+            $statement->bindValue(9, $birthDate);
+
+            $r = $statement->execute();
+
+        } catch (PDOException $e) {
+            die($e->getMessage());
+        }
+
+   
+
+
+        return new KAnswer("USER_CREATED");
 
     }
+
+
 
     function update($newPassword)
     {
@@ -72,7 +106,6 @@ class KUserMySql
 
     function verify()
     {
-
         try {
             $password = password_hash($this->password, PASSWORD_BCRYPT);
             $sql = "select count(*) from user where login = ? and password = ? and application = ?";
@@ -84,9 +117,9 @@ class KUserMySql
             } else {
                 return self::USER_NOT_ACCESS_GRANTED;
             }
+        } catch (Exception $e) {
+            return $e->getMessage();
         }
     }
 
 }
-
-
