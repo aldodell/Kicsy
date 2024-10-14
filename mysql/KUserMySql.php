@@ -5,7 +5,7 @@ include "KAnswer.php";
 
 class KUserMySql
 {
-    public $db;
+    public $database;
     public $login;
     public $password;
     public $application;
@@ -24,16 +24,16 @@ class KUserMySql
 
 
 
-    public function __construct($db, $login, $password, $application)
+    public function __construct($database, $login, $password, $application)
     {
-        $this->db = $db;
+        $this->database = $database;
         $this->login = $login;
         $this->password = $password;
         $this->application = $application;
     }
 
 
-    public static function create($database, $login = "", $password = "", $application = "", $name = "", $surname= "", $cedula = "", $cellphone = "", $email, $birthDate)
+    public static function create($database, $login = "", $password = "", $application = "", $name = "", $surname = "", $cedula = "", $cellphone = "", $email, $birthDate)
     {
 
         $user = new KUserMySql($database, $login, $password, $application);
@@ -70,8 +70,6 @@ class KUserMySql
             die($e->getMessage());
         }
 
-   
-
 
         return new KAnswer("USER_CREATED");
 
@@ -107,11 +105,13 @@ class KUserMySql
     function verify()
     {
         try {
+
             $password = password_hash($this->password, PASSWORD_BCRYPT);
             $sql = "select count(*) from user where login = ? and password = ? and application = ?";
-            $statement = $this->db->prepare($sql);
-            $data = $statement->execute(array($this->login, $password, $this->application));
-            $data = $data->fetchColumn();
+            $statement = $this->database->prepare($sql);
+            $statement->execute(array($this->login, $password, $this->application));
+            $data = (int) $statement->fetchColumn();
+
             if ($data > 0) {
                 return self::USER_ACCESS_GRANTED;
             } else {
@@ -120,6 +120,29 @@ class KUserMySql
         } catch (Exception $e) {
             return $e->getMessage();
         }
+    }
+
+    public static function load($database, $login, $password): KUserMySql
+    {
+        try {
+            $hashPassword = password_hash($password, PASSWORD_BCRYPT);
+            $sql = "SELECT * FROM user WHERE login = ? AND password = ? ";
+            $statement = $database->prepare($sql);
+            $statement->execute(array($login, $hashPassword));
+            $data = $statement->fetch(PDO::FETCH_ASSOC);
+            $user = new KUserMySql($database, $data["login"], $data["password"], $data["application"]);
+            $user->name = $data["name"];
+            $user->surname = $data["surname"];
+            $user->cedula = $data["cedula"];
+            $user->cellphone = $data["cellphone"];
+            $user->email = $data["email"];
+            $user->birthDate = $data["birthDate"];
+
+            return $user;
+        } catch (Exception $e) {
+            return self::USER_NOT_ACCESS_DENIED;
+        }
+
     }
 
 }
