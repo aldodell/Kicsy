@@ -1482,12 +1482,19 @@ class KSuperComboBoxClass extends KText {
         super(...args);
 
 
+        /**
+         * Converts an array of data objects into an array of objects with label and value properties.
+         *
+         * If the row is a string or number, it is converted to an object with a label and value property.
+         * If the row is an object, but does not have a label and value property, it is converted to an object
+         * with a label and value property. If the object has one key, the key is used as the label and the value
+         * is used as the value. If the object has two keys, the keys are used as the label and value.
+         * @param {Array} arrayData - The array of data objects to convert.
+         * @returns {Array} - The array of objects with label and value properties.
+         */
         this.conformData = function (arrayData) {
-
             let result = [];
-
             for (let row of arrayData) {
-
                 if (typeof row == "string" || typeof row == "number") {
                     result.push({ label: row, value: row });
                 } else if (typeof row == "object") {
@@ -1533,13 +1540,26 @@ class KSuperComboBoxClass extends KText {
             }
         }
 
-        this.showOptionsFrame = function () {
+        this.showOptionsFrame = function (text = null) {
             let rect = this.dom.getBoundingClientRect();
             let w = rect.width;
             let l = this.dom.offsetLeft;
             let h = rect.height;
             let b = parseInt(getComputedStyle(this.dom).borderBottomWidth.match(/\d+/g)[0]);
-            let options = this.conformData(this.arrayDataCallback());
+            let partialArrayData = this.arrayDataCallback();
+
+            //Filter the array to get values that start with the text
+            if (text != null) {
+                try {
+                    text = text.trim().toLowerCase();
+                    partialArrayData = partialArrayData.filter(x => x.label.toString().toLowerCase().indexOf(text) > -1);
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+
+            //Comform the array to put label and value in an object
+            let options = this.conformData(partialArrayData);
 
             this.frame = KLayer()
                 .addCssText(`display: block; position: absolute; width: fit-content; height: 200px; left: ${l}px; top: ${h + b}px; margin: 0px; padding: 4px; background-color: white;overflow-y: scroll; z-index: 100;` + this.frameOptionsCssText)
@@ -1584,6 +1604,16 @@ class KSuperComboBoxClass extends KText {
         this.addEvent("blur", function (e) {
             let me = e.target.kicsy;
             me.hideFrameOptions();
+        })
+
+        this.addEvent("input", function (e) {
+            let me = e.target.kicsy;
+            let text = e.target.value;
+
+            if (text.length > 2) {
+                me.hideFrameOptions();
+                me.showOptionsFrame(text);
+            }
         })
 
 
