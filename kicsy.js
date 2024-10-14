@@ -2278,6 +2278,13 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
         }
     }
 
+    /**
+     * Returns an array of objects containing the status of each row of the data table.
+     * The status can be "insert", "delete" or "update".
+     * The data property contains the data of the row.
+     * @param {function} [callback] - An optional callback function to call with the array of objects.
+     * @return {Array|KDataTableView} - If a callback function is provided, the current instance of the data table is returned. Otherwise, an array of objects is returned.
+     */
     getStructuredArrayData(callback) {
         let source = this.arrayData;
         let target = this.getArrayData();
@@ -2417,7 +2424,7 @@ class KDataTableViewProRowClass extends KRowClass {
     getStructuredArrayData() {
 
         let result = {};
-        result.data = this.arrayData;
+        result.data = this.arrayData || {};
         result.status = this.status;
 
         for (let i = 1; i < this.dom.childNodes.length; i++) {
@@ -2425,22 +2432,29 @@ class KDataTableViewProRowClass extends KRowClass {
             let name = comp.kicsy.dom.name;
             let value = comp.kicsy.getValue();
 
+            if (value == undefined) {
+                result.status = "discard";
+                this.status = result.status;
+                return result;
+            }
+
             if (this.status == "source" || this.status == "update") {
                 if (value.toString() != this.arrayData[name].toString()) {
                     result.status = "update";
-
-                    if (!Number.isNaN(value)) {
-                        value = Number(value);
-                    }
-
-                    result.data[name] = value;
                 }
             }
+            else if (this.status == "insert") {
+                result.status = "insert";
+            }
 
+
+            if (!Number.isNaN(value)) {
+                value = Number(value);
+            }
+            result.data[name] = value;
         }
 
         this.status = result.status;
-
         return result;
     }
 
@@ -2676,10 +2690,11 @@ class KDataTableViewProClass extends KDataTableViewClass {
         let result = [];
         for (let r of this.body.dom.children) {
             let row = r.kicsy.getStructuredArrayData();
-            if (row.status == "insert" || row.status == "update" || row.status == "delete") {
-                result.push(row);
+            if (row.data != undefined) {
+                if (row.status == "insert" || row.status == "update" || row.status == "delete") {
+                    result.push(row);
+                }
             }
-
         }
 
         if (callback != undefined) {
