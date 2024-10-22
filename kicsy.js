@@ -149,6 +149,7 @@ class KicsyComponent extends KicsyObject {
     dom;
     postPublishedCallback;
 
+
     static id = 0;
 
     /**
@@ -231,6 +232,8 @@ class KicsyComponent extends KicsyObject {
             obj.dom.addEventListener(e.event, e.callback);
         }
 
+        obj.setDataList(this.getDataList());
+
         // Return the cloned KicsyComponent instance
         return obj;
     }
@@ -246,6 +249,11 @@ class KicsyComponent extends KicsyObject {
      * @param {string} value - The value to set.
      */
     setValue(value) {
+
+        let dataList = this.getDataList();
+        if (dataList) {
+            value = dataList.getLabelFromValue(value);
+        }
         // Set the value of the DOM element to the provided value
         this.dom.value = value;
 
@@ -262,14 +270,18 @@ class KicsyComponent extends KicsyObject {
      * Otherwise, it returns the current instance of the KicsyComponent class.
      */
     getValue(callback) {
+        let value = this.dom.value;
+        let dataList = this.getDataList();
+        if (dataList) {
+            value = dataList.getValueFromLabel(value);
+        }
 
         // If no callback function is provided, return the value of the DOM element
         if (callback == undefined) {
-            return this.dom.value;
+            return value;
         } else {
             // Call the provided callback function with the value of the DOM element as an argument
-            callback(this.dom.value);
-
+            callback(value);
             // Return the current instance of the KicsyComponent class
             return this;
         }
@@ -421,6 +433,48 @@ class KicsyComponent extends KicsyObject {
     }
 
 
+
+    /**
+     * Sets the data list for the component.
+     * If a kDataList is provided, it sets the list attribute of the DOM element to the id of the kDataList's DOM element.
+     * It also adds a change event listener to handle value changes.
+     * If kDataList is not provided, it removes the list attribute from the DOM element.
+     * 
+     * @param {KDataList} [kDataList] - The data list to set for the component.
+     * @returns {KicsyComponent} - The current instance of the KicsyComponent class.
+     */
+    setDataList(kDataList = undefined) {
+        if (kDataList != undefined) {
+            this.dom.setAttribute("list", kDataList.dom.id);
+        } else {
+            this.dom.removeAttribute("list");
+        }
+        return this;
+    }
+
+    /**
+     * Retrieves the data list object associated with the component.
+     * It does this by looking for the "list" attribute in the component's DOM element and getting the kicsy property of the element with the id equal to the value of the "list" attribute.
+     * If a callback function is provided, it calls the callback function with the data list object as an argument and returns the current instance of the KicsyComponent class.
+     * If no callback function is provided, it returns the data list object.
+     * If no data list is associated with the component, it returns undefined.
+     * 
+     * @param {function} [callback] - The callback function to call with the data list object as an argument.
+     * @return {KDataList|KicsyComponent|undefined} - The data list object, the current instance of the KicsyComponent class, or undefined depending on the situation.
+     */
+    getDataList(callback = undefined) {
+        let dlID = this.dom.getAttribute("list");
+        if (dlID != null) {
+            let r = document.getElementById(dlID).kicsy;
+            if (callback != undefined) {
+                callback(r);
+                return this;
+            } else {
+                return r;
+            }
+        }
+        return undefined;
+    }
 
 
 }
@@ -797,7 +851,9 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
         super("div");
 
         // Append each component's DOM element to the container's DOM element
-        this.add(...components);
+        if (components.length > 0) {
+            this.add(...components);
+        }
     }
 
 
@@ -1336,6 +1392,92 @@ function KRadio(...args) {
     return new KicsyVisualComponent("input", "radio", ...args);
 }
 
+
+function KDataList() {
+    let obj = new KicsyVisualComponent("datalist");
+    /**
+     * Finds the value of an option in the datalist with the given label.
+     *
+     * @param {string} label - The label of the option to find.
+     * @param {function} [callback] - A callback function to call with the value.
+     * @returns {KDataList} - The current instance of KDataList.
+     */
+
+    obj.entries = [];
+
+    obj.getValueFromLabel = function (label, callback) {
+        let r = obj.entries.find(function (e) {
+            return e.label == label
+        });
+        if (r != undefined) {
+            r = r.value;
+        }
+        if (callback) {
+            callback(r);
+            return obj;
+        } else {
+            return r;
+        }
+    }
+
+    obj.getLabelFromValue = function (value) {
+        let r = obj.entries.find(function (e) {
+            return e.value == value
+        });
+        r = r.label;
+        return r;
+    }
+
+    obj.addOption = function (value, label = value) {
+        obj.entries.push({ value: value, label: label });
+        let option = new KicsyVisualComponent("option", undefined);
+        obj.dom.appendChild(option.dom);
+        option.dom.setAttribute("value", label);
+        //option.dom.setAttribute("label", label);
+        //option.dom.textContent = label;
+        return obj;
+    }
+
+    /**
+     * Sets the data of the datalist with the array of data objects.
+     * 
+     * Each element of the array can be an object with "label" and "value" properties,
+     * or an array with two elements, or a single string value.
+     * 
+     * @param {Array} arrayData - The array of data objects to set in the datalist.
+     * @returns {KDataList} - The current instance of the datalist.
+     */
+    obj.setArrayData = function (arrayData) {
+        for (let r of arrayData) {
+            let label, value;
+
+            if (r.label != undefined) {
+                label = r.label;
+            } else if (Array.isArray(r) && r[0] != undefined) {
+                label = r[0];
+            } else {
+                label = r;
+            }
+
+            if (r.value != undefined) {
+                value = r.value;
+            } else if (Array.isArray(r) && r[1] != undefined) {
+                value = r[1];
+            } else {
+                value = r;
+            }
+
+            obj.addOption(value, label);
+
+        }
+
+    }
+
+    return obj;
+
+}
+
+
 /**
  * Creates a new instance of KRange with the provided arguments.
  *
@@ -1346,8 +1488,26 @@ function KRange(...args) {
     // Create a new KicsyVisualComponent instance with the "input" HTML tag, "range" type, and the provided arguments
     // The second argument is set to undefined to allow the constructor to determine the correct type
 
+    let obj = new KicsyVisualComponent("input", "range", ...args);
+
+    obj.setStep = function (value) {
+        obj.dom.step = value;
+        return this;
+    }
+
+    obj.setMax = function (value) {
+        obj.dom.max = value;
+        return this;
+    }
+
+    obj.setMin = function (value) {
+        obj.dom.min = value;
+        return this;
+    }
+
+
     // Return the newly created KicsyVisualComponent instance
-    return new KicsyVisualComponent("input", "range", ...args);
+    return obj;
 }
 
 /**
@@ -1633,205 +1793,6 @@ function KSuperComboBox(...args) {
     return obj;
 }
 
-
-/*
-  arrayDataCallback = function () {
-        return [{ label: "aircraft", value: "test" }, { label: "vehicle", value: "test2" }, { label: "bike", value: "test3" }, { label: "car", value: "test4" }, { label: "motorcycle", value: "test5" }, { label: "boat", value: "test6" }, { label: "train", value: "test7" }];
-    };
-
-    setArrayDataCallback(callback) {
-        this.arrayDataCallback = callback;
-        return this;
-    }
-
-
-    conformData(arrayData) {
-
-        let result = [];
-
-        for (let row of arrayData) {
-
-            if (typeof row == "string" || typeof row == "number") {
-                result.push({ label: row, value: row });
-            } else if (typeof row == "object") {
-
-                if (row.label != undefined && row.value != undefined) {
-                    result.push(row);
-                } else if (Object.keys(row).length == 2) {
-                    result.push({ label: Object.values(row)[0], value: Object.values(row)[1] });
-                } else if (Object.keys(row).length == 1) {
-                    result.push({ label: Object.values(row)[0], value: Object.values(row)[0] });
-                }
-            }
-
-        }
-        return result;
-    }
-
-    clone() {
-        let obj = super.clone();
-        obj.fillOptions = this.fillOptions;
-        obj.setArrayDataCallback = this.setArrayDataCallback;
-        obj.conformData = this.conformData;
-        return obj;
-    }
-
-
-    constructor(...args) {
-       
-        super(...args);
-
-        this.addCssText("display: inline-block; margin: 0px; padding: 0px; border: 1px solid black; overflow: overlay; ");
-
-        this.postPublishedCallback = function (obj) {
-            let r = this.dom.getBoundingClientRect();
-            console.log(r);
-        }
-
-    }
-
-*/
-
-
-
-
-/*
-function KSuperCombobox2(...args) {
-    let obj = KText(...args);
-    let layer;
-
-    obj.arrayDataCallback = function (callback) {
-        return [{ label: "aircraft", value: "test" }, { label: "vehicle", value: "test2" }, { label: "bike", value: "test3" }, { label: "car", value: "test4" }, { label: "motorcycle", value: "test5" }, { label: "boat", value: "test6" }, { label: "train", value: "test7" }];
-    }
-
-    obj.setArrayDataCallback = function (callback) {
-        obj.arrayDataCallback = callback;
-        return this;
-    }
-
-
-    obj.fill = function (arrayData) {
-
-        if (layer != undefined) {
-            layer.dom.remove();
-        }
-
-        layer = KLayer();
-
-        layer.addCssText(`position: relative; top:0px; left: ${this.dom.style.left}px; width: ${this.dom.offsetWidth * 2}px; height: 100px; z-index: 1; overflow-y: scroll; background-color: white; border: 1px solid #ccc; padding: 8px;`);
-
-        this.dom.after(layer.dom);
-
-        for (let i = 0; i < arrayData.length; i++) {
-
-            let row = arrayData[i];
-
-            if (typeof row == "string") {
-                label = row;
-                value = row;
-            } else if (typeof row == "number") {
-                label = row.toString();
-                value = row;
-
-            } else if (typeof row == "object") {
-                if (row.label != undefined) {
-                    label = row.label;
-                    value = row.value;
-                } else {
-                    if (Object.keys(row).length == 2) {
-                        label = Object.values(row)[0];
-                        value = Object.values(row)[1];
-                    } else if (Object.keys(row).length == 1) {
-                        label = Object.values(row)[0];
-                        value = Object.values(row)[0];
-                    } else {
-                        label = row;
-                        value = row;
-                    }
-                }
-
-            }
-
-            let option = KLayer().addCssText("display:block;padding: 2px; background-color: white;");
-            option.setValue(label);
-            option.dom.ktext = this;
-            option.dom.optionValue = value;
-
-            option.addEvent("click", function (e) {
-                e.preventDefault();
-                this.ktext.setValue(e.target.innerHTML);
-                this.ktext.optionValue = e.target.optionValue;
-                layer.dom.remove();
-            });
-            layer.add(option);
-        }
-
-    }
-
-    obj.addEvent("blur", function (e) {
-        window.setTimeout(function () {
-            layer.dom.remove();
-        }, 500);
-
-
-    })
-
-    obj.addEvent("focus", function (e) {
-        e.target.kicsy.fill(e.target.kicsy.arrayDataCallback());
-    });
-
-
-    obj.addEvent("click", function (e) {
-        e.target.kicsy.fill(e.target.kicsy.arrayDataCallback());
-    });
-
-
-    obj.addEvent("input", function (e) {
-        if (e.target.value.length > 0) {
-            let arrayData = e.target.kicsy.arrayDataCallback();
-            arrayData = arrayData.filter(element => element.label.toLowerCase().includes(e.target.value.toLowerCase()));
-            e.target.kicsy.fill(arrayData);
-        }
-
-    })
-
-    obj.setValue = function (value) {
-        let firstRow, result, label;
-        let arrayData = obj.arrayDataCallback();
-        firstRow = arrayData[0];
-
-        if (typeof firstRow == "object") {
-            if (Object.keys(firstRow).length == 2) {
-                if (Object.keys(firstRow).indexOf("label") > -1 && Object.keys(firstRow).indexOf("value") > -1) {
-                    result = arrayData.find(element => element.value == value);
-                    label = result.label;
-                } else {
-                    result = arrayData.find(element => element[1] == value);
-                    label = result[0];
-                }
-            }
-        } else {
-            label = value;
-        }
-
-        this.dom.value = label;
-        this.optionValue = value;
-
-        return this;
-    }
-
-    obj.getValue = function () {
-        return this.optionValue;
-    }
-
-    return obj;
-}
-
-*/
-
-
-
-
 function KSelect(...args) {
     let obj = new KicsyVisualComponent("select", undefined, ...args);
 
@@ -1854,6 +1815,11 @@ function KSelect(...args) {
     }
 
     obj.setValue = function (value) {
+
+        if (obj.dom.childNodes.length == 0) {
+            obj.setArrayData(obj.arrayDataCallback());
+        }
+
         for (let option of obj.dom.childNodes) {
             if (option.value == value) {
                 option.selected = true;
@@ -1903,36 +1869,38 @@ function KSelect(...args) {
     obj.setArrayData = function (arrayData) {
 
         for (let row of arrayData) {
-            let value, label, selected, disabled;
+            let value, label, selected = false, disabled = false;
 
-            if (row["label"] == undefined) {
-                label = Object.values(row)[0];
-            } else {
-                label = row["label"];
-            }
+            if (Array.isArray(row)) {
+                if (row[0]) {
+                    value = row[0];
+                }
 
-            if (row["value"] == undefined) {
-                value = Object.values(row)[1];
-                if (value == undefined) {
-                    value = label;
+                if (row[1]) {
+                    label = row[1];
+                } else {
+                    label = value;
                 }
             } else {
-                value = row["value"];
-            }
-
-            if (row["selected"] == undefined) {
-                selected = Object.values(row)[2];
-                if (selected == undefined) {
-                    selected = false;
+                if (row.value) {
+                    value = row.value;
+                } else {
+                    value = row;
+                }
+                if (row.label) {
+                    label = row.label;
+                } else {
+                    label = row;
+                }
+                if (row.selected) {
+                    selected = row.selected;
+                }
+                if (row.disabled) {
+                    disabled = row.disabled;
                 }
             }
 
-            if (row["disabled"] == undefined) {
-                disabled = Object.values(row)[3];
-                if (disabled == undefined) {
-                    disabled = false;
-                }
-            }
+
             obj.addOption(value, label, selected, disabled);
         }
     }
@@ -1945,14 +1913,23 @@ function KSelect(...args) {
      * @returns {KSelect} The select object.
      */
     obj.postPublishedCallback = function (obj) {
-        obj.setArrayData(obj.arrayDataCallback());
+        if (obj.dom.childNodes.length == 0) {
+            obj.setArrayData(obj.arrayDataCallback());
+        }
         return obj;
     }
 
     obj.clone = function (className = KSelect) {
         let obj2 = new className();
-        obj2.arrayDataCallback = this.arrayDataCallback;
+        obj2.arrayDataCallback = obj.arrayDataCallback;
         return obj2;
+    }
+
+    obj.clear = function () {
+        while (obj.dom.length > 0) {
+            obj.dom.remove(0);
+        }
+        return obj;
     }
 
     return obj;
@@ -2036,10 +2013,17 @@ function KCanvas(...args) {
 
 function KAppIcon(title, drawerCallback = KDefaultImages("TERMINAL"), clickEventListener = null) {
     let frame = KLayer(
+        /*
         KCanvas()
             .setSize(64, 64)
             .setReferenceSize(64, 64)
             .setValue(drawerCallback)
+            .addCssText("display: block; position: relative; left:32px; top: 4px;"),
+            */
+        KImage()
+            .setSize(64, 64)
+            //.setReferenceSize(64, 64)
+            .setValue(drawerCallback())
             .addCssText("display: block; position: relative; left:32px; top: 4px;"),
         KLabel()
             .setValue(title)
@@ -2111,6 +2095,8 @@ class KColumnClass extends KicsyVisualContainerComponent {
         }
         this.addCssText("display: inline-block; position: relative; height: 100%;");
     }
+
+
 }
 
 /**
@@ -2223,7 +2209,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
             x = x + w;
             let component = KLayer().setValue(col.description).setSize(w).addCssText("display: inline-block; text-align: center;margin:4px;");
             this.captions.add(component);
-            let buttonUp = KButton("▲")
+            let buttonUp = KButton(String.fromCodePoint(0x25B2))
                 .addCssText("position:absolute;display: inline-block;width:20px;height:20px;left:" + (x - 20) + "px;")
                 .addEvent("click", () => {
                     this.clear();
@@ -2233,7 +2219,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
                 })
 
 
-            let buttonDown = KButton("▼")
+            let buttonDown = KButton(String.fromCodePoint(0x25BC))
                 .addCssText("position:absolute;display: inline-block;width:20px;height:20px;left:" + x + "px;")
                 .addEvent("click", () => {
                     this.clear();
@@ -2364,25 +2350,25 @@ function KDataTableView() {
 
 /**
  * KDataTableViewProRowClass
-
+ 
 Sure, here's a succinct explanation of what each method does in the `KDataTableViewProRowClass`:
-
+ 
 - `getStructuredArrayData()`: This method returns an object containing the data from the row and its status. It loops through each child node of the row's DOM element and compares its value to the corresponding value in the `arrayData`. If the values are different, it sets the status to "update".
-
+ 
 - `constructor(table, arrayData)`: This is the constructor method for the `KDataTableViewProRowClass`. It sets the `table` and `arrayData` properties, adds the CSS text for the row, increments the `mainRowIndex` of the table, adds a cursor button, and adds each column to the row.
-
+ 
 Here's a list format for each method:
-
+ 
 - `getStructuredArrayData()`:
   - Returns an object containing the data from the row and its status.
-
+ 
 - `constructor(table, arrayData)`:
   - Sets the `table` and `arrayData` properties.
   - Adds the CSS text for the row.
   - Increments the `mainRowIndex` of the table.
   - Adds a cursor button.
   - Adds each column to the row.
-
+ 
  */
 class KDataTableViewProRowClass extends KRowClass {
 
@@ -2532,11 +2518,11 @@ class KDataTableViewProRowClass extends KRowClass {
 
 /**
  * 
-
+ 
 This class definition is for `KDataTableViewProColumnClass`, which represents a column in a data table view. Here's a brief explanation of its methods:
-
+ 
 * `constructor(component, name, description = "", width = 80)`: Initializes a new column instance with the provided component, name, description, and width. The description and width have default values if not provided.
-
+ 
 Note that this class only has a constructor method, which sets up the initial state of the column instance. It does not have any other methods.
  */
 class KDataTableViewProColumnClass {
@@ -2714,6 +2700,8 @@ class KDataTableViewProClass extends KDataTableViewClass {
      */
     addCaptionCssText(cssText) {
         this.captionCssText += ";" + cssText;
+        this.captionsBar.addCssText(this.captionCssText);
+        return this;
     }
 
 
@@ -2726,6 +2714,7 @@ class KDataTableViewProClass extends KDataTableViewClass {
      */
     addRowCssText(cssText) {
         this.rowCssText += ";" + cssText;
+        return this;
     }
 
     /**
@@ -3226,7 +3215,7 @@ class KApplicationClass extends KicsyObject {
         rootView = undefined,
         version = 1,
         author = "Kicsy",
-        iconDrawer = KDefaultImages("TERMINAL"),
+        iconDrawer = function () { return "/Kicsy/media/icons/terminal.png" }, //KDefaultImages("TERMINAL"),
         help = "No help exists for this application") {
 
         // Call the constructor of the parent class (KicsyObject)
@@ -3519,6 +3508,9 @@ function KDesktopApp() {
         // Clear the menu of the desktop application.
         app.menu.clear();
 
+        //Internal List of apps
+        let appList = [];
+
         // Iterate over each application in the Kicsy.applications array.
         Kicsy.applications.forEach(application => {
             // Iterate over each environment of the current user.
@@ -3526,9 +3518,16 @@ function KDesktopApp() {
 
                 // Check if the application's environments include the current environment and if the application has a root view.
                 if (application.environments.includes(environment) && application.rootView != undefined) {
-                    // Create an application icon for the application and add it to the menu of the desktop application.
-                    let appIcon = KAppIcon(application.description, application.iconDrawer, function () { KMessage(app.name, application.name, Kicsy.currentUser.name, Kicsy.currentUser.name, "run").send(); });
-                    app.menu.add(appIcon);
+
+                    //Check if the application is already in the list
+                    if (!appList.includes(application.name)) {
+                        //Add the application to the list
+                        appList.push(application.name);
+
+                        // Create an application icon for the application and add it to the menu of the desktop application.
+                        let appIcon = KAppIcon(application.description, application.iconDrawer, function () { KMessage(app.name, application.name, Kicsy.currentUser.name, Kicsy.currentUser.name, "run").send(); });
+                        app.menu.add(appIcon);
+                    }
                 }
 
             })
@@ -3893,8 +3892,6 @@ function KUserApp() {
     return app;
 }
 KUserApp();
-
-
 KMessage("system", "desktop", "Kicsy", "system", "update").send();
 
 
