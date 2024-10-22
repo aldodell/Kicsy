@@ -3465,7 +3465,7 @@ function KDesktopApp() {
     let menu = KLayer();
 
     // Set the CSS styles for the menu layer.
-    menu.addCssText("display: block; position: absolute; vertical-align: top; width: 100%; height: 200px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; overflow-y: hidden; background-color: gray;")
+    menu.addCssText("display: block; position: absolute; vertical-align: top; width: 100%; height: 200px; left: 0px; bottom: 0px; margin: 0px; padding: 4px; overflow-x: scroll; background-color: gray;")
         .addCssText("background-image: linear-gradient(navy, navy, white); box-shadow: 0px -5px 35px black;");
 
     // Add the menu layer to the root view layer.
