@@ -3314,16 +3314,31 @@ class KDesktopClass extends KApplicationClass {
 
         this.rootView = KRow();
         this.rootView.addCssText("display:block; position: absolute; width:auto; left: 0px; top: 0px; right: -2px; bottom: 0px; margin: 0px; padding: 0px; overflow: hidden;")
-            .addCssText("background-color: Cornsilk;")
+            .addCssText("background: rgb(255,255,255);")
+            .addCssText("background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(128,191,255,1) 5%, rgba(128,191,255,1) 95%, rgba(255,255,255,1) 100%);")
+
 
         //Building the menu
         this.menu = KRow()
-            .addCssText("display:block; position: absolute; bottom: 8px; margin:0 50%; transform: translateX(-50%);")
+            .addCssText("display:block; position: absolute; bottom: 16px; margin:0 50%; transform: translateX(-50%);")
             .addCssText("width: fit-content; max-width: 80%; height: 160px; padding: 0px; overflow-x: scroll; overflow-y: hidden; white-space: nowrap;")
-            .addCssText("background-color: rgba(1, 1, 1, 0.3); border-radius: 32px;")
+            .addCssText("background-color: rgba(1, 1, 1, 0.1); border-radius: 32px;")
+            .addCssText("box-shadow: 5px 5px 5px gray;")
+            .addCssText("color: navy; font-family: system-ui;text-shadow: 2px 2px 1px white;font-size: 1em;")
 
         this.rootView.add(this.menu);
 
+    }
+
+    addMenuBarCssText(cssText) {
+        this.menu.addCssText(cssText);
+        return this;
+
+    }
+
+    addRootViewCssText(cssText) {
+        this.rootView.addCssText(cssText);
+        return this;
     }
 
     processMessage = function (message) {
@@ -3349,15 +3364,31 @@ class KDesktopClass extends KApplicationClass {
 
 
 
+    /**
+     * Function to update the menu of the desktop application.
+     * 
+     * Updates the menu of the desktop application by iterating over the Kicsy.applications array and adding an icon for each application
+     * that is not the desktop application and has a rootView property that is not undefined and is included in the current user's environments.
+     * 
+     * @returns {this} - The desktop application object.
+     */
     update() {
+        // Get the name of the desktop application
         let desktopAppName = this.name;
+        // Set the main surface of the desktop application
         Kicsy.mainSurface = this.rootView.dom;
+        // Clear the menu of the desktop application
         this.menu.clear();
         let apps = [];
+        // Iterate over each application in the Kicsy.applications array
         for (let app of Kicsy.applications) {
+            // Check if the application has a rootView property that is not undefined and is included in the current user's environments
             if (app.rootView != undefined && app.name != desktopAppName) {
+                // Add the application to the apps array
                 for (let env of Kicsy.currentUser.environments) {
+                    // Check if the application is included in the current user's environments
                     if (app.environments.includes(env)) {
+                        // Add the application to the apps array
                         if (!apps.includes(app)) {
                             apps.push(app);
                         }
@@ -3366,6 +3397,8 @@ class KDesktopClass extends KApplicationClass {
             }
         }
 
+
+        apps.sort((a, b) => a.name > b.name);
 
 
         for (let app of apps) {
@@ -3383,24 +3416,24 @@ class KDesktopClass extends KApplicationClass {
                         .setValue(app.description)
                         .addCssText("display:block; position: absolute; top: 64px; left: 0px; margin: 2px; padding: 0px;")
                         .addCssText("width: 128px; height: max-coontent; white-space: wrap; text-align: center;"),
-                ).addEvent("click", function (e) {
+                )
+                .addEvent("click", function (e) {
                     KMessage(desktopAppName, app.name, Kicsy.currentUser.name, Kicsy.currentUser.name, "run").send();
                 })
+                .addEvent("mouseenter", function (e) {
+                    let o = e.target.kicsy;
+                    o.addCssText("background-color: rgba(1, 1, 1, 0.25); border-radius: 16px;box-shadow: 5px 5px 5px gray;")
+                })
+                .addEvent("mouseleave", function (e) {
+                    let o = e.target.kicsy;
+                    o.addCssText("background: none;box-shadow: none;")
+                });
 
             this.menu.add(appIcon);
 
         }
 
-
-
-
         this.rootView.show();
-
-
-
-
-
-
 
         return this;
     }
