@@ -731,6 +731,16 @@ class KicsyVisualComponent extends KicsyComponent {
     }
 
 
+    setPlaceholder(text) {
+        this.dom.placeholder = text;
+        return this;
+    }
+
+    setTitle(text) {
+        this.dom.title = text;
+        return this;
+    }
+
 
     /**
          * Constructor for KicsyVisualComponent class.
@@ -2776,6 +2786,7 @@ class KWindowClass extends KicsyVisualContainerComponent {
 
         //pointers
         this.add = function (...args) { this.body.add(...args); return this; };
+        this.addToFooter = function (...args) { this.footer.add(...args); return this; };
 
         this.center();
 
