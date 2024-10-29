@@ -1,0 +1,94 @@
+Date : 2024-10-28 21:27:40
+Directory : /Applications/XAMPP/xamppfiles/htdocs/Kicsy
+Total : 52 files,  23764 codes, 1747 comments, 19055 blanks, all 44566 lines
+
+Languages
++--------------------+------------+------------+------------+------------+------------+
+| language           | files      | code       | comment    | blank      | total      |
++--------------------+------------+------------+------------+------------+------------+
+| XML                |          7 |     11,019 |          0 |          6 |     11,025 |
+| HTML               |         16 |      9,123 |         36 |     17,885 |     27,044 |
+| JavaScript         |          9 |      2,538 |      1,387 |        854 |      4,779 |
+| PHP                |         10 |        562 |        274 |        200 |      1,036 |
+| CSS                |          3 |        456 |         50 |         98 |        604 |
+| Markdown           |          1 |         36 |          0 |         11 |         47 |
+| JSON               |          5 |         22 |          0 |          1 |         23 |
+| JSON with Comments |          1 |          8 |          0 |          0 |          8 |
++--------------------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                   | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                      |         52 |     23,764 |      1,747 |     19,055 |     44,566 |
+| . (Files)                                                                              |         13 |      2,680 |      1,526 |        983 |      5,189 |
+| doc                                                                                    |         24 |     20,346 |         87 |     17,915 |     38,348 |
+| doc (Files)                                                                            |         12 |      8,851 |         36 |     17,812 |     26,699 |
+| doc/fonts                                                                              |          6 |     10,987 |          0 |          0 |     10,987 |
+| doc/scripts                                                                            |          3 |         52 |          1 |          5 |         58 |
+| doc/scripts (Files)                                                                    |          1 |         22 |          1 |          3 |         26 |
+| doc/scripts/prettify                                                                   |          2 |         30 |          0 |          2 |         32 |
+| doc/styles                                                                             |          3 |        456 |         50 |         98 |        604 |
+| mysql                                                                                  |          3 |        152 |          6 |         53 |        211 |
+| qrcodejs                                                                               |          8 |        582 |        128 |        104 |        814 |
+| users                                                                                  |          4 |          4 |          0 |          0 |          4 |
++----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| filename                                                                               | language           | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/KCryptoTools.php                           | PHP                |         80 |        103 |         32 |        215 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/KMessageClass.php                          | PHP                |         73 |         89 |         30 |        192 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/KMySQL.php                                 | PHP                |        104 |          1 |         29 |        134 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/KUserClass.php                             | PHP                |        106 |         69 |         41 |        216 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/Kicsy.code-workspace                       | JSON with Comments |          8 |          0 |          0 |          8 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/a.php                                      | PHP                |          7 |          0 |          1 |          8 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/b.html                                     | HTML               |         43 |          0 |         19 |         62 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/KApplicationClass.html                 | HTML               |        307 |          3 |        791 |      1,101 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/KColumnClass.html                      | HTML               |         67 |          3 |        161 |        231 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/KDataViewerClass.html                  | HTML               |      1,209 |          3 |      3,241 |      4,453 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/KMessageClass.html                     | HTML               |        300 |          3 |        925 |      1,228 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/KRowClass.html                         | HTML               |         67 |          3 |        161 |        231 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/Kicsy.html                             | HTML               |         89 |          3 |        253 |        345 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/KicsyComponent.html                    | HTML               |        550 |          3 |      1,509 |      2,062 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/KicsyVisualComponent.html              | HTML               |        912 |          3 |      2,599 |      3,514 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/KicsyVisualContainerComponent.html     | HTML               |      1,071 |          3 |      2,983 |      4,057 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/fonts/OpenSans-Bold-webfont.svg        | XML                |      1,830 |          0 |          0 |      1,830 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/fonts/OpenSans-BoldItalic-webfont.svg  | XML                |      1,830 |          0 |          0 |      1,830 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/fonts/OpenSans-Italic-webfont.svg      | XML                |      1,830 |          0 |          0 |      1,830 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/fonts/OpenSans-Light-webfont.svg       | XML                |      1,831 |          0 |          0 |      1,831 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/fonts/OpenSans-LightItalic-webfont.svg | XML                |      1,835 |          0 |          0 |      1,835 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/fonts/OpenSans-Regular-webfont.svg     | XML                |      1,831 |          0 |          0 |      1,831 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/global.html                            | HTML               |      1,568 |          3 |      4,440 |      6,011 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/index.html                             | HTML               |         54 |          3 |        115 |        172 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/kicsy.js.html                          | HTML               |      2,657 |          3 |        634 |      3,294 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/scripts/linenumber.js                  | JavaScript         |         22 |          1 |          3 |         26 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/scripts/prettify/lang-css.js           | JavaScript         |          2 |          0 |          1 |          3 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/scripts/prettify/prettify.js           | JavaScript         |         28 |          0 |          1 |         29 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/styles/jsdoc-default.css               | CSS                |        304 |          0 |         55 |        359 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/styles/prettify-jsdoc.css              | CSS                |         78 |         17 |         17 |        112 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/doc/styles/prettify-tomorrow.css           | CSS                |         74 |         33 |         26 |        133 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/kicsy.js                                   | JavaScript         |      1,909 |      1,198 |        710 |      3,817 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/kicsy2.js                                  | JavaScript         |         23 |          0 |          5 |         28 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/kicsyINI.php                               | PHP                |          2 |          3 |          1 |          6 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/kicsyServer.php                            | PHP                |         38 |          3 |         13 |         54 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/m.html                                     | HTML               |        149 |          0 |         42 |        191 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/mysql/KAnswer.php                          | PHP                |         13 |          0 |          1 |         14 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/mysql/KServerMySql.php                     | PHP                |         27 |          6 |         15 |         48 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/mysql/KUserMySql.php                       | PHP                |        112 |          0 |         37 |        149 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/qrcodejs/README.md                         | Markdown           |         36 |          0 |         11 |         47 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/qrcodejs/bower.json                        | JSON               |         18 |          0 |          1 |         19 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/qrcodejs/index-svg.html                    | HTML               |         42 |          0 |          6 |         48 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/qrcodejs/index.html                        | HTML               |         38 |          0 |          6 |         44 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/qrcodejs/index.svg                         | XML                |         32 |          0 |          6 |         38 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/qrcodejs/jquery.min.js                     | JavaScript         |          1 |          1 |          0 |          2 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/qrcodejs/qrcode.js                         | JavaScript         |        414 |        127 |         74 |        615 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/qrcodejs/qrcode.min.js                     | JavaScript         |          1 |          0 |          0 |          1 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/temporal.js                                | JavaScript         |        138 |         60 |         60 |        258 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/users/a.json                               | JSON               |          1 |          0 |          0 |          1 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/users/root.json                            | JSON               |          1 |          0 |          0 |          1 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/users/selva-admin.json                     | JSON               |          1 |          0 |          0 |          1 |
+| /Applications/XAMPP/xamppfiles/htdocs/Kicsy/users/selva.json                           | JSON               |          1 |          0 |          0 |          1 |
+| Total                                                                                  |                    |     23,764 |      1,747 |     19,055 |     44,566 |
++----------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+

@@ -3313,18 +3313,20 @@ class KDesktopClass extends KApplicationClass {
 
         this.name = "desktop";
         this.description = "Kicsy Desktop Application";
-        //this.environments = environments;
         this.version = "0.0.1";
         this.author = "Kicsy";
-        //this.rootView = rootView;
-        // this.iconDrawer = iconDrawer;
         this.help = "Desktop application for Kicsy.";
 
         //Building the desktop surface
         document.body.style.cssText = "margin: 0px; padding: 0px; overflow: hidden;"
 
         this.rootView = KRow();
-        this.rootView.addCssText("display:block; position: absolute; width:auto; left: 0px; top: 0px; right: -2px; bottom: 0px; margin: 0px; padding: 0px; overflow: hidden;")
+        this.rootView
+            .addCssText("display:block; position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; margin: 0px; padding: 0px; overflow: hidden;")
+
+
+        this.wallpaper = KRow();
+        this.wallpaper.addCssText("display:block; position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; margin: 0px; padding: 0px; overflow: hidden;")
             .addCssText("background: rgb(255,255,255);")
             .addCssText("background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(128,191,255,1) 5%, rgba(128,191,255,1) 95%, rgba(255,255,255,1) 100%);")
 
@@ -3337,7 +3339,14 @@ class KDesktopClass extends KApplicationClass {
             .addCssText("box-shadow: 5px 5px 5px gray;")
             .addCssText("color: navy; font-family: system-ui;text-shadow: 2px 2px 1px white;font-size: 1em;")
 
+
         this.rootView.add(this.menu);
+
+        //publish wallpaper and rootView
+        document.body.appendChild(this.wallpaper.dom);
+        document.body.appendChild(this.rootView.dom);
+        // Set the main surface of the desktop application
+        Kicsy.mainSurface = this.rootView.dom;
 
     }
 
@@ -3349,6 +3358,11 @@ class KDesktopClass extends KApplicationClass {
 
     addRootViewCssText(cssText) {
         this.rootView.addCssText(cssText);
+        return this;
+    }
+
+    addWallpaperCssText(cssText) {
+        this.wallpaper.addCssText(cssText);
         return this;
     }
 
@@ -3367,13 +3381,9 @@ class KDesktopClass extends KApplicationClass {
             case "get_rootView":
                 return this.rootView;
 
-
         }
         return this;
     }
-
-
-
 
     /**
      * Function to update the menu of the desktop application.
@@ -3386,8 +3396,7 @@ class KDesktopClass extends KApplicationClass {
     update() {
         // Get the name of the desktop application
         let desktopAppName = this.name;
-        // Set the main surface of the desktop application
-        Kicsy.mainSurface = this.rootView.dom;
+
         // Clear the menu of the desktop application
         this.menu.clear();
         let apps = [];

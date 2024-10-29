@@ -1,0 +1,62 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Grupo Selva</title>
+    <link rel="shortcut icon" href="#">
+
+</head>
+
+<document>
+
+    <script type="text/javascript" src="qrcodejs/qrcode.js"></script>
+    <script src="kicsy.js"></script>
+    <script>
+
+        let q0;
+        let conf = {
+            text: "http://jindo.dev.naver.com/collie",
+            width: 200,
+            height: 200,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        }
+
+
+        KLayer()
+            .addCssText("display:block; position: absolute; ")
+            .addCssText("width: 4in; height: 2.5in; ")
+            .addCssText("border: 8px solid black; border-radius: 8px; margin: 8px;")
+            .add(
+                KLayer()
+                    .addCssText("display:block; position: absolute; ")
+                    .addCssText("width: 200px; height: 200px; ")
+                
+                    .getMe(function (me) { conf.text = "REF=5"; q0 = new QRCode(me.dom, conf) }),
+                KLayer()
+                    .addCssText("display:block; position: absolute; ")
+                    .addCssText("width: 100px; height: 40px; ")
+                    .addCssText("right: 20px; top: 70px; ")
+                    .addCssText("font-size: 7em;")
+                    .setValue("05"),
+                KLayer()
+                    .addCssText("display:block; position: absolute; ")
+                    .addCssText("left: 8px; bottom: 8px; ")
+                    .setValue("Conversión de San Pablo")
+
+            )
+
+
+
+            .publish();
+
+
+
+
+
+    </script>
+
+
+</document>
