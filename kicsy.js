@@ -736,7 +736,7 @@ class KicsyVisualComponent extends KicsyComponent {
         return this;
     }
 
-    setTitle(text) {
+    setHints(text) {
         this.dom.title = text;
         return this;
     }
@@ -1285,7 +1285,13 @@ function KColorPicker(...args) {
 function KDate(...args) {
     // Create a new KicsyVisualComponent instance with the "input" HTML tag, "date" type, and the provided arguments
     // The second argument is set to undefined to allow the constructor to determine the correct type
-    return new KicsyVisualComponent("input", "date", ...args);
+    let obj = new KicsyVisualComponent("input", "date", ...args);
+    let now = new Date();
+    let year = now.getFullYear();
+    let month = now.getMonth() + 1;
+    let day = now.getDate();
+    obj.dom.value = [year, month, day].join("-");
+    return obj;
 }
 
 
@@ -1431,11 +1437,17 @@ function KDataList() {
     }
 
     obj.getLabelFromValue = function (value) {
-        let r = obj.entries.find(function (e) {
-            return e.value == value
-        });
-        r = r.label;
-        return r;
+        let r, rs;
+        try {
+            r = obj.entries.find(function (e) {
+                return e.value == value
+            });
+            rs = r.label;
+            return rs;
+        } catch (e) {
+            console.log("ERROR [getLabelFromValue]:" + e);
+            return "ERROR";
+        }
     }
 
     obj.addOption = function (value, label = value) {
@@ -2745,6 +2757,7 @@ class KWindowClass extends KicsyVisualContainerComponent {
     body;
     footer;
     superHeader;
+    superBody;
     // frame;
 
     constructor() {
@@ -2784,10 +2797,40 @@ class KWindowClass extends KicsyVisualContainerComponent {
             this.hide();
         })
 
+
+        //Add super body
+        this.superBody = this.body.clone()
+            .addCssText("display: block; position: absolute; width: 100%; height: 100%; margin: 0px; padding: 0px; background-color: black; opacity: 0.5; z-index: 255; visibility: hidden;");
+        this.body.add(this.superBody);
+
+
+/**
+ * Makes the window block the screen by displaying the super body layer.
+ *
+ * @return {KWindowClass} The current window instance.
+ */
+        this.block = function () {
+            this.superBody.show();
+            return this;
+        }
+
+        /**
+         * Makes the window unblocking the screen
+         *
+         * @return {KWindowClass} This window
+         */
+        this.unblock = function () {
+            this.superBody.hide();
+            return this;
+        }
+
         //pointers
         this.add = function (...args) { this.body.add(...args); return this; };
         this.addToFooter = function (...args) { this.footer.add(...args); return this; };
-
+        this.addCssTextToBody = function (...args) { this.body.addCssText(...args); return this; };
+        
+        
+        //Center this window
         this.center();
 
     }
