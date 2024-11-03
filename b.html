@@ -14,44 +14,147 @@
     <script src="kicsy.js"></script>
     <script>
 
-        let q0;
-        let conf = {
-            text: "http://jindo.dev.naver.com/collie",
-            width: 200,
-            height: 200,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
+        KMessage("desktop", "desktop", "desktop", "desktop", "hide", {}).send();
+
+
+        function KicsyCode(number) {
+            let width = 128;
+            let height = 128;
+            let frame = KLayer()
+                .addCssText(`border: 2px solid black; margin: 0px; padding: 0px; width: ${width}px; height: ${height}px;`)
+                .add(
+                    KLayer()
+                        .addCssText("border: 2px solid black; margin: 0px; padding: 0px; ")
+                )
+
+
+            return frame;
         }
 
 
-        KLayer()
-            .addCssText("display:block; position: absolute; ")
-            .addCssText("width: 4in; height: 2.5in; ")
-            .addCssText("border: 8px solid black; border-radius: 8px; margin: 8px;")
-            .add(
-                KLayer()
-                    .addCssText("display:block; position: absolute; ")
-                    .addCssText("width: 200px; height: 200px; ")
-                
-                    .getMe(function (me) { conf.text = "REF=5"; q0 = new QRCode(me.dom, conf) }),
-                KLayer()
-                    .addCssText("display:block; position: absolute; ")
-                    .addCssText("width: 100px; height: 40px; ")
-                    .addCssText("right: 20px; top: 70px; ")
-                    .addCssText("font-size: 7em;")
-                    .setValue("05"),
-                KLayer()
-                    .addCssText("display:block; position: absolute; ")
-                    .addCssText("left: 8px; bottom: 8px; ")
-                    .setValue("Conversión de San Pablo")
+        KicsyCode(1).publish(document.body).center();
+
+
+        /*
+        // Plantilla de carateres
+        for (let i = 0; i < 4; i++) {
+
+
+            KLayer(
+                KRow(
+                    KRow()
+                        .addCssText("display: inline-block; position: absolute; width: 48px; height: 20px; left: 8px; top: 8px; margin: 0px; padding: 0px;")
+                        .addCssText("border : 1px solid black;"),
+                    KRow()
+                        .addCssText("display: inline-block; position: absolute; width: 48px; height: 20px; left: 8px; bottom: 8px; margin: 0px; padding: 0px;")
+                        .addCssText("border : 1px solid black;"),
+
+
+                )
+                    .addCssText("display: inline-block; position: relative; width: 64px; height: 64px; left: 0px; top: 0px; margin: 0px; padding: 0px;")
+                    .addCssText("border : 1px solid black;")
 
             )
+                .addCssText("display: inline-block; position: relative; left: 10px; top: 10px; margin: 8px; padding: 0px;")
+             
+
+                .publish(document.body);
+
+        }
+                */
 
 
 
-            .publish();
 
+
+        /*
+                let cookies = document.cookie;
+                let q0;
+                let serial = cookies;
+                let hojas = prompt("Hojas", 1);
+                let valor = prompt("Valor", 1);
+                if (cookies.indexOf("serial=") > -1) {
+                    serial = parseInt(cookies.split("serial=")[1].split(";")[0]);
+                } else {
+                    serial = 0;
+                }
+                serial = window.prompt("Serial", serial);
+                document.cookie = `serial=${parseInt(serial) + 10}`;
+        
+                let conf = {
+                    text: "http://jindo.dev.naver.com/collie",
+                    width: 150,
+                    height: 150,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                }
+        
+                KMessage("desktop", "desktop", "desktop", "desktop", "hide").send();
+        
+                for (let i = 0; i < (4 * hojas); i++) {
+        
+        
+                    KLayer()
+                        .addCssText("display:inline-block; position: relative;")
+                        .addCssText("width: 3in; height: 2in; ")
+                        .addCssText("border: 8px groove black; border-radius: 8px; margin: 8px;")
+                        .add(
+                            KLayer()
+                                .addCssText("display:block; position: absolute; ")
+                                .addCssText("width: 200px; height: 200px; ")
+                                .getMe(function (me) { conf.text = `REF=${valor}/SERIAL=${serial}`; q0 = new QRCode(me.dom, conf) }),
+                            KLayer()
+                                .addCssText("display:block; position: absolute; ")
+                                .addCssText("width: 100px; height: 40px; ")
+                                .addCssText("right: 20px; top: 70px; ")
+                                .addCssText("font-size: 7em;")
+                                .setValue(valor),
+                            KLayer()
+                                .addCssText("display:block; position: absolute; ")
+                                .addCssText("left: 8px; bottom: 8px; ")
+                                .setValue("Conversión de San Pablo"),
+                            KLayer()
+                                .addCssText("display:block; position: absolute; ")
+                                .addCssText("right: 8px; top: 8px; ")
+                                .setValue("SERIAL: " + serial),
+                        )
+                        .publish();
+        
+                    serial++;
+        
+        
+                    KLayer()
+                        .addCssText("display:inline-block; position: relative;left:100px;")
+                        .addCssText("width: 3in; height: 2in; ")
+                        .addCssText("border: 8px groove black; border-radius: 8px; margin: 8px;")
+                        .add(
+                            KLayer()
+                                .addCssText("display:block; position: absolute; ")
+                                .addCssText("width: 200px; height: 200px; ")
+                                .getMe(function (me) { conf.text = `REF=${valor}/SERIAL=${serial}`; q0 = new QRCode(me.dom, conf) }),
+                            KLayer()
+                                .addCssText("display:block; position: absolute; ")
+                                .addCssText("width: 100px; height: 40px; ")
+                                .addCssText("right: 20px; top: 70px; ")
+                                .addCssText("font-size: 7em;")
+                                .setValue(valor),
+                            KLayer()
+                                .addCssText("display:block; position: absolute; ")
+                                .addCssText("left: 8px; bottom: 8px; ")
+                                .setValue("Conversión de San Pablo"),
+                            KLayer()
+                                .addCssText("display:block; position: absolute; ")
+                                .addCssText("right: 8px; top: 8px; ")
+                                .setValue("SERIAL: " + serial),
+                        )
+                        .publish();
+        
+                    serial++;
+        
+        
+                }
+                    */
 
 
 

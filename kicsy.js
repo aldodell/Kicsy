@@ -126,6 +126,46 @@ class KicsyObject {
 }
 
 
+class KCookiesClass extends KicsyObject {
+    cookies;
+    empty = true;
+    constructor() {
+        super();
+        let r = {};
+        let c = document.cookie;
+        if (c != "") {
+            c.matchAll(/([^;=]+)=([^;]*)/g).forEach(m => r[m[1]] = m[2]);
+        }
+        if (Object.getOwnPropertyNames(r).length > 0) {
+            this.cookies = r;
+            this.empty = false;
+        }
+    }
+
+    get exists() {
+        return !this.empty;
+    }
+
+    put(name, value, sameSite = "Lax", expires = 3600) {
+        document.cookie = name + "=" + value + "; SameSite=" + sameSite + "; expires=" + new Date(Date.now() + expires * 1000).toUTCString();
+        return this;
+    }
+
+    get(name) {
+        return this.cookies[name];
+    }
+
+    clear() {
+        document.cookie = "";
+        return this;
+    }
+}
+
+function KCookies() {
+    return new KCookiesClass();
+}
+
+
 class KAnimationFrame extends KicsyObject {
     cssText;
     time;
@@ -1004,14 +1044,14 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
                 { "vehiculo": { "tipo": "moto", "marca": "BERA" } },
                 { "vehiculo": { "tipo": "carro", "marca": "mazda" } },
                 { "vehiculo": { "tipo": "carro", "marca": "chevrolet" } },
-
+ 
             ];
-
-
+ 
+ 
         // Use to get references to components
         let viewer;
         let arrayData2;
-
+ 
         //Note KDataViewer wrapping only ONE KLayer wich has two KText
         KDataViewer(
             KLayer(
@@ -1022,8 +1062,8 @@ class KicsyVisualContainerComponent extends KicsyVisualComponent {
             .getMe(me => viewer = me)
             .publish()
             .setArrayData(arrayData);
-
-
+ 
+ 
  */
 class KDataViewerClass extends KicsyVisualContainerComponent {
 
@@ -2804,11 +2844,11 @@ class KWindowClass extends KicsyVisualContainerComponent {
         this.body.add(this.superBody);
 
 
-/**
- * Makes the window block the screen by displaying the super body layer.
- *
- * @return {KWindowClass} The current window instance.
- */
+        /**
+         * Makes the window block the screen by displaying the super body layer.
+         *
+         * @return {KWindowClass} The current window instance.
+         */
         this.block = function () {
             this.superBody.show();
             return this;
@@ -2828,8 +2868,8 @@ class KWindowClass extends KicsyVisualContainerComponent {
         this.add = function (...args) { this.body.add(...args); return this; };
         this.addToFooter = function (...args) { this.footer.add(...args); return this; };
         this.addCssTextToBody = function (...args) { this.body.addCssText(...args); return this; };
-        
-        
+
+
         //Center this window
         this.center();
 
@@ -3418,6 +3458,11 @@ class KDesktopClass extends KApplicationClass {
             // If the action is "update", call the update method to update the menu of the desktop application.
             case "update":
                 this.update();
+                break;
+
+            case "hide":
+                this.rootView.hide();
+                this.wallpaper.hide();
                 break;
 
             // If the action is "get_rootView", return the rootView of the desktop application.
