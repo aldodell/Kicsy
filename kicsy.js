@@ -20,6 +20,7 @@ class Kicsy {
     static applications = [];
     static currentUser = null;
     static serverURL = "../Kicsy/KicsyServer.php";
+    static windows = [];
 
     /**
      * Load and include multiple JavaScript modules.
@@ -629,7 +630,7 @@ class KicsyVisualComponent extends KicsyComponent {
         }
 
         pointer.dom.onmousedown = function (event) {
-            let rect = pointer.dom.getBoundingClientRect();
+            let rect = movable.dom.getBoundingClientRect();
             movable.dragX = event.clientX - rect.x;
             movable.dragY = event.clientY - rect.y;
             pointer.dom.style.cursor = "grab";
@@ -637,13 +638,12 @@ class KicsyVisualComponent extends KicsyComponent {
 
             movable.dom.onmousemove = function (event) {
                 movable.dom.style.transform = null;
-                movable.dom.style.left = event.clientX - movable.dragX + "px";
-                movable.dom.style.top = event.clientY - movable.dragY + "px";
+                movable.dom.style.left = (event.clientX - movable.dragX) + "px";
+                movable.dom.style.top = (event.clientY - movable.dragY) + "px";// + borderWidth + "px";
             }
 
             movable.dom.onmouseup = function () {
                 movable.dom.onmousemove = null;
-                movable.dom.onmouseup = null;
                 pointer.dom.style.cursor = "auto";
 
             };
@@ -2126,7 +2126,15 @@ class KColumnClass extends KicsyVisualContainerComponent {
             // Set the display style of each child to "block"
             child.style.display = "block";
         }
+
+
         this.addCssText("display: inline-block; position: relative; height: 100%;");
+    }
+
+    add(...components) {
+        super.add(...components);
+        components.forEach(c => c.addCssText("display: block;"));
+        return this;
     }
 
 
@@ -2256,7 +2264,7 @@ class KDataTableViewClass extends KicsyVisualContainerComponent {
                 .addCssText("position:absolute;display: inline-block;width:20px;height:20px;left:" + x + "px;")
                 .addEvent("click", () => {
                     this.clear();
-                    let t = this.arrayData.sort(function (a, b) { return a[col.name] < b[col.name] });;
+                    let t = this.arrayData.sort((a, b) => a[col.name] < b[col.name]);
                     this.setArrayData(t);
                 })
 
@@ -2791,6 +2799,27 @@ function KDataTableViewPro() {
 /************************************************************************************ */
 
 
+class KWindowsManagerClass extends KicsyObject {
+
+    windows = [];
+    constructor() {
+        super();
+    }
+
+    registerWindow(window) {
+        this.windows.push(window);
+    }
+
+    descendAllWindows() {
+        this.windows.forEach(function (w) {
+            //if (w.dom.style.zIndex > 1) { w.dom.style.zIndex--; }
+            w.dom.style.zIndex = 1;
+        });
+    }
+}
+
+const KWindowsManager = new KWindowsManagerClass();
+
 class KWindowClass extends KicsyVisualContainerComponent {
 
     header;
@@ -2811,7 +2840,6 @@ class KWindowClass extends KicsyVisualContainerComponent {
 
         //Build frame with header, body and footer
         this.add(this.header, this.body, this.footer, this.superHeader, this.controlButton);
-
 
         //Initialze styles
         this.addCssText("position: absolute;border: 4px solid #aaaaaa; border-radius: 8px; margin: 0px; padding: 0px;");
@@ -2835,6 +2863,12 @@ class KWindowClass extends KicsyVisualContainerComponent {
         //Control button wth close event
         this.controlButton.addEvent("click", () => {
             this.hide();
+        })
+
+        //Add super header click event to climb up
+        this.superHeader.addEvent("click", () => {
+            KWindowsManager.descendAllWindows();
+            this.climb();
         })
 
 
@@ -2864,6 +2898,8 @@ class KWindowClass extends KicsyVisualContainerComponent {
             return this;
         }
 
+
+
         //pointers
         this.add = function (...args) { this.body.add(...args); return this; };
         this.addToFooter = function (...args) { this.footer.add(...args); return this; };
@@ -2873,6 +2909,17 @@ class KWindowClass extends KicsyVisualContainerComponent {
         //Center this window
         this.center();
 
+        //Register to Window's manager
+        KWindowsManager.registerWindow(this);
+
+
+    }
+
+    show() {
+        KWindowsManager.descendAllWindows();
+        this.dom.style.visibility = "visible";
+        this.climb();
+        return this;
     }
 
     setTitle(text) {
@@ -3406,12 +3453,14 @@ class KDesktopClass extends KApplicationClass {
         this.rootView = KRow();
         this.rootView
             .addCssText("display:block; position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; margin: 0px; padding: 0px; overflow: hidden;")
+            .addCssText("z-index: 0;");
 
 
         this.wallpaper = KRow();
         this.wallpaper.addCssText("display:block; position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; margin: 0px; padding: 0px; overflow: hidden;")
             .addCssText("background: rgb(255,255,255);")
             .addCssText("background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(128,191,255,1) 5%, rgba(128,191,255,1) 95%, rgba(255,255,255,1) 100%);")
+            .addCssText("z-index: 0;");
 
 
         //Building the menu
@@ -3901,4 +3950,53 @@ KUserApp();
 KMessage("system", "desktop", "Kicsy", "system", "update").send();
 
 
+class KNotificationObject extends KicsyObject {
+    rootView;
+    message;
+    timeToDimiss;
 
+    constructor(rootView, message = "Hi", timeToDimiss = 0) {
+        super();
+        this.rootView = rootView;
+        this.message = message;
+        this.timeToDimiss = timeToDimiss;
+
+        if (rootView == undefined) {
+            this.rootView = KColumn()
+                .addCssText("display: block; position: absolute; width: 100%; height:fit-content;left: 0px; top: 0px; margin: 8px; padding: 8px;")
+                .addCssText("background-color: lightyellow; border: 1px solid white; border-radius: 8px; box-shadow: 0px 0px 8px black;")
+                .add(
+                    KLabel()
+                    .setValue(this.message),
+                    KButton()
+                    .setValue("X")
+                    .addEvent("click", () => {
+                        this.rootView.remove();
+                    })
+                )
+
+        }
+    }
+
+}
+function KNotificationApp() {
+    let app = new KApplicationClass("notification", "Notification", ["system"]);
+    app.help = "Shows notificatation to user";
+    app.queue = [];
+
+    app.processMessage = function (message) {
+        let result = app.preProcessMessage(message);
+        if (result) { return result; }
+
+        switch (message.action) {
+            case "add":
+                app.queue.push(message.payload);
+                break;
+
+        }
+    }
+
+    app.register();
+}
+
+KNotificationApp();
