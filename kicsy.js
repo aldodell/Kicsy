@@ -22,23 +22,40 @@ class Kicsy {
     static serverURL = "../Kicsy/KicsyServer.php";
     static windows = [];
 
+
     /**
      * Load and include multiple JavaScript modules.
      *
+     * @param {function} callback - The callback function to call when all the modules are loaded.
      * @param {...string} modules - The URLs of the modules to load.
      * @return {KicsyClass} - The current instance of the Kicsy class.
      */
-    static load(...modules) {
+    static load(callback = null, ...modules) {
+        const t = Date.now();
+        var modulesCounter = modules.length;
+
         // Iterate over each module URL
         for (const module of modules) {
             // Create a new script element
             let script = document.createElement("script");
 
             // Set the source of the script to the module URL
-            script.src = module;
+            var sufix = "?t=" + t;
+            if (module.indexOf("?") != -1) {
+                sufix = "&t=" + t;
+            }
+
 
             // Append the script to the document body
             document.body.appendChild(script);
+
+            //Load script
+            script.src = module + sufix;
+
+        }
+
+        if (callback != null) {
+            window.addEventListener("load", callback);
         }
 
     }
@@ -46,7 +63,6 @@ class Kicsy {
     static print(text) {
         console.log(text);
     }
-
 
 }
 
@@ -454,6 +470,10 @@ class KicsyComponent extends KicsyObject {
         return this;
     }
 
+
+    get isPublished() {
+        return this.dom.parentNode != null;
+    }
 
 
     /**
@@ -1187,7 +1207,11 @@ function KLabel(...args) {
 
     // Define a setValue method for the object that sets the innerText of the DOM element to the provided text
     obj.setValue = function (text) {
-        obj.dom.innerText = text;
+        // let textNode = document.createTextNode(text);
+        // obj.dom.appendChild(textNode);
+        //obj.dom.innerHTML = textNode.innerHTML;
+        //   obj.dom.innerText = text;
+        obj.dom.textContent = text.toString();
         return obj;
     }
 
@@ -2435,6 +2459,8 @@ class KDataTableViewProRowClass extends KRowClass {
      */
     table;
 
+    height = "20px";
+
     /**
      * Returns an object containing the data from the row and its status.
      * 
@@ -2493,6 +2519,7 @@ class KDataTableViewProRowClass extends KRowClass {
         this.addCssText(this.table.rowCssText);
         this.rowIndex = this.table.mainRowIndex++;
 
+
         //Add cursor
         let cursor = KButton("X")
             .addCssText(this.table.cursorCssText)
@@ -2529,19 +2556,28 @@ class KDataTableViewProRowClass extends KRowClass {
         //Add each columns
         for (let col of this.table.columns) {
             let component = col.component.clone();
+            component.dom.style.verticalAlign = "top";
+            this.add(component);
             component.setSize(col.width, this.height);
             component.setName(col.name);
             component.dataTableProRow = this;
-
-            if (arrayData != undefined) {
-                component.setValue(arrayData[col.name]);
-            }
-
             component.addEvent("focus", function (e) {
                 e.target.kicsy.dataTableProRow.newRow(e.target);
             })
 
-            this.add(component);
+
+        }
+    }
+
+    setup() {
+        let indexNode = 1;
+        for (let col of this.table.columns) {
+            if (this.arrayData != undefined) {
+                let component = this.dom.childNodes[indexNode].kicsy;
+                console.log(component.id, component.dom.id);
+                component.setValue(this.arrayData[col.name]);
+                indexNode++;
+            }
         }
     }
 
@@ -2572,6 +2608,7 @@ class KDataTableViewProColumnClass {
         this.name = name;
         this.description = description;
         this.width = width;
+
     }
 }
 
@@ -2699,6 +2736,7 @@ class KDataTableViewProClass extends KDataTableViewClass {
             row.status = "source";
         }
         this.body.add(row);
+        row.setup();
         return this;
 
     }
@@ -2932,6 +2970,109 @@ class KWindowClass extends KicsyVisualContainerComponent {
 function KWindow(title = "Kicsy Window") {
     let obj = new KWindowClass();
     obj.setTitle(title);
+    return obj;
+}
+
+
+class KNavigationManagerClass extends KicsyObject {
+    queue = [];
+    //index = 0;
+    constructor() {
+        super();
+    }
+
+    hideAll() {
+        for (let i = 0; i < this.queue.length; i++) {
+            this.queue[i].hide();
+        }
+    }
+    navigateTo(view) {
+        this.hideAll();
+        this.push(view);
+        view.show();
+        return this;
+    }
+
+    push(view) {
+        if (!view.isPublished) view.publish();
+        this.queue.push(view);
+        return view;
+    }
+
+    back() {
+        this.hideAll();
+        this.queue.pop();
+        this.queue[this.queue.length - 1].show();
+    }
+
+    get top() {
+        return this.queue[this.queue.length - 1];
+    }
+
+
+    /*
+    add(view) {
+        this.queue.push(view);
+        return this;
+    }
+
+    hideAll() {
+        for (let i = 0; i < this.queue.length; i++) {
+            this.queue[i].hide();
+        }
+    }
+
+    showTop() {
+        this.hideAll();
+        this.index = this.queue.length - 1;
+        this.queue[this.index].show();
+
+    }
+
+    back() {
+        this.hideAll();
+        this.index--;
+        this.queue[this.index].show();
+    }
+        */
+}
+
+function KNavigationManager() { return new KNavigationManagerClass(); }
+
+
+class KScreenClass extends KicsyVisualContainerComponent {
+
+    constructor(kNavigationManager = null) {
+        super();
+        this.addCssText("display: block;position: absolute; left:8px; top: 8px; right:8px; bottom: 8px; padding: 8px;")
+            .addCssText("background-color: lightyellow;")
+            .addCssText("border : 1px solid gray; border-radius: 8px;");
+
+        //Add back navigation button
+        this.backButton = KButton("<-")
+            .addCssText("position: absolute; left: 8px; top: 8px;")
+            .addCssText("width: 30px; height: 30px;")
+            .addCssText("font-size: 20px;");
+
+        if (kNavigationManager != null) {
+            this.backButton.addEvent("click", () => {
+                kNavigationManager.back();
+            });
+        }
+
+        //Add title
+        this.title = KLabel("Kicsy Screen")
+            .addCssText("position: absolute; left: 50%; top: 8px;")
+            .addCssText("transform: translateX(-50%);")
+            .addCssText("font-size: 20px;")
+            .addCssText("font-weight: bold;");
+
+        this.add(this.backButton, this.title);
+    }
+}
+
+function KScreen(kNavigationManager = null) {
+    let obj = new KScreenClass(kNavigationManager);
     return obj;
 }
 
@@ -3329,7 +3470,8 @@ class KApplicationClass extends KicsyObject {
         author = "Kicsy",
         iconDrawer = function () { return "/Kicsy/media/icons/terminal.png" }, //KDefaultImages("TERMINAL"),
         iconPath = "/Kicsy/media/icons/terminal.png",
-        help = "No help exists for this application") {
+        help = "No help exists for this application",
+        navigationManager = null) {
 
         // Call the constructor of the parent class (KicsyObject)
         super();
@@ -3344,6 +3486,7 @@ class KApplicationClass extends KicsyObject {
         this.iconDrawer = iconDrawer;
         this.iconPath = iconPath;
         this.help = help;
+        this.navigationManager = navigationManager;
     }
 
     /**
@@ -3967,12 +4110,12 @@ class KNotificationObject extends KicsyObject {
                 .addCssText("background-color: lightyellow; border: 1px solid white; border-radius: 8px; box-shadow: 0px 0px 8px black;")
                 .add(
                     KLabel()
-                    .setValue(this.message),
+                        .setValue(this.message),
                     KButton()
-                    .setValue("X")
-                    .addEvent("click", () => {
-                        this.rootView.remove();
-                    })
+                        .setValue("X")
+                        .addEvent("click", () => {
+                            this.rootView.remove();
+                        })
                 )
 
         }
