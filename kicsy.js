@@ -2831,6 +2831,91 @@ function KDataTableViewPro() {
 }
 
 
+class KDataTableView2Class extends KicsyVisualContainerComponent {
+
+    arrayData = [];
+    newRowCallback = () => { };
+    oddRowCssText = "background-color: #ccc;";
+    evenRowCssText = "background-color: white;";
+    columns = [];
+
+    head;
+    body;
+
+    constructor() {
+        super();
+        this.addCssText("border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px; height: 50%; width: 50%;");
+        this.head = KRow().addCssText("display: block; margin: 0px; padding: 0px; height: 40px; left: 0px; top: 0px; right: 0px; background-color: #ccc;");
+        this.body = KRow().addCssText("display: block; margin: 0px; padding: 0px; height: calc(100% - 40px); left: 0px; top: 20px; right: 0px; overflow-y: scroll;");
+        this.add(this.head, this.body);
+    }
+
+    /**
+     * Sets the array data of the data table view.
+     * 
+     * If the data table view is published, the existing rows are cleared and new rows are added for each element in the array of data objects.
+     * @param {any[]} arrayData - The array of data objects to set in the data table view.
+     * @returns {KDataTableView2Class} - The current instance of the KDataTableView2Class class.
+     */
+    setArrayData(arrayData, clear = true) {
+        this.arrayData = arrayData;
+        if (clear) this.body.clear();
+        if (this.isPublished) {
+            for (let i = 0; i < this.arrayData.length; i++) {
+                this.newRow(this.arrayData[i]);
+            }
+        }
+        return this;
+    }
+
+
+    addColumn(cellBilderCallback, name, description = "", width = 80) {
+        this.columns.push({ "cellBilderCallback": cellBilderCallback, "name": name, "description": description, "width": width });
+        return this;
+    }
+
+    /**
+     * Sets the callback function that will be called whenever a new row is added to the data table view.
+     * The callback function will be passed the data for the new row as an argument.
+     * The callback function should return a KicsyComponent that will be added to the row.
+     * First argument is the row, second argument is the data array which contains the data for the new row.
+     * @param {function} callback - The callback function to call whenever a new row is added.
+     * @returns {KDataTableView2} - The current instance of the data table view.
+     */
+    setNewRowCallback(callback) {
+        this.newRowCallback = callback;
+        return this;
+    }
+
+    /**
+     * Adds a new row to the data table view based on the provided data.
+     * The row is added to the body of the data table view.
+     * The row is given a CSS style based on the parity of its index: odd rows are given the CSS style specified by the oddRowCssText property, and even rows are given the CSS style specified by the evenRowCssText property.
+     * The newRowCallback function is called with the row and the data as arguments.
+     * 
+     * @param {object} rowData - The data to use to create the row.
+     * @return {KDataTableView2Class} - The current instance of the KDataTableView2Class class.
+     * @example
+     * callback: function(row, rowData) { return KLabel().addCssText("background-color: #ccc;").setValue(rowData.id); }
+     */
+    newRow(rowData) {
+        let rowsCount = this.body.dom.childNodes.length;
+        let row = KRow().addCssText(rowsCount % 2 == 0 ? this.oddRowCssText : this.evenRowCssText);
+        this.newRowCallback(row, rowData);
+        this.body.add(row);
+        return this;
+
+    }
+
+
+}
+
+function KDataTableView2() {
+    let obj = new KDataTableView2Class();
+    return obj;
+}
+
+
 
 /************************************************************************************ */
 /*                           WINDOWS FUNCTIONS                                        */
