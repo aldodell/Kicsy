@@ -801,6 +801,10 @@ class KicsyVisualComponent extends KicsyComponent {
         return this;
     }
 
+    setInputMode(mode) {
+        this.dom.inputMode = mode;
+        return this;
+    }
 
     /**
          * Constructor for KicsyVisualComponent class.
@@ -1240,7 +1244,6 @@ function KLayer(...args) {
         return this;
     }
 
-
     /**
      * Gets the value of the KLayer.
      *
@@ -1254,6 +1257,20 @@ function KLayer(...args) {
     }
 
     // Return the newly created KicsyVisualContainerComponent instance
+    return obj;
+}
+
+function KCell(...args) {
+    let obj = new KicsyVisualComponent("div", ...args);
+    obj.addCssText("display: inline-block;");
+    obj.setValue = function (value) {
+        obj.dom.innerText = value;
+        return this;
+    }
+
+    obj.getValue = function () {
+        return obj.dom.innerText;
+    }
     return obj;
 }
 
@@ -2835,19 +2852,35 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
 
     arrayData = [];
     newRowCallback = () => { };
+    rowCssText = "height: 22px;padding: 4px; border: 1px solid #ccc;";
     oddRowCssText = "background-color: #ccc;";
     evenRowCssText = "background-color: white;";
-    columns = [];
-
+    cellsCssText = "text-align: center; padding: 4px;";
+    headCellsCssText = "";
+    contentCellsCssText = "";
     head;
     body;
+    columns = [];
+
 
     constructor() {
         super();
-        this.addCssText("border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px; height: 50%; width: 50%;");
-        this.head = KRow().addCssText("display: block; margin: 0px; padding: 0px; height: 40px; left: 0px; top: 0px; right: 0px; background-color: #ccc;");
-        this.body = KRow().addCssText("display: block; margin: 0px; padding: 0px; height: calc(100% - 40px); left: 0px; top: 20px; right: 0px; overflow-y: scroll;");
+        this.addCssText("display: block; position: relative; border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px;");
+        this.head = KRow().addCssText("display: block; margin: 0px; padding: 0px; width: 100%; height: fit-content; background-color: #ccc;");
+        this.body = KRow().addCssText("display: block; margin: 0px; padding: 0px; height: 100%; overflow-y: scroll;");
         this.add(this.head, this.body);
+    }
+
+
+    setupHead() {
+        for (let column of this.columns) {
+            let columnHead = KCell()
+                .addCssText(this.cellsCssText)
+                .addCssText(this.headCellsCssText)
+                .setValue(column.description)
+                .addCssText("width: " + column.width + ";");
+            this.head.add(columnHead);
+        }
     }
 
     /**
@@ -2859,49 +2892,80 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
      */
     setArrayData(arrayData, clear = true) {
         this.arrayData = arrayData;
-        if (clear) this.body.clear();
+
+        this.head.clear();
+        this.setupHead();
+
+        if (clear) {
+            this.body.clear();
+
+        }
         if (this.isPublished) {
-            for (let i = 0; i < this.arrayData.length; i++) {
-                this.newRow(this.arrayData[i]);
+
+            // Check if the number of rows in the body is greater than the number of rows in the array of data
+            let rowsCount = this.body.dom.childNodes.length;
+
+            // Remove rows from the body if the number of rows in the body is greater than the number of rows in the array of data
+            if (rowsCount > this.arrayData.length) {
+                for (let i = this.arrayData.length; i < rowsCount; i++) {
+                    this.body.dom.childNodes[i].remove();
+                }
+                // Add rows to the body if the number of rows in the body is less than the number of rows in the array of data
+            } else if (rowsCount < this.arrayData.length) {
+                for (let i = rowsCount; i < this.arrayData.length; i++) {
+                    this.newRow(this.arrayData[i]);
+                }
+                // Update the data of the rows in the body
+            } else {
+
+                for (let i = 0; i < rowsCount; i++) {
+                    this.body.dom.childNodes[i].kicsy.setData(this.arrayData[i]);
+                }
             }
+
         }
         return this;
     }
 
 
-    addColumn(cellBilderCallback, name, description = "", width = 80) {
+    /**
+     * Adds a column to the data table view.
+     * @param {function} cellBilderCallback - A callback function that is called for each row of the data table view.
+     * The callback function is given the row and data as an arguments and must return a cell component.
+     * @param {string} name - The name of the column. This is used to identify the column in the row data.
+     * @param {string} [description] - The description of the column. This is displayed in the header of the data table view.
+     * @param {number} [width] - The width of the column in pixels.
+     * @returns {KDataTableView2Class} - The current instance of the KDataTableView2Class class.
+     */
+    addColumn(cellBilderCallback, name, description = "", width = "80px") {
         this.columns.push({ "cellBilderCallback": cellBilderCallback, "name": name, "description": description, "width": width });
         return this;
     }
 
-    /**
-     * Sets the callback function that will be called whenever a new row is added to the data table view.
-     * The callback function will be passed the data for the new row as an argument.
-     * The callback function should return a KicsyComponent that will be added to the row.
-     * First argument is the row, second argument is the data array which contains the data for the new row.
-     * @param {function} callback - The callback function to call whenever a new row is added.
-     * @returns {KDataTableView2} - The current instance of the data table view.
-     */
-    setNewRowCallback(callback) {
-        this.newRowCallback = callback;
-        return this;
-    }
+
 
     /**
-     * Adds a new row to the data table view based on the provided data.
-     * The row is added to the body of the data table view.
-     * The row is given a CSS style based on the parity of its index: odd rows are given the CSS style specified by the oddRowCssText property, and even rows are given the CSS style specified by the evenRowCssText property.
-     * The newRowCallback function is called with the row and the data as arguments.
-     * 
-     * @param {object} rowData - The data to use to create the row.
-     * @return {KDataTableView2Class} - The current instance of the KDataTableView2Class class.
-     * @example
-     * callback: function(row, rowData) { return KLabel().addCssText("background-color: #ccc;").setValue(rowData.id); }
+     * Creates a new row with the given data.
+     * @param {object} [rowData] - The data object to set for the new row.
+     * @returns {KDataTableView2Class} - The current instance of the KDataTableView2Class class.
      */
     newRow(rowData) {
         let rowsCount = this.body.dom.childNodes.length;
-        let row = KRow().addCssText(rowsCount % 2 == 0 ? this.oddRowCssText : this.evenRowCssText);
-        this.newRowCallback(row, rowData);
+        let row = KRow()
+            .addCssText(this.rowCssText)
+            .addCssText(rowsCount % 2 == 0 ? this.oddRowCssText : this.evenRowCssText)
+
+        for (let column of this.columns) {
+            let cell = column
+                // Call the cellBilderCallback function to get the cell component. It has two arguments: the row and the row data
+                .cellBilderCallback(row, rowData)
+                .addCssText("width: " + column.width + ";")
+                .addCssText(this.cellsCssText)
+                .addCssText(this.contentCellsCssText)
+                .setName(column.name);
+            row.add(cell);
+        }
+        row.setData(rowData);
         this.body.add(row);
         return this;
 
@@ -3127,17 +3191,35 @@ function KNavigationManager() { return new KNavigationManagerClass(); }
 
 class KScreenClass extends KicsyVisualContainerComponent {
 
+    head;
+    body;
+    backButton;
+    title;
+
+    screenCssText = "display: block; position: absolute; width: calc(100% - 16px); height: 100%; margin: 8px; padding: 0px;overflow: hidden;";
+    headCssText = "display: block; height: auto; margin: 0px; padding: 8px; background-color: lightblue; border: 1px solid gray;  border-top-left-radius: 8px; border-top-right-radius: 8px;";
+    backButtonCssText = "display: inline-block; margin:0px; padding: 0px;border: none; text-align: center; width: 40px; height: 20px; vertical-align: top;";
+    titleCssText = "display: inline-block; margin:0px; padding: 0px;border: none; text-align: center; width: calc(100% - 40px); height: 20px; vertical-align: top; font-weight: bold; font-size: 20px;";
+    bodyCssText = "display: block; position: relative; margin: 0px; padding: 0px; height: calc(100% - 64px); width: calc(100% - 3px); background-color: lightyellow; border : 1px solid gray; ";
     constructor(kNavigationManager = null) {
         super();
-        this.addCssText("display: block;position: absolute; left:8px; top: 8px; right:8px; bottom: 8px; padding: 8px;")
-            .addCssText("background-color: lightyellow;")
-            .addCssText("border : 1px solid gray; border-radius: 8px;");
 
-        //Add back navigation button
-        this.backButton = KButton("<-")
-            .addCssText("position: absolute; left: 8px; top: 8px;")
-            .addCssText("width: 30px; height: 30px;")
-            .addCssText("font-size: 20px;");
+        this.backButton = KButton("↩")
+        this.head = new KLayer();
+        this.body = new KLayer();
+        this.title = KLabel("Kicsy Screen")
+
+        this.head.add(this.backButton, this.title);
+        this.add(this.head, this.body);
+        this.add = function (...args) { this.body.add(...args); return this; };
+
+
+        this.addCssText(this.screenCssText);
+        this.head.addCssText(this.headCssText);
+        this.backButton.addCssText(this.backButtonCssText);
+        this.title.addCssText(this.titleCssText);
+        this.body.addCssText(this.bodyCssText);
+
 
         if (kNavigationManager != null) {
             this.backButton.addEvent("click", () => {
@@ -3145,15 +3227,50 @@ class KScreenClass extends KicsyVisualContainerComponent {
             });
         }
 
-        //Add title
-        this.title = KLabel("Kicsy Screen")
-            .addCssText("position: absolute; left: 50%; top: 8px;")
-            .addCssText("transform: translateX(-50%);")
-            .addCssText("font-size: 20px;")
-            .addCssText("font-weight: bold;");
-
-        this.add(this.backButton, this.title);
     }
+
+
+
+    /*
+        constructor(kNavigationManager = null) {
+            super();
+    
+            this.addCssText("display: block; position: absolute; width: 100%; height: 100%; margin: 0px; padding: 0px;");
+    
+            this.head = new KLayer()
+                .addCssText("display: block; height: 40px; margin: 4px; padding: 8px; background-color: lightblue;  border-top-left-radius: 8px; border-top-right-radius: 8px;");
+    
+            this.body = new KLayer()
+                .addCssText("display: block; height: calc(100% - 40px); margin: 0px; padding: 8px; ")
+                .addCssText("background-color: lightyellow;")
+                .addCssText("border : 1px solid gray;");
+    
+            //Add back navigation button
+            this.backButton = KButton("<-")
+                .addCssText("position: absolute; left: 8px; top: 8px;")
+                .addCssText("width: 30px; height: 30px;")
+                .addCssText("font-size: 20px;");
+    
+            if (kNavigationManager != null) {
+                this.backButton.addEvent("click", () => {
+                    kNavigationManager.back();
+                });
+            }
+    
+            //Add title
+            this.title = KLabel("Kicsy Screen")
+                .addCssText("position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);")
+                .addCssText("font-size: 20px;")
+                .addCssText("font-weight: bold;");
+    
+            this.head.add(this.backButton, this.title);
+            this.add(this.head, this.body);
+    
+            this.add = function (...args) { this.body.add(...args); return this; };
+        }
+        */
+
+
 }
 
 function KScreen(kNavigationManager = null) {
@@ -3741,6 +3858,8 @@ class KDesktopClass extends KApplicationClass {
                 this.rootView.hide();
                 this.wallpaper.hide();
                 break;
+
+                
 
             // If the action is "get_rootView", return the rootView of the desktop application.
             case "get_rootView":
