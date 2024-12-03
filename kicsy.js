@@ -1531,13 +1531,24 @@ function KDataList() {
         }
     }
 
+    /**
+     * Adds an option to the datalist.
+     *
+     * @param {string|number} value - The value of the option.
+     * @param {string} [label=value] - The label of the option.
+     * @returns {KDataList} - The current instance of KDataList.
+     */
     obj.addOption = function (value, label = value) {
         obj.entries.push({ value: value, label: label });
         let option = new KicsyVisualComponent("option", undefined);
         obj.dom.appendChild(option.dom);
-        option.dom.setAttribute("value", label);
-        //option.dom.setAttribute("label", label);
-        //option.dom.textContent = label;
+        /* Atención: a propósito se cola la etiqueta (label)
+        En vez de value para que se vea en el componente 
+        La etiqueta. Luego, el valor se toma con la función 
+        Auxiliar getValueFromLabel
+        */
+        option.dom.setAttribute("value", label); //<=- OJO
+        option.dom.setAttribute("label", label);
         return obj;
     }
 
@@ -3564,6 +3575,11 @@ class KMessageClass extends KicsyObject {
             body: formData
         };
 
+        if (!window.navigator.onLine) {
+            alert("No internet connection");
+            return Promise.reject(0);
+        }
+
         return async function processResponse(url, requestOptions) {
             const response = await fetch(url, requestOptions);
             if (response.ok) {
@@ -3859,7 +3875,7 @@ class KDesktopClass extends KApplicationClass {
                 this.wallpaper.hide();
                 break;
 
-                
+
 
             // If the action is "get_rootView", return the rootView of the desktop application.
             case "get_rootView":
@@ -4196,6 +4212,14 @@ KEval();
 function KUserApp() {
     let app = new KApplicationClass("user", "User App", ["system"]);
     app.help = "Manage users.";
+    /*************  ✨ Codeium Command ⭐  *************/
+    /**
+     * Executes the user application and returns the current user object.
+     *
+     * @param {Object} message - The message object containing the information to run the application.
+     * @returns {Object} - The current user object.
+     */
+    /******  2a3144ef-75d9-4fdd-89f4-918bfa1edc16  *******/
     app.run = function (message) {
         return Kicsy.user;
     }
@@ -4274,10 +4298,12 @@ function KUserApp() {
                                 break;
 
                             case "user_authentication_failed":
+                                Kicsy.print("user_authentication_failed ");
                                 Kicsy.print(message.payload);
                                 break;
 
                             case "user_not_found":
+                                Kicsy.print("user_not_found");
                                 Kicsy.print(message.payload);
                                 break;
                         }
