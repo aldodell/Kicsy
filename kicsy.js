@@ -3147,7 +3147,7 @@ class KNavigationManagerClass extends KicsyObject {
         }
     }
     navigateTo(view) {
-        this.hideAll();
+        //this.hideAll();
         this.push(view);
         view.show();
         return this;
@@ -3160,9 +3160,10 @@ class KNavigationManagerClass extends KicsyObject {
     }
 
     back() {
-        this.hideAll();
+        let i = this.queue.length - 1;
+        if(i<0) return;
+        this.queue[i].hide();
         this.queue.pop();
-        this.queue[this.queue.length - 1].show();
     }
 
     get top() {
