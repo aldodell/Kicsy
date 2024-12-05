@@ -1,9 +1,15 @@
+/**
+ * Base class for all Kicsy components
+ */
 class KicsyObject {
     static #_id = 0;
     static get mainNode() { return document.body; }
     static get id() { return "K" + this.#_id++; }
 }
 
+/**
+ * Base class for all Kicsy visual components
+ */
 class KicsyView extends KicsyObject {
     // The DOM element for the component
     dom;
@@ -74,6 +80,12 @@ class KicsyView extends KicsyObject {
      */
     get bordered() { this.dom.style.border = "1px solid black"; return this; }
 
+    /**
+     * Add a simple shadow to the DOM element
+     * @returns {KicsyView}
+     */
+    get shadowed() { this.dom.style.boxShadow = "0 0 5px black"; return this; }
+
 
 }
 
@@ -135,7 +147,7 @@ Object.defineProperty(KicsyView.prototype, 'Layer', {
  * Create a property on KicsyView that returns a new instance of KicsyView of type label
  *
  * @type {KicsyView}
- */ 
+ */
 Object.defineProperty(KicsyView.prototype, 'Label', {
     get: function () {
         let obj = this.newView("label", undefined, this.parentNode);
@@ -151,6 +163,8 @@ Object.defineProperty(KicsyView.prototype, 'Label', {
                 return obj.dom.innerText;
             }
         }
+
+        return obj;
     }
 })
 
@@ -165,64 +179,59 @@ Object.defineProperty(KicsyView.prototype, 'Date', {
     }
 })
 
-
-
-
-
-
-/*
-constructor() {
-    this.view.setValue = function (value) { this.view.dom.value = value; return this; }
-    this.view.getValue = function (callback) {
-        if (callback) {
-            callback(this.view.dom.value);
-            return this;
-        }
-        return this.dom.value;
+/**
+ * Create a property on KicsyView that returns a new instance of KicsyView of type Email
+ *
+ * @type {KicsyView}
+ */
+Object.defineProperty(KicsyView.prototype, 'Email', {
+    get: function () {
+        return this.newView("input", "email", this.parentNode);
     }
+})
 
-    this.view.addEvent = function (event, callback) { this.view.dom.addEventListener(event, callback); return this; }
-    this.view.removeEvent = function (event, callback) { this.view.dom.removeEventListener(event, callback); return this; }
-    this.view.getMe = function (callback) { callback(this); return this; }
-    this.view.addCssText = function (cssText) { this.view.dom.style.cssText += ";" + cssText; return this; }
-
-    this.view.newView = function (htmlTag, type, parentNode = KicsyObject.mainNode) {
-        this.view.dom = document.createElement(htmlTag);
-        if (type != undefined) this.view.dom.setAttribute("type", type);
-        this.view.dom.setAttribute("id", KicsyObject.id);
-        parentNode.appendChild(this.view.dom);
-        return this;
+/**
+ * Create a property on KicsyView that returns a new instance of KicsyView of type File
+ *
+ * @type {KicsyView}
+ */
+Object.defineProperty(KicsyView.prototype, 'File', {
+    get: function () {
+        return this.newView("input", "file", this.parentNode);
     }
-}
-}
+})
 
-
-Object.defineProperty(KicsyObject.prototype, 'Button', {
-get: function () {
-    return this.newView("input", "button");
-}
-});
-
-
-Object.defineProperty(KicsyObject.prototype, 'Layer', {
-get: function () {
-    this.newView("div");
-    this.view.setValue = function (value) {
-        this.view.dom.innerHTML = value;
-        return this;
+/**
+ * Create a property on KicsyView that returns a new instance of KicsyView of type Password
+ *
+ * @type {KicsyView}
+ */
+Object.defineProperty(KicsyView.prototype, 'Password', {
+    get: function () {
+        return this.newView("input", "password", this.parentNode);
     }
+})
 
-    obj.getValue = function (callback) {
-        if (callback) {
-            callback(obj.dom.innerHTML);
-            return obj;
-        } else {
-            return obj.dom.innerHTML;
-        }
+
+/********************  MESSAGES ********************/
+
+
+
+/**
+ * Base class for all Kicsy messages
+ */
+class KicsyMessage extends KicsyObject {
+    source;
+    detination;
+    author;
+    destinatary;
+    action;
+    payload;
+    server = false;
+
+    send(server = false) {
+
     }
 }
-});
 
-
-*/
 

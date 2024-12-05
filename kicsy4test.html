@@ -17,7 +17,6 @@
 
             .Layer
             .setValue("Hello layer")
-            .bordered
             .add(me => {
                 me
                     .Text
@@ -26,10 +25,15 @@
                     .Text
                     .setValue("Hello inner text 2")
             })
+            .bordered
+            .shadowed
 
             .Button
             .setValue("Hello button 2")
             .addEvent("click", () => { alert("Hello button 2"); })
+
+            .Label
+            .setValue("Hello label")
 
 
     </script>
