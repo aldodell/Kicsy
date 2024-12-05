@@ -1,0 +1,48 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Kicsy</title>
+    <link rel="shortcut icon" href="#">
+</head>
+
+<body>
+    <script src="kicsy3.js"></script>
+    <script>
+
+
+        let t;
+        _
+            .Text
+            .setValue("Hello world")
+            .getMe(me => t = me)
+            .addEvent("change", () => {
+                console.log("X");
+
+            })
+
+            .Button
+            .setValue("Hello button")
+            .addEvent("click", () => {
+                console.log("Hello");
+                alert(t.getValue());
+            })
+
+            .Layer
+            .setValue("Hello layer")
+            .setName("layer1")
+            .add(me => {
+                me
+                    .Button
+                    .setValue("Hello button from layer")
+                    .addEvent("click", () => {
+                        console.log("Hello from layer");
+                    })
+            })
+
+    </script>
+</body>
+
+
+</html>
