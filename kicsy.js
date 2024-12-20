@@ -1542,12 +1542,13 @@ function KDataList() {
         obj.entries.push({ value: value, label: label });
         let option = new KicsyVisualComponent("option", undefined);
         obj.dom.appendChild(option.dom);
-        /* Atención: a propósito se cola la etiqueta (label)
+        /* 
+        Atención: a propósito se coloca la etiqueta (label)
         En vez de value para que se vea en el componente 
         La etiqueta. Luego, el valor se toma con la función 
-        Auxiliar getValueFromLabel
+        auxiliar getValueFromLabel
         */
-        option.dom.setAttribute("value", label); //<=- OJO
+        option.dom.setAttribute("value", label); // <=- OJO
         option.dom.setAttribute("label", label);
         return obj;
     }
@@ -2863,11 +2864,11 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
 
     arrayData = [];
     newRowCallback = () => { };
-    rowCssText = "height: 22px;padding: 4px; border: 1px solid #ccc;";
+    rowCssText = "height: fit-content;padding: 0px; border: 1px solid #ccc;";
     oddRowCssText = "background-color: #ccc;";
     evenRowCssText = "background-color: white;";
-    cellsCssText = "text-align: center; padding: 4px;";
-    headCellsCssText = "";
+    cellsCssText = "padding: 4px; vertical-align: top;";
+    headCellsCssText = "text-align: center;";
     contentCellsCssText = "";
     head;
     body;
@@ -2882,6 +2883,35 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
         this.add(this.head, this.body);
     }
 
+    addCellsCssText(cssText) {
+        this.cellsCssText += ";" + cssText;
+        return this;
+    }
+
+    addHeadCellsCssText(cssText) {
+        this.headCellsCssText += ";" + cssText;
+        return this;
+    }
+
+    addContentCellsCssText(cssText) {
+        this.contentCellsCssText += ";" + cssText;
+        return this;
+    }
+
+    addRowCssText(cssText) {
+        this.rowCssText += ";" + cssText;
+        return this;
+    }
+
+    addOddRowCssText(cssText) {
+        this.oddRowCssText += ";" + cssText;
+        return this;
+    }
+
+    addEvenRowCssText(cssText) {
+        this.evenRowCssText += ";" + cssText;
+        return this;
+    }
 
     setupHead() {
         for (let column of this.columns) {
@@ -2976,8 +3006,18 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
                 .setName(column.name);
             row.add(cell);
         }
-        row.setData(rowData);
+
+
         this.body.add(row);
+
+        if (rowData != undefined) {
+            row.setData(rowData);
+        } else {
+            row.dom.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
+        }
+
+
+
         return this;
 
     }
@@ -3161,7 +3201,7 @@ class KNavigationManagerClass extends KicsyObject {
 
     back() {
         let i = this.queue.length - 1;
-        if(i<0) return;
+        if (i < 0) return;
         this.queue[i].hide();
         this.queue.pop();
     }
@@ -3636,6 +3676,34 @@ class KMessageClass extends KicsyObject {
 function KMessage(source = "", target = "", author = "", destinatary = "", action = "", payload = {}) {
     // Create a new instance of KMessageClass with the provided arguments
     return new KMessageClass(source, target, author, destinatary, action, payload);
+}
+
+class KProcessControllerClass extends KicsyObject {
+    step = 0;
+    callback;
+    stepsToExecute = 0;
+    get next() {
+        this.step++;
+        if (this.step == this.stepsToExecute) {
+            this.callback();
+        }
+    }
+
+    /**
+     * Constructor for the KProcessControllerClass object.
+     * 
+     * @param {number} stepsToExecute - The number of steps that should be executed.
+     * @param {function} callback - The callback to be called when all the steps are finished.
+     */
+    constructor(stepsToExecute, callback) {
+        super();
+        this.stepsToExecute = stepsToExecute;
+        this.callback = callback;
+    }
+}
+
+function KProcessController(stepsToExecute, callback) {
+    return new KProcessControllerClass(stepsToExecute, callback);
 }
 
 

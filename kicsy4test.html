@@ -1,3 +1,4 @@
+<!doctype html>
 <html>
 
 <head>
@@ -10,30 +11,53 @@
 <body>
     <script src="kicsy4.js"></script>
     <script>
-        new KicsyView()
 
-            .Button
-            .setValue("Hello button")
-
+        KicsyView.new
             .Layer
-            .setValue("Hello layer")
             .add(me => {
                 me
                     .Text
                     .setValue("Hello inner text")
 
-                    .Text
-                    .setValue("Hello inner text 2")
+                    .Button
+                    .setValue("Hello button")
+                    .addEvent("click", () => {
+                        alert("Hello button");
+                        KicsyMessage.new("system", "desktop", "Kicsy", "system", "update").send();  
+                    })
             })
-            .bordered
-            .shadowed
+            .toRow
+            .addBorder()
+            .addShadow()
+            .spreadedHeight
+            .addMargin("10px")
+            .addPadding("10px")
 
-            .Button
-            .setValue("Hello button 2")
-            .addEvent("click", () => { alert("Hello button 2"); })
 
-            .Label
-            .setValue("Hello label")
+        /*
+         .Button
+         .setValue("Hello button")
+
+         .Layer
+         .setValue("Hello layer")
+         .add(me => {
+             me
+                 .Text
+                 .setValue("Hello inner text")
+
+                 .Text
+                 .setValue("Hello inner text 2")
+         })
+         .bordered
+         .shadowed
+
+         .Button
+         .setValue("Hello button 2")
+         .addEvent("click", () => { alert("Hello button 2"); })
+
+         .Label
+         .setValue("Hello label")
+         */
 
 
     </script>
