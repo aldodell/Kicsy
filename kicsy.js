@@ -3838,20 +3838,48 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
     bottomOffset = 50;
     barSpan = 20;
 
+/**
+ * Sets the left offset of the graph bars. Pixels. Do not append suffix units.
+ * 
+ * @param {number} value - The value to set as the left offset.
+ * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
+ */
+
     setLeftOffset(value) {
         this.leftOffset = value;
         return this;
     }
+
+/**
+ * Sets the bottom offset of the graph bars in pixels.
+ * 
+ * @param {number} value - The value to set as the bottom offset.
+ * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
+ */
 
     setBottomOffset(value) {
         this.bottomOffset = value;
         return this;
     }
 
+    /**
+     * Sets the width of the graph bars. Pixels. Do not append suffix units.
+     * 
+     * @param {number} value - The value to set as the width of the bars.
+     * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
+     */
     setBarSpan(value) {
         this.barSpan = value;
         return this;
     }
+
+/**
+ * Adds the provided CSS text to the label style of the graph.
+ * This CSS text will be applied to the labels of the graph's bars.
+ *
+ * @param {string} value - The CSS text to add to the label's style.
+ * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
+ */
 
     addLabelCssText(value) {
         this.labelCssText = value;
@@ -3862,6 +3890,16 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
         super();
         this.addCssText("display: block; position: absolute; width: 100%; height: 100px; border: margin:8px; padding:8px; border: 1px solid black; background-color: lightblue;");
     }
+
+/**
+ * Adds a reference line to the chart with the specified value and label.
+ * Updates the minimum and maximum value of the chart if the provided value
+ * is outside the current range.
+ *
+ * @param {number} value - The value of the reference line.
+ * @param {string} label - The label for the reference line.
+ * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
+ */
 
     addReference(value, label) {
         if (value > this.maxValue) this.maxValue = value;
@@ -3894,6 +3932,23 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
         this.orientation = orientation;
         return this;
     }
+
+/**
+ * Renders the bar chart by drawing reference lines and bars according to the chart's orientation.
+ * Clears previous content and calculates dimensions based on the orientation.
+ * 
+ * Vertical orientation:
+ *   - Calculates and positions reference lines and labels vertically.
+ *   - Positions bars based on their values, adjusting height proportionally.
+ * 
+ * Horizontal orientation:
+ *   - Calculates and positions reference lines and labels horizontally.
+ *   - Positions bars based on their values, adjusting width proportionally.
+ *
+ * Updates the chart display by adding lines, labels, and bars to the DOM.
+ * 
+ * @returns {BarChart} - The current instance of BarChart.
+ */
 
     render() {
         this.clear();
@@ -4034,6 +4089,15 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
 
 }
 
+
+/**
+ * Creates a new instance of KGraphBarContainerClass.
+ *
+ * This function initializes and returns a new instance of the KGraphBarContainerClass,
+ * which is used to represent a container for graph bars in a graphical user interface.
+ *
+ * @returns {KGraphBarContainerClass} - The newly created instance of KGraphBarContainerClass.
+ */
 
 function KGraphBarContainer() {
     return new KGraphBarContainerClass();
