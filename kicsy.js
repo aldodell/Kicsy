@@ -21,6 +21,7 @@ class Kicsy {
     static currentUser = null;
     static serverURL = "../Kicsy/KicsyServer.php";
     static windows = [];
+    static checkInternetConnection = false;
 
 
     /**
@@ -1265,6 +1266,7 @@ function KLayer(...args) {
     return obj;
 }
 
+
 function KCell(...args) {
     let obj = new KicsyVisualComponent("div", ...args);
     obj.addCssText("display: inline-block;");
@@ -1552,6 +1554,7 @@ function KDataList() {
             r = obj.entries.find(function (e) {
                 return e.value == value
             });
+            if (r == undefined) return r;
             rs = r.label;
             return rs;
         } catch (e) {
@@ -1769,6 +1772,17 @@ function KDateTimeLocal(...args) {
 
 function KHorizontalRule(...args) {
     return new KicsyVisualComponent("hr", undefined, ...args);
+}
+
+function KProgressBar(...args) {
+    let obj = new KicsyVisualComponent("progress", undefined, ...args);
+    obj.dom.max = 100;
+
+    obj.setMax = function (value) {
+        obj.dom.max = value;
+        return this;
+    }
+    return obj;
 }
 
 
@@ -2044,6 +2058,8 @@ function KSelect(...args) {
 
             obj.addOption(value, label, selected, disabled);
         }
+
+        return obj;
     }
 
 
@@ -2890,12 +2906,14 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
 
     arrayData = [];
     newRowCallback = () => { };
-    rowCssText = "height: fit-content;padding: 0px; border: 1px solid #ccc;";
+    rowCssText = "height: fit-content; width: fit-content; padding: 0px; border: 1px solid #ccc;";
     oddRowCssText = "background-color: #ccc;";
     evenRowCssText = "background-color: white;";
     cellsCssText = "padding: 4px; vertical-align: top;";
     headCellsCssText = "text-align: center;";
     contentCellsCssText = "";
+    buttonWidth = 24;
+    computedHeadWidth = 0;
 
     head;
     body;
@@ -2904,8 +2922,8 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
 
     constructor() {
         super();
-        this.addCssText("display: block; position: relative; border: 1px solid #ccc; border-radius: 8px; margin: 0px; padding: 0px;");
-        this.head = KRow().addCssText("display: block; position: sticky; top:0px; margin: 0px; padding: 0px; width: 100%; height: fit-content; background-color: #ccc; z-index: 1;");
+        this.addCssText("display: block; position: relative; margin: 0px; padding: 0px; width: fit-content; ");
+        this.head = KRow().addCssText("display: inline-block; position: sticky; top:0px; margin: 0px; padding: 0px; height: fit-content; width: fit-content; background-color: #ccc; z-index: 1;");
         this.body = KRow().addCssText("display: block; position: relative; margin: 0px; padding: 0px; height: 100%; overflow-y: scroll;");
         this.add(this.head, this.body);
     }
@@ -2917,6 +2935,17 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
 
     addHeadCellsCssText(cssText) {
         this.headCellsCssText += ";" + cssText;
+        this.head.addCssText(this.headCellsCssText);
+        return this;
+    }
+
+    addHeadCssText(cssText) {
+        this.head.addCssText(cssText);
+        return this;
+    }
+
+    addBodyCssText(cssText) {
+        this.body.addCssText(cssText);
         return this;
     }
 
@@ -2941,14 +2970,35 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
     }
 
     setupHead() {
+
         for (let column of this.columns) {
             let columnHead = KCell()
                 .addCssText(this.cellsCssText)
                 .addCssText(this.headCellsCssText)
-                .setValue(column.description)
-                .addCssText("width: " + column.width + ";");
+                .setValue(column.description);
+
+            if (column.showOrderButton) {
+                columnHead.addCssText(`width:calc(${column.width} - ${this.buttonWidth}px)`);
+
+
+            } else {
+                columnHead.addCssText(`width:${column.width};`)
+            }
+
             this.head.add(columnHead);
+
+            if (column.showOrderButton) {
+                let button = KButton()
+                    .addCssText("display:inline-block; width: " + this.buttonWidth + "px;")
+                    .setValue(String.fromCharCode(8645))
+                    .addEvent("click", () => {
+                        this.sortByColumn(column.name);
+                    })
+                this.head.add(button);
+            }
         }
+        this.computedHeadWidth = window.getComputedStyle(this.head.dom).getPropertyValue("width");
+
     }
 
     /**
@@ -2998,15 +3048,15 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
 
     /**
      * Adds a column to the data table view.
-     * @param {function} cellBilderCallback - A callback function that is called for each row of the data table view.
+     * @param {function} cellBilderCallback - A callback function that is called for each row of the data table view. Must has two arguments: row and rowData
      * The callback function is given the row and data as an arguments and must return a cell component.
      * @param {string} name - The name of the column. This is used to identify the column in the row data.
      * @param {string} [description] - The description of the column. This is displayed in the header of the data table view.
      * @param {number} [width] - The width of the column in pixels.
      * @returns {KDataTableView2Class} - The current instance of the KDataTableView2Class class.
      */
-    addColumn(cellBilderCallback, name, description = "", width = "80px") {
-        this.columns.push({ "cellBilderCallback": cellBilderCallback, "name": name, "description": description, "width": width });
+    addColumn(cellBilderCallback, name, description = "", width = "80px", showOrderButton = false) {
+        this.columns.push({ "cellBilderCallback": cellBilderCallback, "name": name, "description": description, "width": width, "showOrderButton": showOrderButton, "ascending": true });
         return this;
     }
 
@@ -3021,7 +3071,7 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
         let rowsCount = this.body.dom.childNodes.length;
         let row = KRow()
             .addCssText(this.rowCssText)
-            .addCssText(rowsCount % 2 == 0 ? this.oddRowCssText : this.evenRowCssText)
+            .addCssText(rowsCount % 2 == 0 ? this.oddRowCssText : this.evenRowCssText);
 
         for (let column of this.columns) {
             let cell = column
@@ -3045,6 +3095,57 @@ class KDataTableView2Class extends KicsyVisualContainerComponent {
 
         return this;
 
+    }
+
+    sortByColumn(name) {
+
+        let i = 0;
+        let j = 0;
+        let tempArrayData = [];
+        let dataLists = [];
+        let ascending = this.columns.find(col => col.name == name).ascending;
+        this.columns.find(col => col.name == name).ascending = !ascending;
+
+        //obtenemos los datalist desde la primera fila 
+        let row = this.body.dom.childNodes[0];
+        for (let column of row.childNodes) {
+            dataLists.push(column.list);
+        }
+
+
+        //Recorremos todas las filas y quitamos loda data list
+        for (let row of this.body.dom.childNodes) {
+
+            for (let column of row.childNodes) {
+                column.removeAttribute("list");
+            }
+            //obtenemos los datos directamente desde los componentes y los pasamos al array
+            tempArrayData.push(row.kicsy.getData());
+        }
+
+        //Ordenamos el array
+        if (ascending) {
+            tempArrayData = tempArrayData.sort(function (a, b) { return a[name] > b[name] });
+        } else {
+            tempArrayData = tempArrayData.sort(function (a, b) { return a[name] < b[name] });
+        }
+
+
+        //Pasamos los datos del array a los componentes
+        i = 0;
+        for (let row of this.body.dom.childNodes) {
+            row.kicsy.setData(tempArrayData[i]);
+            j = 0;
+            for (let column of row.childNodes) {
+                //Asignamos nuevamente los datalist
+                if (dataLists[j] != undefined) {
+                    column.setAttribute("list", dataLists[j].id);
+                }
+                j++;
+            }
+            i++;
+        }
+        return this;
     }
 
 
@@ -3211,6 +3312,13 @@ class KNavigationManagerClass extends KicsyObject {
             this.queue[i].hide();
         }
     }
+
+
+    navigateToIndex(index) {
+        this.hideAll();
+        this.queue[index].show();
+    }
+
     navigateTo(view) {
         //this.hideAll();
         this.push(view);
@@ -3228,7 +3336,8 @@ class KNavigationManagerClass extends KicsyObject {
         let i = this.queue.length - 1;
         if (i < 0) return;
         this.queue[i].hide();
-        this.queue.pop();
+        this.queue.pop().show();
+        return this;
     }
 
     get top() {
@@ -3362,6 +3471,7 @@ class KPaperSheetClass extends KicsyVisualContainerComponent {
     body;
     dpi;
     closeMessageLayer;
+    selectedPaperSize = "letter";
 
     sizes = {
         "a4": { width: "210mm", height: "297mm" },
@@ -3369,20 +3479,45 @@ class KPaperSheetClass extends KicsyVisualContainerComponent {
     }
 
     setPaperSize(name) {
+        this.selectedPaperSize = name;
         name = name.toLowerCase();
-        this.body.setSize(this.sizes[name].width, this.sizes[name].height);
+        let w = this.sizes[name].width;
+        let h = this.sizes[name].height;
+
+        let ml = window.getComputedStyle(this.body.dom).marginLeft;
+        let mr = window.getComputedStyle(this.body.dom).marginRight;
+        let mt = window.getComputedStyle(this.body.dom).marginTop;
+        let mb = window.getComputedStyle(this.body.dom).marginBottom;
+
+        if (ml == "") ml = "0px";
+        if (mr == "") mr = "0px";
+        if (mt == "") mt = "0px";
+        if (mb == "") mb = "0px";
+
+        let t = `width:calc(${w} - (${ml} + ${mr})); height:calc(${h} - (${mt} + ${mb}));`;
+
+        this.body.addCssText(t);
         return this;
     }
 
+    /**
+     * Adds the provided CSS text to the CSS style of the body of the paper sheet.
+     * Style is added to the body's DOM element.
+     * Must be used after the body has been added to the paper sheet.
+     * The paper sheet is resized to the selected size after adding the CSS text.
+     * @param {string} cssText - The CSS text to add to the style of the body.
+     * @return {KPaperSheetClass} - The current instance of the KPaperSheetClass class.
+     */
     addBodyCssText(cssText) {
         this.body.addCssText(cssText);
+        this.setPaperSize(this.selectedPaperSize);
         return this;
     }
 
     constructor() {
         super();
         //Configure main sheet
-        this.addCssText("display: block; position: absolute; width: 100%; height: 100%; margin: 0px; padding: 0px; overflow: hidden;");
+        this.addCssText("display: block; position: absolute; width: 100%; height: 100%; margin: 0px; padding: 0px; overflow: scroll;");
         this.addCssText("background-color: white;");
 
         //Configure boy container
@@ -3392,21 +3527,11 @@ class KPaperSheetClass extends KicsyVisualContainerComponent {
             .addCssText("display: block; position: absolute; width: 100%; height: 4em; margin: 10px; padding: 10px; background-color: rgba(234, 238, 228, 1); z-index: 100; text-align: center; font-size: 2em; color: black; border: 1px solid gray;");
         this.add(this.body, this.closeMessageLayer);
 
-        //setup boy to get DPI
-        this.body.addCssText("display: block; position: absolute; width: 1in; height: 1in; top:0px; left:0px;");
-
-        this.postPublishedCallback = function (obj) {
-            obj.dpi = obj.body.dom.offsetWidth;
-            console.log("DPI: " + obj.dpi);
-            return obj;
-        }
-
-
         //set default paper size and properties
         this.addBodyCssText("print-color-adjust: exact;");
         this.addBodyCssText("background-color: white;");
         this.addBodyCssText("border: 1px dotted gray;");
-        this.setPaperSize("letter");
+
 
         //Setup body add methods
         this.add = function (...args) { this.body.add(...args); return this; };
@@ -3419,13 +3544,16 @@ class KPaperSheetClass extends KicsyVisualContainerComponent {
             }
         })
 
-        this._show = this.show;
-        this.show = function () {
+
+
+        this.setPostPublishedCallback(() => {
+            this.setPaperSize(this.selectedPaperSize);
+            this.closeMessageLayer.show();
             window.setTimeout(() => {
                 this.closeMessageLayer.hide();
             }, 2000);
-            this._show();
-        }
+        })
+
     }
 }
 
@@ -3718,9 +3846,12 @@ class KMessageClass extends KicsyObject {
             body: formData
         };
 
-        if (!window.navigator.onLine) {
-            alert("No internet connection");
-            return Promise.reject(0);
+        if (Kicsy.checkInternetConnection) {
+            if (!window.navigator.onLine) {
+                alert("No internet connection");
+                return Promise.reject(0);
+            }
+
         }
 
         return async function processResponse(url, requestOptions) {
@@ -3838,24 +3969,24 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
     bottomOffset = 50;
     barSpan = 20;
 
-/**
- * Sets the left offset of the graph bars. Pixels. Do not append suffix units.
- * 
- * @param {number} value - The value to set as the left offset.
- * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
- */
+    /**
+     * Sets the left offset of the graph bars. Pixels. Do not append suffix units.
+     * 
+     * @param {number} value - The value to set as the left offset.
+     * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
+     */
 
     setLeftOffset(value) {
         this.leftOffset = value;
         return this;
     }
 
-/**
- * Sets the bottom offset of the graph bars in pixels.
- * 
- * @param {number} value - The value to set as the bottom offset.
- * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
- */
+    /**
+     * Sets the bottom offset of the graph bars in pixels.
+     * 
+     * @param {number} value - The value to set as the bottom offset.
+     * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
+     */
 
     setBottomOffset(value) {
         this.bottomOffset = value;
@@ -3873,39 +4004,45 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
         return this;
     }
 
-/**
- * Adds the provided CSS text to the label style of the graph.
- * This CSS text will be applied to the labels of the graph's bars.
- *
- * @param {string} value - The CSS text to add to the label's style.
- * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
- */
+    /**
+     * Adds the provided CSS text to the label style of the graph.
+     * This CSS text will be applied to the labels of the graph's bars.
+     *
+     * @param {string} value - The CSS text to add to the label's style.
+     * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
+     */
 
     addLabelCssText(value) {
         this.labelCssText = value;
         return this;
     }
 
-    constructor() {
-        super();
-        this.addCssText("display: block; position: absolute; width: 100%; height: 100px; border: margin:8px; padding:8px; border: 1px solid black; background-color: lightblue;");
+    clear() {
+        super.clear();
+        this.bars = [];
+        //this.references = [];
     }
 
-/**
- * Adds a reference line to the chart with the specified value and label.
- * Updates the minimum and maximum value of the chart if the provided value
- * is outside the current range.
- *
- * @param {number} value - The value of the reference line.
- * @param {string} label - The label for the reference line.
- * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
- */
+    constructor() {
+        super();
+        this.addCssText("display: block; position: relative; width: 100%; height: 100px; margin:0px; padding:0px; border: 1px solid black; background-color: lightgray;");
+    }
+
+    /**
+     * Adds a reference line to the chart with the specified value and label.
+     * Updates the minimum and maximum value of the chart if the provided value
+     * is outside the current range.
+     *
+     * @param {number} value - The value of the reference line.
+     * @param {string} label - The label for the reference line.
+     * @returns {KGraphBarContainerClass} - The current instance of the class, allowing for method chaining.
+     */
 
     addReference(value, label) {
         if (value > this.maxValue) this.maxValue = value;
         if (value < this.minValue) this.minValue = value;
         this.references.push({ value: value, label: label });
-        console.log(this.minValue, this.maxValue);
+
         return this;
     }
 
@@ -3933,29 +4070,29 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
         return this;
     }
 
-/**
- * Renders the bar chart by drawing reference lines and bars according to the chart's orientation.
- * Clears previous content and calculates dimensions based on the orientation.
- * 
- * Vertical orientation:
- *   - Calculates and positions reference lines and labels vertically.
- *   - Positions bars based on their values, adjusting height proportionally.
- * 
- * Horizontal orientation:
- *   - Calculates and positions reference lines and labels horizontally.
- *   - Positions bars based on their values, adjusting width proportionally.
- *
- * Updates the chart display by adding lines, labels, and bars to the DOM.
- * 
- * @returns {BarChart} - The current instance of BarChart.
- */
+    /**
+     * Renders the bar chart by drawing reference lines and bars according to the chart's orientation.
+     * Clears previous content and calculates dimensions based on the orientation.
+     * 
+     * Vertical orientation:
+     *   - Calculates and positions reference lines and labels vertically.
+     *   - Positions bars based on their values, adjusting height proportionally.
+     * 
+     * Horizontal orientation:
+     *   - Calculates and positions reference lines and labels horizontally.
+     *   - Positions bars based on their values, adjusting width proportionally.
+     *
+     * Updates the chart display by adding lines, labels, and bars to the DOM.
+     * 
+     * @returns {BarChart} - The current instance of BarChart.
+     */
 
     render() {
-        this.clear();
         let height;
         let width;
         let barLeft;
         let barSeparation;
+
 
 
         switch (this.orientation) {
@@ -3979,7 +4116,7 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
                     //Label
                     let labelLine = KCell();
                     labelLine.addCssText(`display: block; position: absolute; bottom: ${topBar}px;`);
-                    labelLine.addCssText("text-align: center;");
+                    labelLine.addCssText("text-align: center;margin-left:8px;");
                     labelLine.addCssText(this.labelCssText);
                     labelLine.setValue(reference.label);
                     this.add(labelLine);
@@ -3987,21 +4124,24 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
                     topBar += heightReference;
                 }
 
-                barLeft = this.leftOffset;
+
+                barLeft = parseInt(this.leftOffset);
                 barSeparation = ((width - this.leftOffset) - (this.bars.length * this.barSpan)) / this.bars.length;
 
                 for (let bar of this.bars) {
-                    // let barHeight = (bar.value / this.maxValue) * (heightReference * (this.references.length - 1)) + 1;
-                    let barHeight = (height - heightReference) * (bar.value - this.minValue) / (this.maxValue - this.minValue);
-                    //let barWidth = (width - widthReference) * (bar.value - this.minValue) / (this.maxValue - this.minValue);
 
+                    let barHeight = (height - heightReference) * (bar.value - this.minValue) / (this.maxValue - this.minValue);
                     let barWidth = this.barSpan;
+
                     let tower = KCell();
                     tower.setSize(barWidth, barHeight);
-                    tower.addCssText(`display: block; position: absolute; bottom: ${this.bottomOffset}px; left: ${barLeft}px;`);
-                    tower.addCssText("background-color: red;");
+                    tower.addCssText(`display: inline; position: absolute; bottom: ${this.bottomOffset}px; left: ${barLeft}px;`);
+                    tower.addCssText("background-color: red;  text-align: center;color: white; font-weight: bold; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;");
+                    tower.addCssText("border-radius: 4px; border: 1px solid white; box-shadow: 4px 4px 4px black;");
                     tower.addCssText(bar.cssText);
+                    tower.dom.innerHTML = bar.value;
                     this.add(tower);
+
 
 
                     let labelBar = KCell();
@@ -4014,8 +4154,10 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
                     let fontSizeNumber = parseInt(fontSize.match(/\d+/g)[0]);
                     labelBar.dom.style.bottom = (this.bottomOffset - fontSizeNumber * 2) + "px";
 
-                    barLeft += barSeparation + barWidth;
+                    barLeft += parseInt(barSeparation) + parseInt(barWidth);
+                    console.log(barLeft);
                 }
+
 
                 break;
 
@@ -4025,6 +4167,7 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
                 width = this.dom.offsetWidth - this.leftOffset;
                 let widthReference = width / this.references.length;
                 let leftLine = this.leftOffset;
+
                 for (let reference of this.references) {
                     //Line
                     let line = KCell();
@@ -4040,7 +4183,7 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
                     labelLine.addCssText("text-align: center;");
                     labelLine.addCssText(`left: ${leftLine}px; bottom: ${this.bottomOffset}px;`);
                     labelLine.addCssText(this.labelCssText);
-                    
+
                     labelLine.setValue(reference.label);
                     this.add(labelLine);
                     let fontSize = window.getComputedStyle(labelLine.dom).fontSize;
@@ -4060,12 +4203,15 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
 
                     let barHeight = this.barSpan;
                     let tower = KCell();
-                    tower.addCssText(`display: block; position: absolute;`);
+                    tower.addCssText(`display: block; position: absolute; color: white; font-weight: bold; text-align: center; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;`);
                     tower.addCssText("background-color: red;");
-                    tower.addCssText(bar.cssText);
+                    tower.addCssText("border-radius: 4px; border: 1px solid white; box-shadow: 4px 4px 4px black;");
+
                     tower.setSize(barWidth, barHeight);
-                    tower.addCssText(`left: ${this.leftOffset}px; top: ${barTop}px;`);
+                    tower.addCssText(`left: ${this.leftOffset}px; top: ${barTop}px;`)
+                    tower.dom.innerText = bar.value;
                     this.add(tower);
+                    tower.addCssText(bar.cssText);
 
                     //label
                     let labelBar = KCell();
@@ -4077,9 +4223,6 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
 
                     barTop += barSeparation + barHeight;
                 }
-
-
-
                 break;
 
         }
@@ -4402,7 +4545,7 @@ class KDesktopClass extends KApplicationClass {
                     KLayer()
                         .setValue(app.description)
                         .addCssText("display:block; position: absolute; top: 64px; left: 0px; margin: 2px; padding: 0px;")
-                        .addCssText("width: 128px; height: max-coontent; white-space: wrap; text-align: center;"),
+                        .addCssText("width: 128px; height: max-content; white-space: wrap; text-align: center;"),
                 )
                 .addEvent("click", function (e) {
                     KMessage(desktopAppName, app.name, Kicsy.currentUser.name, Kicsy.currentUser.name, "run").send();
