@@ -217,7 +217,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line201">line 201</a>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line485">line 485</a>
     </li></ul></dd>
     
 
@@ -388,7 +388,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line173">line 173</a>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line459">line 459</a>
     </li></ul></dd>
     
 
@@ -429,6 +429,419 @@
     <dd>
         
 <span class="param-type"><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="KDataList"><span class="type-signature"></span>KDataList<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="KicsyDataList.html">KicsyDataList</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Creates a new instance of KicsyDataList. Convenience function.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line374">line 374</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - The newly created KicsyDataList instance.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="KicsyDataList.html">KicsyDataList</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>KColumn(
+         KDataList()
+              .bindAs("numberList")
+              .add(1, "1")
+              .add(2, "2")
+              .add(3, "3")
+              .add(4, "4")
+              .add(5, "5")
+              .add(6, "6")
+              .add(7, "7")
+              .add(8, "8")
+              .add(9, "9")
+              .add(10, "10"),
+          KText().setDataList(KicsyComponent.bindings.numberList),
+      );</code></pre>
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="KLabel"><span class="type-signature"></span>KLabel<span class="signature">(text<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="KicsyVisualComponent.html">KicsyVisualComponent</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Creates a new instance of KLabel with the provided text.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>text</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The initial text of the KLabel component.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line497">line 497</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - The newly created KicsyVisualComponent instance.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="KList"><span class="type-signature"></span>KList<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="KicsyList.html">KicsyList</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Convenience function to creates a new instance of KicsyList.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line433">line 433</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - The newly created KicsyList instance.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="KicsyList.html">KicsyList</a></span>
 
 
     </dd>
@@ -559,7 +972,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line160">line 160</a>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line446">line 446</a>
     </li></ul></dd>
     
 
@@ -733,7 +1146,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line187">line 187</a>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line472">line 472</a>
     </li></ul></dd>
     
 
@@ -801,13 +1214,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyKernel.html">KicsyKernel</a></li><li><a href="KicsyObject.html">KicsyObject</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KText">KText</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyDataList.html">KicsyDataList</a></li><li><a href="KicsyKernel.html">KicsyKernel</a></li><li><a href="KicsyList.html">KicsyList</a></li><li><a href="KicsyObject.html">KicsyObject</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataList">KDataList</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KList">KList</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KText">KText</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 03 2025 22:59:13 GMT-0400 (Venezuela Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Tue Mar 04 2025 11:52:13 GMT-0400 (Venezuela Time)
 </footer>
 
 <script> prettyPrint(); </script>

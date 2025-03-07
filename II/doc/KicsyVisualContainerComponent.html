@@ -93,7 +93,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line135">line 135</a>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line227">line 227</a>
     </li></ul></dd>
     
 
@@ -263,7 +263,826 @@ Components are added to the container's DOM element.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line146">line 146</a>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line238">line 238</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - The current instance of the KicsyVisualContainerComponent class.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getData"><span class="type-signature"></span>getData<span class="signature">(result<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Retrieves data from all child components of the container.
+If a child component has a getData method, it is called recursively with the current result object.
+If a child component has a getValue method and a valid name attribute, its value is stored in the result object using the name as the key.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>result</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    {}
+                
+                </td>
+            
+
+            <td class="description last">The object to store the retrieved data from child components. If not provided, a new object is created.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line304">line 304</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - The result object containing data from all child components.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setBasis"><span class="type-signature"></span>setBasis<span class="signature">(basis)</span><span class="type-signature"> &rarr; {<a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Sets the flex basis property of the container's DOM element.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>basis</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The flex basis value to set.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line272">line 272</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - The current instance of the KicsyVisualContainerComponent class.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setData"><span class="type-signature"></span>setData<span class="signature">(data)</span><span class="type-signature"> &rarr; {<a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Sets the data for all child components of the container.
+If a child component has a setData method, it is called with the entire data object.
+If a child component has a setValue method and a name attribute, it is called with the corresponding value from the data object.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The data object to set for the child components.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line284">line 284</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - The current instance of the KicsyVisualContainerComponent class.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setGrow"><span class="type-signature"></span>setGrow<span class="signature">(grow)</span><span class="type-signature"> &rarr; {<a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Sets the flex grow property of the container's DOM element.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>grow</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The flex grow value to set.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line250">line 250</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - The current instance of the KicsyVisualContainerComponent class.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setShrink"><span class="type-signature"></span>setShrink<span class="signature">(shrink)</span><span class="type-signature"> &rarr; {<a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Sets the flex shrink property of the container's DOM element.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>shrink</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The flex shrink value to set.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line262">line 262</a>
     </li></ul></dd>
     
 
@@ -331,13 +1150,13 @@ Components are added to the container's DOM element.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyKernel.html">KicsyKernel</a></li><li><a href="KicsyObject.html">KicsyObject</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KText">KText</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyDataList.html">KicsyDataList</a></li><li><a href="KicsyKernel.html">KicsyKernel</a></li><li><a href="KicsyList.html">KicsyList</a></li><li><a href="KicsyObject.html">KicsyObject</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataList">KDataList</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KList">KList</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KText">KText</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 03 2025 22:59:13 GMT-0400 (Venezuela Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Tue Mar 04 2025 11:52:13 GMT-0400 (Venezuela Time)
 </footer>
 
 <script> prettyPrint(); </script>

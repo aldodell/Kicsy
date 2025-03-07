@@ -190,7 +190,7 @@ The component is published in the main surface.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line87">line 87</a>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line134">line 134</a>
     </li></ul></dd>
     
 
@@ -348,7 +348,7 @@ Style is added to the component's DOM element.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line126">line 126</a>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line173">line 173</a>
     </li></ul></dd>
     
 
@@ -458,7 +458,7 @@ Style is added to the component's DOM element.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line114">line 114</a>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line161">line 161</a>
     </li></ul></dd>
     
 
@@ -499,6 +499,367 @@ Style is added to the component's DOM element.
     <dd>
         
 <span class="param-type">KicsyViewComponent</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setDataList"><span class="type-signature"></span>setDataList<span class="signature">(kDataList<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {KicsyViewComponent}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Sets the data list of the component.
+If a kDataList is provided, it sets the list attribute of the component's DOM element to the id of the kDataList's DOM element.
+If a kDataList is not provided, it removes the list attribute of the component's DOM element.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>kDataList</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#KDataList">KDataList</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The data list to set for the component.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line185">line 185</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - The current instance of the KicsyViewComponent class.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">KicsyViewComponent</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setSize"><span class="type-signature"></span>setSize<span class="signature">(width, height)</span><span class="type-signature"> &rarr; {<a href="KicsyVisualComponent.html">KicsyVisualComponent</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Sets the width and height of the component's DOM element.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>width</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+|
+
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The width of the component. If a number is provided, it is converted to a string and appended with "px".</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>height</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+|
+
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The height of the component. If a number is provided, it is converted to a string and appended with "px".</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line202">line 202</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - Returns the current instance for method chaining.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></span>
 
 
     </dd>
@@ -568,7 +929,7 @@ Style is added to the component's DOM element.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line104">line 104</a>
+        <a href="kicsyII.js.html">kicsyII.js</a>, <a href="kicsyII.js.html#line151">line 151</a>
     </li></ul></dd>
     
 
@@ -636,13 +997,13 @@ Style is added to the component's DOM element.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyKernel.html">KicsyKernel</a></li><li><a href="KicsyObject.html">KicsyObject</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KText">KText</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="KicsyComponent.html">KicsyComponent</a></li><li><a href="KicsyDataList.html">KicsyDataList</a></li><li><a href="KicsyKernel.html">KicsyKernel</a></li><li><a href="KicsyList.html">KicsyList</a></li><li><a href="KicsyObject.html">KicsyObject</a></li><li><a href="KicsyVisualComponent.html">KicsyVisualComponent</a></li><li><a href="KicsyVisualContainerComponent.html">KicsyVisualContainerComponent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#KButton">KButton</a></li><li><a href="global.html#KColumn">KColumn</a></li><li><a href="global.html#KDataList">KDataList</a></li><li><a href="global.html#KLabel">KLabel</a></li><li><a href="global.html#KList">KList</a></li><li><a href="global.html#KRow">KRow</a></li><li><a href="global.html#KText">KText</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 03 2025 22:59:13 GMT-0400 (Venezuela Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Tue Mar 04 2025 11:52:13 GMT-0400 (Venezuela Time)
 </footer>
 
 <script> prettyPrint(); </script>

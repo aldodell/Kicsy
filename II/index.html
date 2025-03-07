@@ -11,15 +11,125 @@
     <script src="kicsyII.js"></script>
 
     <script>
+
+        var row0;
+        var list;
+        var numberList;
+        var calculus;
+
+        KRow(
+            KText().setName("a"),
+            KText().setName("b"),
+            KColumn(
+                KText().setName("c"),
+                KText().setName("d")
+            ),
+            KButton("c")
+                .addEvent("click", () => {
+                    console.log(
+                        KicsyComponent.bindings.row0.getData()
+                    )
+                })
+        ).getMe(me => row0 = me)
+
+        row0.setData({
+            a: 1,
+            b: 2,
+            c: 3,
+            d: 4
+        })
+
+
+        /*
+        Using KicsyList
+        */
+
+        let data = [
+            { name: "John", age: 30 },
+            { name: "Jane", age: 25 },
+            { name: "Bob", age: 35 }
+        ]
+
+
+        KList()
+            .getMe(me => { list = me })
+            .setBuildRowCallback(rowData => {
+                return KRow(
+                    KText().setName("name").setValue(rowData.name),
+                    KText().setName("age").setValue(rowData.age)
+                )
+            })
+            .setArrayData(data)
+
+        KButton("ver array data")
+            .addEvent("click", () => {
+                console.log(
+                    list.getArrayData()
+                )
+            })
+
+
+
+
+        /*
+        Using datalist
+        */
         KColumn(
+            KDataList()
+                .getMe(me => { numberList = me })
+                .add(1, "1")
+                .add(2, "2")
+                .add(3, "3")
+                .add(4, "4")
+                .add(5, "5")
+                .add(6, "6")
+                .add(7, "7")
+                .add(8, "8")
+                .add(9, "9")
+                .add(10, "10"),
+            KText().setDataList(numberList),
+
+        )
+
+
+
+        /*
+        Calculadora
+        */
+
+        function KNumberButon(value) {
+            let obj = new KButton(value);
+            obj.addEvent("click", () => {
+                let v = calculus.getValue();
+                calculus.setValue(v + value);
+            })
+            return obj;
+        }
+
+        KColumn(
+            KText().setName("calculus").getMe(me => { calculus = me }),
             KRow(
-                KText(),
-                KButton().setValue("Hello")
+                KNumberButon("7"),
+                KNumberButon("8"),
+                KNumberButon("9"),
+
             ),
             KRow(
-                KText(),
-                KButton().setValue("World")
+                KNumberButon("4"),
+                KNumberButon("5"),
+                KNumberButon("6"),
+            ),
+            KRow(
+                KNumberButon("1"),
+                KNumberButon("2"),
+                KNumberButon("3"),
+            ),
+            KRow(
+                KNumberButon("0"),
+                KButton("."),
+                KButton("="),
             )
+
         )
     </script>
 
