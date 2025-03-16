@@ -18,6 +18,7 @@ class Kicsy {
     static version = "0.0.1";
     static mainSurface = document.body;
     static applications = [];
+
     static currentUser = null;
     static serverURL = "../Kicsy/KicsyServer.php";
     static windows = [];
@@ -33,10 +34,12 @@ class Kicsy {
      */
     static load(callback = null, ...modules) {
         const t = Date.now();
-        var modulesCounter = modules.length;
 
         // Iterate over each module URL
         for (const module of modules) {
+
+
+
             // Create a new script element
             let script = document.createElement("script");
 
@@ -45,7 +48,6 @@ class Kicsy {
             if (module.indexOf("?") != -1) {
                 sufix = "&t=" + t;
             }
-
 
             // Append the script to the document body
             document.body.appendChild(script);
@@ -3476,6 +3478,14 @@ class KPaperSheetClass extends KicsyVisualContainerComponent {
     sizes = {
         "a4": { width: "210mm", height: "297mm" },
         "letter": { width: "8.5in", height: "11in" },
+        "legal": { width: "8.5in", height: "14in" },
+        "tabloid": { width: "11in", height: "17in" },
+        "ledger": { width: "17in", height: "11in" },
+        "executive": { width: "7.25in", height: "10.5in" },
+        "statement": { width: "5.5in", height: "8.5in" },
+        "big": { width: "30in", height: "42in" },
+
+
     }
 
     setPaperSize(name) {
@@ -3524,14 +3534,14 @@ class KPaperSheetClass extends KicsyVisualContainerComponent {
         this.body = new KLayer();
         this.closeMessageLayer = KLayer()
             .setValue("Pulse ESC para cerrar este reporte")
-            .addCssText("display: block; position: absolute; width: 100%; height: 4em; margin: 10px; padding: 10px; background-color: rgba(234, 238, 228, 1); z-index: 100; text-align: center; font-size: 2em; color: black; border: 1px solid gray;");
+            .addCssText("display: block; position: absolute; top: 0px; width: 100%; height: 4em; margin: 10px; padding: 10px; background-color: rgba(234, 238, 228, 1); z-index: 100; text-align: center; font-size: 2em; color: black; border: 1px solid gray; visibility: hidden;");
+
         this.add(this.body, this.closeMessageLayer);
 
         //set default paper size and properties
         this.addBodyCssText("print-color-adjust: exact;");
         this.addBodyCssText("background-color: white;");
         this.addBodyCssText("border: 1px dotted gray;");
-
 
         //Setup body add methods
         this.add = function (...args) { this.body.add(...args); return this; };
@@ -3544,14 +3554,9 @@ class KPaperSheetClass extends KicsyVisualContainerComponent {
             }
         })
 
-
-
-        this.setPostPublishedCallback(() => {
-            this.setPaperSize(this.selectedPaperSize);
-            this.closeMessageLayer.show();
-            window.setTimeout(() => {
-                this.closeMessageLayer.hide();
-            }, 2000);
+        this.setPostPublishedCallback(function (obj) {
+            obj.setPaperSize(obj.selectedPaperSize);
+            obj.closeMessageLayer.show();
         })
 
     }
@@ -3966,7 +3971,9 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
     maxValue = -Infinity;
 
     leftOffset = 100;
+    leftAdjust = 0;
     bottomOffset = 50;
+    bottomAdjust = 0;
     barSpan = 20;
 
     /**
@@ -3990,6 +3997,16 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
 
     setBottomOffset(value) {
         this.bottomOffset = value;
+        return this;
+    }
+
+    setBottomAdjust(value) {
+        this.bottomAdjust = value;
+        return this;
+    }
+
+    setLeftAdjust(value) {
+        this.leftAdjust = value;
         return this;
     }
 
@@ -4136,7 +4153,7 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
 
                     let tower = KCell();
                     tower.setSize(barWidth, barHeight);
-                    tower.addCssText(`display: inline; position: absolute; bottom: ${this.bottomOffset}px; left: ${barLeft}px;`);
+                    tower.addCssText(`display: inline; position: absolute; bottom: ${this.bottomOffset}px; left: ${barLeft + (barSeparation/2)}px;`);
                     tower.addCssText("background-color: red;  text-align: center;color: white; font-weight: bold; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;");
                     tower.addCssText("border-radius: 4px; border: 1px solid white; box-shadow: 4px 4px 4px black;");
                     tower.addCssText(bar.cssText);
@@ -4146,17 +4163,16 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
 
 
                     let labelBar = KCell();
-                    labelBar.addCssText(`display: block; position: absolute; bottom: ${this.bottomOffset}px; left: ${barLeft}px;`);
+                    labelBar.addCssText(`display: block; position: absolute; bottom: ${this.bottomOffset}px; left: ${barLeft + this.leftAdjust}px;`);
                     labelBar.addCssText("text-align: center;");
                     labelBar.addCssText(this.labelCssText);
                     labelBar.setValue(bar.label);
                     this.add(labelBar);
                     let fontSize = window.getComputedStyle(tower.dom).fontSize;
                     let fontSizeNumber = parseInt(fontSize.match(/\d+/g)[0]);
-                    labelBar.dom.style.bottom = (this.bottomOffset - fontSizeNumber * 2) + "px";
-
+                    labelBar.dom.style.bottom = (this.bottomAdjust + this.bottomOffset - fontSizeNumber * 2) + "px";
                     barLeft += parseInt(barSeparation) + parseInt(barWidth);
-                    console.log(barLeft);
+                  //  console.log(barLeft);
                 }
 
 
@@ -4189,7 +4205,7 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
                     this.add(labelLine);
                     let fontSize = window.getComputedStyle(labelLine.dom).fontSize;
                     let fontSizeNumber = parseInt(fontSize.match(/\d+/g)[0]);
-                    labelLine.dom.style.bottom = (this.bottomOffset - fontSizeNumber * 2) + "px";
+                    labelLine.dom.style.bottom = (this.bottomAdjust + this.bottomOffset - fontSizeNumber * 2) + "px";
 
 
                     leftLine += widthReference;
@@ -4216,7 +4232,7 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
 
                     //label
                     let labelBar = KCell();
-                    labelBar.addCssText(`display: block; position: absolute; left:0px; top:${barTop}px;`);
+                    labelBar.addCssText(`display: block; position: absolute; left:${this.leftAdjust}px; top:${barTop}px;`);
                     labelBar.addCssText("text-align: left;");
                     labelBar.addCssText(this.labelCssText);
                     labelBar.setValue(bar.label);
@@ -4277,6 +4293,7 @@ class KApplicationClass extends KicsyObject {
     rootView
     help;
     iconDrawer;
+    order = 0;
 
     /**
      * Constructor function for the KApplicationClass.
@@ -4510,9 +4527,12 @@ class KDesktopClass extends KApplicationClass {
 
         // Clear the menu of the desktop application
         this.menu.clear();
+
+        // Create an array to hold the applications to be added to the menu
         let apps = [];
+
         // Iterate over each application in the Kicsy.applications array
-        for (let app of Kicsy.applications) {
+        for (let app of Kicsy.applications /*Kicsy.applications*/) {
             // Check if the application has a rootView property that is not undefined and is included in the current user's environments
             if (app.rootView != undefined && app.name != desktopAppName) {
                 // Add the application to the apps array
@@ -4529,8 +4549,8 @@ class KDesktopClass extends KApplicationClass {
         }
 
 
-        apps.sort((a, b) => a.name > b.name);
-
+        //apps.sort((a, b) => a.name > b.name);
+        apps.sort((a, b) => b.order - a.order);
 
         for (let app of apps) {
 
