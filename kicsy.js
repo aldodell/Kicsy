@@ -4153,26 +4153,25 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
 
                     let tower = KCell();
                     tower.setSize(barWidth, barHeight);
-                    tower.addCssText(`display: inline; position: absolute; bottom: ${this.bottomOffset}px; left: ${barLeft + (barSeparation/2)}px;`);
+                    tower.addCssText(`display: inline; position: absolute; bottom: ${this.bottomOffset}px; left: ${barLeft + (barSeparation / 2)}px;`);
                     tower.addCssText("background-color: red;  text-align: center;color: white; font-weight: bold; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;");
                     tower.addCssText("border-radius: 4px; border: 1px solid white; box-shadow: 4px 4px 4px black;");
                     tower.addCssText(bar.cssText);
                     tower.dom.innerHTML = bar.value;
                     this.add(tower);
 
-
-
                     let labelBar = KCell();
-                    labelBar.addCssText(`display: block; position: absolute; bottom: ${this.bottomOffset}px; left: ${barLeft + this.leftAdjust}px;`);
+                    labelBar.addCssText(`display: block; position: absolute; bottom: ${this.bottomOffset}px; left: ${barLeft + this.leftAdjust}px; width: ${barWidth + barSeparation}px;`);
                     labelBar.addCssText("text-align: center;");
                     labelBar.addCssText(this.labelCssText);
                     labelBar.setValue(bar.label);
                     this.add(labelBar);
+
                     let fontSize = window.getComputedStyle(tower.dom).fontSize;
                     let fontSizeNumber = parseInt(fontSize.match(/\d+/g)[0]);
                     labelBar.dom.style.bottom = (this.bottomAdjust + this.bottomOffset - fontSizeNumber * 2) + "px";
                     barLeft += parseInt(barSeparation) + parseInt(barWidth);
-                  //  console.log(barLeft);
+
                 }
 
 
