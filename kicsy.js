@@ -4037,7 +4037,6 @@ class KGraphBarContainerClass extends KicsyVisualContainerComponent {
     clear() {
         super.clear();
         this.bars = [];
-        //this.references = [];
         return this;
     }
 
